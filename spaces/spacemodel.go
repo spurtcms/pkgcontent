@@ -1,6 +1,10 @@
 package spaces
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/datatypes"
+)
 
 type TblSpaces struct {
 	Id             int `gorm:"primaryKey;auto_increment"`
@@ -69,7 +73,7 @@ type TblPagesCategories struct {
 }
 
 type TblLanguage struct {
-	Id           int
+	Id           int `gorm:"primaryKey;auto_increment"`
 	LanguageName string
 	LanguageCode string
 	CreatedOn    time.Time
@@ -99,14 +103,101 @@ type CatgoriesOrd struct {
 	Category string
 }
 
+type TblPagesGroup struct {
+	Id         int `gorm:"primaryKey;auto_increment"`
+	SpacesId   int
+	CreatedOn  time.Time
+	CreatedBy  int
+	ModifiedOn time.Time `gorm:"DEFAULT:NULL"`
+	ModifiedBy int       `gorm:"DEFAULT:NULL"`
+	DeletedOn  time.Time `gorm:"DEFAULT:NULL"`
+	DeletedBy  int       `gorm:"DEFAULT:NULL"`
+	IsDeleted  int       `gorm:"DEFAULT:0"`
+}
+type TblPagesGroupAliases struct {
+	Id               int `gorm:"primaryKey;auto_increment"`
+	PageGroupId      int
+	LanguageId       int
+	GroupName        string
+	GroupSlug        string
+	GroupDescription string
+	CreatedOn        time.Time
+	CreatedBy        int
+	ModifiedOn       time.Time `gorm:"DEFAULT:NULL"`
+	ModifiedBy       int       `gorm:"DEFAULT:NULL"`
+	DeletedOn        time.Time `gorm:"DEFAULT:NULL"`
+	DeletedBy        int       `gorm:"DEFAULT:NULL"`
+	IsDeleted        int       `gorm:"DEFAULT:0"`
+	OrderIndex       int
+}
+
+type TblPage struct {
+	Id          int `gorm:"primaryKey;auto_increment"`
+	SpacesId    int
+	PageGroupId int
+	ParentId    int
+	CreatedOn   time.Time
+	CreatedBy   int
+	ModifiedOn  time.Time `gorm:"DEFAULT:NULL"`
+	ModifiedBy  int       `gorm:"DEFAULT:NULL"`
+	DeletedOn   time.Time `gorm:"DEFAULT:NULL"`
+	DeletedBy   int       `gorm:"DEFAULT:NULL"`
+	IsDeleted   int       `gorm:"DEFAULT:0"`
+}
+
+type MetaDetails struct {
+	MetaTitle       string
+	MetaDescription string
+	Keywords        string
+	Slug            string
+}
+
+type TblPageAliases struct {
+	Id              int `gorm:"primaryKey;auto_increment"`
+	PageId          int
+	LanguageId      int
+	PageTitle       string
+	PageSlug        string
+	PageDescription string
+	PublishedOn     time.Time `gorm:"DEFAULT:NULL"`
+	Author          string
+	Excerpt         string
+	FeaturedImages  string
+	Access          string
+	MetaDetails     datatypes.JSONType[MetaDetails]
+	Status          string
+	AllowComments   bool
+	CreatedOn       time.Time
+	CreatedBy       int
+	ModifiedOn      time.Time `gorm:"DEFAULT:NULL"`
+	ModifiedBy      int       `gorm:"DEFAULT:NULL"`
+	DeletedOn       time.Time `gorm:"DEFAULT:NULL"`
+	DeletedBy       int       `gorm:"DEFAULT:NULL"`
+	IsDeleted       int       `gorm:"DEFAULT:0"`
+	OrderIndex      int
+	PageSuborder    int
+	CreatedDate     string `gorm:"-"`
+	ModifiedDate    string `gorm:"-"`
+	Username        string `gorm:"-"`
+	PageGroupId     int    `gorm:"<-:false"`
+	ParentId        int    `gorm:"<-:false"`
+}
+
+
+
 /*spaceList*/
-func SpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, offset int, filter Filter) (spacecount int64, err error) {
+func SpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, offset int, filter Filter, spaceid []int) (spacecount int64, err error) {
 
 	query := s.Authority.DB.Table("tbl_spaces_aliases").Select("tbl_spaces_aliases.*,tbl_spaces.page_category_id,tbl_pages_categories.parent_id").
 		Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
 		Joins("inner join tbl_language on tbl_language.id = tbl_spaces_aliases.language_id").
 		Joins("inner join tbl_pages_categories on tbl_pages_categories.id = tbl_spaces.page_category_id").
 		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = ?", langId)
+
+	if len(spaceid) != 0 {
+
+		query = query.Where("tbl_spaces.id in (?)", spaceid)
+	}
 
 	if filter.Keyword != "" {
 
@@ -460,4 +551,15 @@ func PageParentCategoryList(pagecategory *[]TblPagesCategoriesAliases) error {
 	}
 	return nil
 
+}
+
+/*spacename*/
+func GetSpaceName(TblSpacesAliases *TblSpacesAliases, spaceid int) error {
+
+	if err := s.Authority.DB.Table("tbl_spaces_aliases").Where("spaces_id=?", spaceid).First(&TblSpacesAliases).Error; err != nil {
+
+		return err
+	}
+
+	return nil
 }

@@ -2,25 +2,30 @@ package spaces
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	authcore "github.com/spurtcms/spurtcms-core/auth"
+	membercore "github.com/spurtcms/spurtcms-core/member"
+	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
 )
+
+var s Space
 
 type Space struct {
 	Authority *authcore.Authority
 }
 
+type MemberSpace struct {
+	MemAuth *authcore.Authority
+}
+
 func init() {
 
 	s.Authority.DB.AutoMigrate(
-		&TblPage{},
-		&TblPageAliases{},
-		&TblPagesGroup{},
-		&TblPagesGroupAliases{},
 		&TblSpaces{},
 		&TblSpacesAliases{},
 		&TblPagesCategories{},
@@ -28,7 +33,7 @@ func init() {
 		&TblLanguage{},
 	)
 
-	s.Authority.DB.Exec(`INSERT INTO PUBLIC.TBL_LANGUAGE(ID,LANGUAGE_NAME,LANGUAGE_CODE,IMAGE_PATH,JSON_PATH,IS_STATUS,IS_DEFAULT,	CREATED_BY,CREATED_ON,MODIFIED_ON,MODIFIED_BY,IS_DELETED,DELETED_ON,DELETED_BY) VALUES (1,'English', 'en', ?, ?, 1, 1, 1, '2023-09-11 11:27:44', ?, ?, 0, ?, ?);`)
+	s.Authority.DB.Exec(`INSERT INTO PUBLIC.TBL_LANGUAGE(ID,LANGUAGE_NAME,LANGUAGE_CODE,JSON_PATH,IS_STATUS,IS_DEFAULT,	CREATED_BY,CREATED_ON,IS_DELETED) VALUES (1,'English', 'en', 'locales/en.json', 1, 1,1, '2023-09-11 11:27:44',0)`)
 }
 
 var IST, _ = time.LoadLocation("Asia/Kolkata")
@@ -49,7 +54,7 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 	var spaces []TblSpacesAliases
 
-	_, spaceerr := SpaceList(&spaces, default_lang.Id, limit, offset, filter)
+	_, spaceerr := SpaceList(&spaces, default_lang.Id, limit, offset, filter, []int{})
 
 	if spaceerr != nil {
 
@@ -94,7 +99,85 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 	}
 
-	count, _ := SpaceList(&spaces, default_lang.Id, 0, 0, filter)
+	count, _ := SpaceList(&spaces, default_lang.Id, 0, 0, filter, []int{})
+
+	return SpaceDetails, count, nil
+
+}
+
+/*spacelist*/
+func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace []TblSpacesAliases, totalcount int64, err error) {
+
+	_, _, checkerr := membercore.VerifyToken(s.MemAuth.Token, s.MemAuth.Secret)
+
+	if checkerr != nil {
+
+		return []TblSpacesAliases{}, 0, checkerr
+	}
+
+	var mem memberaccore.AccessAuth
+
+	mem.Authority = *s.MemAuth
+
+	spceid, err := mem.GetSpace()
+
+	if err != nil {
+
+		log.Println(err)
+	}
+
+	var default_lang TblLanguage
+
+	GetDefaultLanguage(&default_lang)
+
+	var spaces []TblSpacesAliases
+
+	_, spaceerr := SpaceList(&spaces, default_lang.Id, limit, offset, filter, spceid)
+
+	if spaceerr != nil {
+
+		return []TblSpacesAliases{}, 0, spaceerr
+	}
+
+	var SpaceDetails []TblSpacesAliases
+
+	for _, space := range spaces {
+
+		var parent_page_Category TblPagesCategoriesAliases
+
+		_, parent_page := GetParentPageCategory(&parent_page_Category, space.ParentId)
+
+		space.ParentCategory = parent_page
+
+		if parent_page.Id != 0 {
+
+			var child_page_Categories []TblPagesCategoriesAliases
+
+			_, child_page := GetChildPageCategories(&child_page_Categories, space.PageCategoryId)
+
+			for _, child_category := range child_page {
+
+				space.ChildCategories = append(space.ChildCategories, child_category)
+			}
+
+		}
+
+		space.CreatedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+		if !space.ModifiedOn.IsZero() {
+
+			space.ModifiedDate = space.ModifiedOn.Format("02 Jan 2006 03:04 PM")
+
+		} else {
+
+			space.ModifiedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+		}
+		SpaceDetails = append(SpaceDetails, space)
+
+	}
+
+	count, _ := SpaceList(&spaces, default_lang.Id, 0, 0, filter, spceid)
 
 	return SpaceDetails, count, nil
 
@@ -340,7 +423,8 @@ func (s Space) CloneSpace(c *http.Request) error {
 	err := CreateSpacesAliases(&space)
 
 	if err != nil {
-		return err
+
+		log.Println(err)
 	}
 
 	var pagegroupdata []TblPagesGroupAliases
