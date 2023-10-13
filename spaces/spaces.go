@@ -14,11 +14,11 @@ import (
 	"gorm.io/gorm"
 )
 
-var s Space
-
 type Space struct {
 	Authority *authcore.Authority
 }
+
+var s Space
 
 type MemberSpace struct {
 	MemAuth *authcore.Authority
@@ -42,6 +42,8 @@ var IST, _ = time.LoadLocation("Asia/Kolkata")
 /*spacelist*/
 func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpacesAliases, totalcount int64, err error) {
 
+	log.Println()
+
 	_, _, checkerr := authcore.VerifyToken(s.Authority.Token, s.Authority.Secret)
 
 	if checkerr != nil {
@@ -51,11 +53,11 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 	var default_lang TblLanguage
 
-	GetDefaultLanguage(&default_lang)
+	GetDefaultLanguage(&default_lang, s.Authority.DB)
 
 	var spaces []TblSpacesAliases
 
-	_, spaceerr := SpaceList(&spaces, default_lang.Id, limit, offset, filter, []int{})
+	_, spaceerr := SpaceList(&spaces, default_lang.Id, limit, offset, filter, []int{}, s.Authority.DB)
 
 	if spaceerr != nil {
 
@@ -68,7 +70,7 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 		var parent_page_Category TblPagesCategoriesAliases
 
-		_, parent_page := GetParentPageCategory(&parent_page_Category, space.ParentId)
+		_, parent_page := GetParentPageCategory(&parent_page_Category, space.ParentId,s.Authority.DB)
 
 		space.ParentCategory = parent_page
 
@@ -76,7 +78,7 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 			var child_page_Categories []TblPagesCategoriesAliases
 
-			_, child_page := GetChildPageCategories(&child_page_Categories, space.PageCategoryId)
+			_, child_page := GetChildPageCategories(&child_page_Categories, space.PageCategoryId,s.Authority.DB)
 
 			for _, child_category := range child_page {
 
@@ -100,7 +102,7 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 	}
 
-	count, _ := SpaceList(&spaces, default_lang.Id, 0, 0, filter, []int{})
+	count, _ := SpaceList(&spaces, default_lang.Id, 0, 0, filter, []int{}, s.Authority.DB)
 
 	return SpaceDetails, count, nil
 
@@ -129,11 +131,11 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 
 	var default_lang TblLanguage
 
-	GetDefaultLanguage(&default_lang)
+	GetDefaultLanguage(&default_lang, s.MemAuth.DB)
 
 	var spaces []TblSpacesAliases
 
-	_, spaceerr := SpaceList(&spaces, default_lang.Id, limit, offset, filter, spceid)
+	_, spaceerr := SpaceList(&spaces, default_lang.Id, limit, offset, filter, spceid, s.MemAuth.DB)
 
 	if spaceerr != nil {
 
@@ -146,7 +148,7 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 
 		var parent_page_Category TblPagesCategoriesAliases
 
-		_, parent_page := GetParentPageCategory(&parent_page_Category, space.ParentId)
+		_, parent_page := GetParentPageCategory(&parent_page_Category, space.ParentId,s.MemAuth.DB)
 
 		space.ParentCategory = parent_page
 
@@ -154,7 +156,7 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 
 			var child_page_Categories []TblPagesCategoriesAliases
 
-			_, child_page := GetChildPageCategories(&child_page_Categories, space.PageCategoryId)
+			_, child_page := GetChildPageCategories(&child_page_Categories, space.PageCategoryId,s.MemAuth.DB)
 
 			for _, child_category := range child_page {
 
@@ -178,7 +180,7 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 
 	}
 
-	count, _ := SpaceList(&spaces, default_lang.Id, 0, 0, filter, spceid)
+	count, _ := SpaceList(&spaces, default_lang.Id, 0, 0, filter, spceid, s.MemAuth.DB)
 
 	return SpaceDetails, count, nil
 
@@ -295,14 +297,14 @@ func (s Space) SpaceUpdate(c *http.Request) error {
 
 	space.ModifiedBy = userid
 
-	err1 := EditSpace(&spaces, id)
+	err1 := EditSpace(&spaces, id,s.Authority.DB)
 
 	if err != nil {
 
 		return err1
 	}
 
-	err2 := UpdateSpace(&space, id)
+	err2 := UpdateSpace(&space, id,s.Authority.DB)
 
 	if err2 != nil {
 
@@ -322,11 +324,16 @@ func (s Space) DeleteSpace(spaceid int) error {
 		return checkerr
 	}
 
+	_, err := s.Authority.IsGranted("Spaces", authcore.CRUD)
+
+	if err != nil {
+
+		return err
+	}
+
 	var spaces TblSpacesAliases
 
 	var space TblSpaces
-
-	var page TblPage
 
 	var pageali TblPageAliases
 
@@ -348,29 +355,56 @@ func (s Space) DeleteSpace(spaceid int) error {
 
 	var isdeleted = 1
 
-	page.DeletedOn = deletedon
-
-	page.DeletedBy = deletedby
-
-	page.IsDeleted = isdeleted
-
 	pageali.DeletedOn = deletedon
 
 	pageali.DeletedBy = deletedby
 
 	pageali.IsDeleted = isdeleted
 
-	err := DeleteSpaceAliases(&spaces, spaceid)
+	err1 := DeleteSpaceAliases(&spaces, spaceid,s.Authority.DB)
 
-	if err != nil {
+	if err1 != nil {
 		return err
 	}
 
-	err1 := DeleteSpace(&space, spaceid)
+	err2 := DeleteSpace(&space, spaceid,s.Authority.DB)
 
-	if err1 != nil {
-		return err1
+	if err2 != nil {
+		return err2
 	}
+
+
+	var page []TblPage
+
+	GetPageDetailsBySpaceId(&page, spaceid,s.Authority.DB)
+
+	var pid []int
+
+	for _, v := range page {
+
+		pid = append(pid, v.Id)
+
+	}
+
+	var pg TblPage
+
+	pg.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+	pg.DeletedBy = userid
+
+	pg.IsDeleted = 1
+
+	DeletePageInSpace(&pg, pid,s.Authority.DB)
+
+	var pgali TblPageAliases
+
+	pgali.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+	pgali.DeletedBy = userid
+
+	pgali.IsDeleted = 1
+
+	DeletePageAliInSpace(&pgali, pid,s.Authority.DB)
 
 	return nil
 }
@@ -417,11 +451,11 @@ func (s Space) CloneSpace(c *http.Request) error {
 
 	space.CreatedBy = userid
 
-	tblspaces, _ := CreateSpace(&spaces)
+	tblspaces, _ := CreateSpace(&spaces,s.Authority.DB)
 
 	space.SpacesId = tblspaces.Id
 
-	err := CreateSpacesAliases(&space)
+	err := CreateSpacesAliases(&space,s.Authority.DB)
 
 	if err != nil {
 
@@ -430,7 +464,7 @@ func (s Space) CloneSpace(c *http.Request) error {
 
 	var pagegroupdata []TblPagesGroupAliases
 
-	GetPageGroupData(&pagegroupdata, spaceid)
+	GetPageGroupData(&pagegroupdata, spaceid,s.Authority.DB)
 
 	for _, value := range pagegroupdata {
 
@@ -438,7 +472,7 @@ func (s Space) CloneSpace(c *http.Request) error {
 
 		group.SpacesId = tblspaces.Id
 
-		groups, _ := CloneSpaceInPagesGroup(&group)
+		groups, _ := CloneSpaceInPagesGroup(&group,s.Authority.DB)
 
 		var pagegroup TblPagesGroupAliases
 
@@ -446,12 +480,12 @@ func (s Space) CloneSpace(c *http.Request) error {
 
 		pagegroup.PageGroupId = groups.Id
 
-		ClonePagesGroup(&pagegroup)
+		ClonePagesGroup(&pagegroup,s.Authority.DB)
 	}
 
 	var pageId []TblPageAliases
 
-	GetPageInPage(&pageId, spaceid) //parentid 0 and groupid 0
+	GetPageInPage(&pageId, spaceid,s.Authority.DB) //parentid 0 and groupid 0
 
 	for _, val := range pageId {
 
@@ -463,7 +497,7 @@ func (s Space) CloneSpace(c *http.Request) error {
 
 		page.ParentId = 0
 
-		pageid, _ := ClonePage(&page)
+		pageid, _ := ClonePage(&page,s.Authority.DB)
 
 		var pagesali TblPageAliases
 
@@ -471,23 +505,23 @@ func (s Space) CloneSpace(c *http.Request) error {
 
 		pagesali.PageId = pageid.Id
 
-		ClonePages(&pagesali)
+		ClonePages(&pagesali,s.Authority.DB)
 
 	}
 
 	var pagegroupaldata TblPagesGroupAliases
 
-	GetIdInPage(&pagegroupaldata, spaceid) // parentid = 0 and groupid != 0
+	GetIdInPage(&pagegroupaldata, spaceid,s.Authority.DB) // parentid = 0 and groupid != 0
 
 	var pagealiase []TblPageAliases
 
-	GetPageAliasesInPage(&pagealiase, spaceid) // parentid = 0 and groupid != 0
+	GetPageAliasesInPage(&pagealiase, spaceid,s.Authority.DB) // parentid = 0 and groupid != 0
 
 	for _, value := range pagealiase {
 
 		var pageal TblPagesGroupAliases
 
-		GetDetailsInPageAli(&pageal, pagegroupaldata.GroupName, tblspaces.Id)
+		GetDetailsInPageAli(&pageal, pagegroupaldata.GroupName, tblspaces.Id,s.Authority.DB)
 
 		// var parent TblPage
 
@@ -501,7 +535,7 @@ func (s Space) CloneSpace(c *http.Request) error {
 
 		page.ParentId = 0
 
-		pagess, _ := ClonePage(&page)
+		pagess, _ := ClonePage(&page,s.Authority.DB)
 
 		var pagesali TblPageAliases
 
@@ -509,13 +543,13 @@ func (s Space) CloneSpace(c *http.Request) error {
 
 		pagesali.PageId = pagess.Id
 
-		ClonePages(&pagesali)
+		ClonePages(&pagesali,s.Authority.DB)
 
 	}
 
 	var pagealiasedata []TblPageAliases
 
-	GetPageAliasesInPageData(&pagealiasedata, spaceid) // parentid != 0 and groupid = 0
+	GetPageAliasesInPageData(&pagealiasedata, spaceid,s.Authority.DB) // parentid != 0 and groupid = 0
 
 	for _, result := range pagealiasedata {
 
@@ -525,11 +559,11 @@ func (s Space) CloneSpace(c *http.Request) error {
 
 			var pagesgroupal TblPagesGroupAliases
 
-			GetDetailsInPageAlia(&pagesgroupal, result.PageGroupId, spaceid) // parentid != 0 and groupid = 0
+			GetDetailsInPageAlia(&pagesgroupal, result.PageGroupId, spaceid,s.Authority.DB) // parentid != 0 and groupid = 0
 
 			var pageal TblPagesGroupAliases
 
-			GetDetailsInPageAli(&pageal, pagesgroupal.GroupName, tblspaces.Id)
+			GetDetailsInPageAli(&pageal, pagesgroupal.GroupName, tblspaces.Id,s.Authority.DB)
 
 			newgroupid = pageal.PageGroupId
 
@@ -537,11 +571,11 @@ func (s Space) CloneSpace(c *http.Request) error {
 
 		var pagealid TblPageAliases
 
-		AliasesInParentId(&pagealid, result.ParentId, spaceid)
+		AliasesInParentId(&pagealid, result.ParentId, spaceid,s.Authority.DB)
 
 		var pageali TblPageAliases
 
-		LastLoopAliasesInPage(&pageali, pagealid.PageTitle, tblspaces.Id)
+		LastLoopAliasesInPage(&pageali, pagealid.PageTitle, tblspaces.Id,s.Authority.DB)
 
 		var page TblPage
 
@@ -551,7 +585,7 @@ func (s Space) CloneSpace(c *http.Request) error {
 
 		page.ParentId = pageali.PageId
 
-		pagealiid, _ := ClonePage(&page)
+		pagealiid, _ := ClonePage(&page,s.Authority.DB)
 
 		var pagesali TblPageAliases
 
@@ -559,7 +593,7 @@ func (s Space) CloneSpace(c *http.Request) error {
 
 		pagesali.PageId = pagealiid.Id
 
-		ClonePages(&pagesali)
+		ClonePages(&pagesali,s.Authority.DB)
 
 	}
 
@@ -571,13 +605,13 @@ func PageCategoryList() []Arrangecategories {
 
 	var getallparentcat []TblPagesCategoriesAliases
 
-	PageParentCategoryList(&getallparentcat)
+	PageParentCategoryList(&getallparentcat,s.Authority.DB)
 
 	var AllCategorieswithSubCategories []Arrangecategories
 
 	for _, Group := range getallparentcat {
 
-		GetData, _ := GetPageCategoryTree(Group.PageCategoryId)
+		GetData, _ := GetPageCategoryTree(Group.PageCategoryId,s.Authority.DB)
 
 		var pid int
 
