@@ -50,28 +50,40 @@ func (p Page) SpaceDetail(spaceid int) (space spaces.TblSpaces, err error) {
 		return spaces.TblSpaces{}, checkerr
 	}
 
-	var spacename spaces.TblSpacesAliases
+	check, err := s.Authority.IsGranted("Spaces", authcore.CRUD)
 
-	err1 := spaces.GetSpaceName(&spacename, spaceid, s.Authority.DB)
+	if err != nil {
 
-	var tblspace spaces.TblSpaces
-
-	spaces.GetSpaceDetails(&tblspace, spaceid, p.Authority.DB)
-
-	tblspace.SpaceName = spacename.SpacesName
-
-	tblspace.CreatedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
-
-	if tblspace.ModifiedOn.IsZero() {
-
-		tblspace.ModifiedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
-
-	} else {
-
-		tblspace.ModifiedDate = tblspace.ModifiedOn.Format("02 Jan 2006 3:04 PM")
+		return spaces.TblSpaces{},err
 	}
 
-	return tblspace,err1
+	if check {
+
+		var spacename spaces.TblSpacesAliases
+
+		err1 := spaces.GetSpaceName(&spacename, spaceid, s.Authority.DB)
+
+		var tblspace spaces.TblSpaces
+
+		spaces.GetSpaceDetails(&tblspace, spaceid, p.Authority.DB)
+
+		tblspace.SpaceName = spacename.SpacesName
+
+		tblspace.CreatedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
+
+		if tblspace.ModifiedOn.IsZero() {
+
+			tblspace.ModifiedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
+
+		} else {
+
+			tblspace.ModifiedDate = tblspace.ModifiedOn.Format("02 Jan 2006 3:04 PM")
+		}
+
+		return tblspace, err1
+
+	}
+	return spaces.TblSpaces{},errors.New("not authorized")
 }
 
 /*Get Page log*/
