@@ -1,4 +1,4 @@
-package spaces
+package pages
 
 import (
 	"time"
