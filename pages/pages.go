@@ -27,9 +27,9 @@ type MemberPage struct {
 	MemAuth *authcore.Authority
 }
 
-func init() {
+func MigrateTable(db *gorm.DB) {
 
-	s.Authority.DB.AutoMigrate(
+	db.AutoMigrate(
 		&TblPage{},
 		&TblPageAliases{},
 		&TblPagesGroup{},

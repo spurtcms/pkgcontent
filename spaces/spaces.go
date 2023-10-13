@@ -11,6 +11,7 @@ import (
 	authcore "github.com/spurtcms/spurtcms-core/auth"
 	membercore "github.com/spurtcms/spurtcms-core/member"
 	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
+	"gorm.io/gorm"
 )
 
 var s Space
@@ -23,9 +24,9 @@ type MemberSpace struct {
 	MemAuth *authcore.Authority
 }
 
-func init() {
+func MigrateTable(db *gorm.DB) {
 
-	s.Authority.DB.AutoMigrate(
+	db.AutoMigrate(
 		&TblSpaces{},
 		&TblSpacesAliases{},
 		&TblPagesCategories{},
@@ -33,7 +34,7 @@ func init() {
 		&TblLanguage{},
 	)
 
-	s.Authority.DB.Exec(`INSERT INTO PUBLIC.TBL_LANGUAGE(ID,LANGUAGE_NAME,LANGUAGE_CODE,JSON_PATH,IS_STATUS,IS_DEFAULT,	CREATED_BY,CREATED_ON,IS_DELETED) VALUES (1,'English', 'en', 'locales/en.json', 1, 1,1, '2023-09-11 11:27:44',0)`)
+	db.Exec(`INSERT INTO PUBLIC.TBL_LANGUAGE(ID,LANGUAGE_NAME,LANGUAGE_CODE,JSON_PATH,IS_STATUS,IS_DEFAULT,	CREATED_BY,CREATED_ON,IS_DELETED) VALUES (1,'English', 'en', 'locales/en.json', 1, 1,1, '2023-09-11 11:27:44',0)`)
 }
 
 var IST, _ = time.LoadLocation("Asia/Kolkata")
