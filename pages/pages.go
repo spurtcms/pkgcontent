@@ -28,6 +28,9 @@ type MemberPage struct {
 	MemAuth *authcore.Authority
 }
 
+type PageStrut struct{}
+var PG PageStrut
+
 func MigrateTable(db *gorm.DB) {
 
 	db.AutoMigrate(
@@ -54,18 +57,20 @@ func (p Page) SpaceDetail(spaceid int) (space spaces.TblSpaces, err error) {
 
 	if err != nil {
 
-		return spaces.TblSpaces{},err
+		return spaces.TblSpaces{}, err
 	}
 
 	if check {
 
+		var SP spaces.SPM
+
 		var spacename spaces.TblSpacesAliases
 
-		err1 := spaces.GetSpaceName(&spacename, spaceid, s.Authority.DB)
+		err1 := SP.GetSpaceName(&spacename, spaceid, s.Authority.DB)
 
 		var tblspace spaces.TblSpaces
 
-		spaces.GetSpaceDetails(&tblspace, spaceid, p.Authority.DB)
+		SP.GetSpaceDetails(&tblspace, spaceid, p.Authority.DB)
 
 		tblspace.SpaceName = spacename.SpacesName
 
@@ -83,7 +88,7 @@ func (p Page) SpaceDetail(spaceid int) (space spaces.TblSpaces, err error) {
 		return tblspace, err1
 
 	}
-	return spaces.TblSpaces{},errors.New("not authorized")
+	return spaces.TblSpaces{}, errors.New("not authorized")
 }
 
 /*Get Page log*/
@@ -98,7 +103,7 @@ func (p Page) PageAliasesLog(spaceid int) (log []PageLog, err error) {
 
 	var pagelog []TblPageAliasesLog
 
-	err2 := GetPageLogDetails(&pagelog, spaceid, p.Authority.DB)
+	err2 := PG.GetPageLogDetails(&pagelog, spaceid, p.Authority.DB)
 
 	var finallog []PageLog
 
@@ -143,7 +148,7 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 
 	var pagegroups []PageGroups
 
-	SelectGroup(&group, spaceid, []int{}, p.Authority.DB)
+	PG.SelectGroup(&group, spaceid, []int{}, p.Authority.DB)
 
 	for _, group := range group {
 
@@ -151,7 +156,7 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 
 		var page_group PageGroups
 
-		PageGroup(&pagegroup, group.Id, p.Authority.DB)
+		PG.PageGroup(&pagegroup, group.Id, p.Authority.DB)
 
 		page_group.GroupId = pagegroup.PageGroupId
 
@@ -168,7 +173,7 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 
 	var subpages []SubPages
 
-	SelectPage(&page, spaceid, []int{}, p.Authority.DB)
+	PG.SelectPage(&page, spaceid, []int{}, p.Authority.DB)
 
 	for _, page := range page {
 
@@ -180,7 +185,7 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 
 			var subpage SubPages
 
-			PageAliases(&page_aliases, sid, p.Authority.DB)
+			PG.PageAliases(&page_aliases, sid, p.Authority.DB)
 
 			subpage.SpgId = page_aliases.PageId
 
@@ -200,7 +205,7 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 
 			var one_page Pages
 
-			PageAliases(&page_aliases, pgid, p.Authority.DB)
+			PG.PageAliases(&page_aliases, pgid, p.Authority.DB)
 
 			one_page.PgId = page_aliases.PageId
 
@@ -255,7 +260,7 @@ func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPag
 
 	var pagegroups []PageGroups
 
-	SelectGroup(&group, spaceid, grpid, p.MemAuth.DB)
+	PG.SelectGroup(&group, spaceid, grpid, p.MemAuth.DB)
 
 	for _, group := range group {
 
@@ -263,7 +268,7 @@ func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPag
 
 		var page_group PageGroups
 
-		PageGroup(&pagegroup, group.Id, p.MemAuth.DB)
+		PG.PageGroup(&pagegroup, group.Id, p.MemAuth.DB)
 
 		page_group.GroupId = pagegroup.PageGroupId
 
@@ -281,7 +286,7 @@ func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPag
 
 	var subpages []SubPages
 
-	SelectPage(&page, spaceid, pageid, p.MemAuth.DB)
+	PG.SelectPage(&page, spaceid, pageid, p.MemAuth.DB)
 
 	for _, page := range page {
 
@@ -293,7 +298,7 @@ func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPag
 
 			var subpage SubPages
 
-			PageAliases(&page_aliases, sid, p.MemAuth.DB)
+			PG.PageAliases(&page_aliases, sid, p.MemAuth.DB)
 
 			subpage.SpgId = page_aliases.PageId
 
@@ -313,7 +318,7 @@ func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPag
 
 			var one_page Pages
 
-			PageAliases(&page_aliases, pgid, p.MemAuth.DB)
+			PG.PageAliases(&page_aliases, pgid, p.MemAuth.DB)
 
 			one_page.PgId = page_aliases.PageId
 
@@ -427,7 +432,7 @@ func (p Page) InsertPage(c *http.Request) error {
 		/*check if exists*/
 		var ckgroupali TblPagesGroup
 
-		CheckGroupExists(&ckgroupali, val.GroupId, spaceId, p.Authority.DB)
+		PG.CheckGroupExists(&ckgroupali, val.GroupId, spaceId, p.Authority.DB)
 
 		if ckgroupali.Id == 0 && val.NewGroupId != 0 {
 
@@ -440,7 +445,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 			groups.CreatedBy = userid
 
-			grpreturn, _ := CreatePageGroup(&groups, p.Authority.DB)
+			grpreturn, _ := PG.CreatePageGroup(&groups, p.Authority.DB)
 
 			/*group aliases tbl_page_group_aliases*/
 			var groupali TblPagesGroupAliases
@@ -459,7 +464,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 			groupali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-			err = CreatePageGroupAliases(&groupali, p.Authority.DB)
+			err = PG.CreatePageGroupAliases(&groupali, p.Authority.DB)
 
 		} else {
 
@@ -477,7 +482,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 			uptgroup.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-			err = UpdatePageGroupAliases(&uptgroup, val.GroupId, p.Authority.DB)
+			err = PG.UpdatePageGroupAliases(&uptgroup, val.GroupId, p.Authority.DB)
 
 		}
 
@@ -493,7 +498,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 				var getgid TblPagesGroupAliases
 
-				GetPageGroupByName(&getgid, spaceId, grp.Name, p.Authority.DB)
+				PG.GetPageGroupByName(&getgid, spaceId, grp.Name, p.Authority.DB)
 
 				newgrpid = getgid.PageGroupId
 
@@ -504,7 +509,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 		var checkpage TblPage
 
-		err := CheckPageExists(&checkpage, val.PgId, spaceId, p.Authority.DB)
+		err := PG.CheckPageExists(&checkpage, val.PgId, spaceId, p.Authority.DB)
 
 		if val.Pgroupid == 0 && val.NewGrpId == 0 && val.ParentId == 0 {
 
@@ -523,7 +528,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 				page.CreatedBy = userid
 
-				pageret, _ := CreatePage(&page, p.Authority.DB)
+				pageret, _ := PG.CreatePage(&page, p.Authority.DB)
 
 				for _, newval := range createSub.SubPage {
 
@@ -568,7 +573,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 				pageali.Access = "public"
 
-				err = CreatepageAliases(&pageali, p.Authority.DB)
+				err = PG.CreatepageAliases(&pageali, p.Authority.DB)
 
 				/*This is for log*/
 				var pagelog TblPageAliasesLog
@@ -593,7 +598,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 				pagelog.Access = "public"
 
-				PageAliasesLog(&pagelog, p.Authority.DB)
+				PG.PageAliasesLog(&pagelog, p.Authority.DB)
 
 			} else {
 
@@ -603,7 +608,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 				uptpage.ParentId = val.ParentId
 
-				UpdatePage(&uptpage, val.PgId, p.Authority.DB)
+				PG.UpdatePage(&uptpage, val.PgId, p.Authority.DB)
 
 				var uptpageali TblPageAliases
 
@@ -621,7 +626,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 				uptpageali.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-				err = UpdatePageAliase(&uptpageali, val.PgId, p.Authority.DB)
+				err = PG.UpdatePageAliase(&uptpageali, val.PgId, p.Authority.DB)
 
 				/*This is for log*/
 				var pagelog TblPageAliasesLog
@@ -648,7 +653,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 				pagelog.Access = "public"
 
-				PageAliasesLog(&pagelog, p.Authority.DB)
+				PG.PageAliasesLog(&pagelog, p.Authority.DB)
 			}
 
 		}
@@ -670,7 +675,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 				page.CreatedBy = userid
 
-				pageret, _ := CreatePage(&page, p.Authority.DB)
+				pageret, _ := PG.CreatePage(&page, p.Authority.DB)
 
 				for _, newval := range createSub.SubPage {
 
@@ -715,7 +720,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 				pageali.Access = "public"
 
-				err = CreatepageAliases(&pageali, p.Authority.DB)
+				err = PG.CreatepageAliases(&pageali, p.Authority.DB)
 
 				/*This is for log*/
 				var pagelog TblPageAliasesLog
@@ -740,7 +745,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 				pagelog.Access = "public"
 
-				PageAliasesLog(&pagelog, p.Authority.DB)
+				PG.PageAliasesLog(&pagelog, p.Authority.DB)
 
 			} else {
 
@@ -750,7 +755,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 				uptpage.ParentId = val.ParentId
 
-				UpdatePage(&uptpage, val.PgId, p.Authority.DB)
+				PG.UpdatePage(&uptpage, val.PgId, p.Authority.DB)
 
 				var uptpageali TblPageAliases
 
@@ -768,7 +773,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 				uptpageali.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-				err = UpdatePageAliase(&uptpageali, val.PgId, p.Authority.DB)
+				err = PG.UpdatePageAliase(&uptpageali, val.PgId, p.Authority.DB)
 
 				/*This is for log*/
 				var pagelog TblPageAliasesLog
@@ -795,7 +800,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 				pagelog.Access = "public"
 
-				PageAliasesLog(&pagelog, p.Authority.DB)
+				PG.PageAliasesLog(&pagelog, p.Authority.DB)
 			}
 
 		}
@@ -823,7 +828,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 						var getgid TblPagesGroupAliases
 
-						GetPageGroupByName(&getgid, spaceId, grp.Name, p.Authority.DB)
+						PG.GetPageGroupByName(&getgid, spaceId, grp.Name, p.Authority.DB)
 
 						newgrpid = getgid.PageGroupId
 
@@ -839,7 +844,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 					var getpage TblPageAliases
 
-					GetPageDataByName(&getpage, spaceId, pg.Name, p.Authority.DB)
+					PG.GetPageDataByName(&getpage, spaceId, pg.Name, p.Authority.DB)
 
 					pgid = getpage.PageId
 				}
@@ -873,7 +878,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 					page.CreatedBy = userid
 
-					pageret, _ := CreatePage(&page, p.Authority.DB)
+					pageret, _ := PG.CreatePage(&page, p.Authority.DB)
 
 					/*page creation tbl_page_aliases*/
 					var pageali TblPageAliases
@@ -898,7 +903,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 					pageali.Access = "public"
 
-					err = CreatepageAliases(&pageali, p.Authority.DB)
+					err = PG.CreatepageAliases(&pageali, p.Authority.DB)
 
 					/*This is for log*/
 					var pagelog TblPageAliasesLog
@@ -921,7 +926,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 					pagelog.Access = "public"
 
-					PageAliasesLog(&pagelog, p.Authority.DB)
+					PG.PageAliasesLog(&pagelog, p.Authority.DB)
 
 				} else {
 
@@ -931,7 +936,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 					uptpage.ParentId = val.ParentId
 
-					UpdatePage(&uptpage, val.SpgId, p.Authority.DB)
+					PG.UpdatePage(&uptpage, val.SpgId, p.Authority.DB)
 
 					var uptpageali TblPageAliases
 
@@ -949,7 +954,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 					uptpageali.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-					err = UpdatePageAliase(&uptpageali, val.SpgId, p.Authority.DB)
+					err = PG.UpdatePageAliase(&uptpageali, val.SpgId, p.Authority.DB)
 
 					/*This is for log*/
 					var pagelog TblPageAliasesLog
@@ -976,7 +981,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 					pagelog.Access = "public"
 
-					PageAliasesLog(&pagelog, p.Authority.DB)
+					PG.PageAliasesLog(&pagelog, p.Authority.DB)
 				}
 
 				break
@@ -999,7 +1004,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 					page.CreatedBy = userid
 
-					pageret, _ := CreatePage(&page, p.Authority.DB)
+					pageret, _ := PG.CreatePage(&page, p.Authority.DB)
 
 					/*page creation tbl_page_aliases*/
 					var pageali TblPageAliases
@@ -1024,7 +1029,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 					pageali.Access = "public"
 
-					err = CreatepageAliases(&pageali, p.Authority.DB)
+					err = PG.CreatepageAliases(&pageali, p.Authority.DB)
 
 					/*This is for log*/
 					var pagelog TblPageAliasesLog
@@ -1047,7 +1052,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 					pagelog.Access = "public"
 
-					PageAliasesLog(&pagelog, p.Authority.DB)
+					PG.PageAliasesLog(&pagelog, p.Authority.DB)
 
 				} else {
 
@@ -1057,7 +1062,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 					uptpage.ParentId = val.ParentId
 
-					UpdatePage(&uptpage, val.SpgId, p.Authority.DB)
+					PG.UpdatePage(&uptpage, val.SpgId, p.Authority.DB)
 
 					var uptpageali TblPageAliases
 
@@ -1075,7 +1080,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 					uptpageali.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-					err = UpdatePageAliase(&uptpageali, val.SpgId, p.Authority.DB)
+					err = PG.UpdatePageAliase(&uptpageali, val.SpgId, p.Authority.DB)
 
 					/*This is for log*/
 					var pagelog TblPageAliasesLog
@@ -1102,7 +1107,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 					pagelog.Access = "public"
 
-					PageAliasesLog(&pagelog, p.Authority.DB)
+					PG.PageAliasesLog(&pagelog, p.Authority.DB)
 				}
 
 				break
@@ -1128,7 +1133,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 		deletegroup.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-		DeletePageGroup(&deletegroup, val.GroupId, p.Authority.DB)
+		PG.DeletePageGroup(&deletegroup, val.GroupId, p.Authority.DB)
 
 		var deletegroupali TblPagesGroupAliases
 
@@ -1138,7 +1143,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 		deletegroupali.IsDeleted = 1
 
-		err = DeletePageGroupAliases(&deletegroupali, val.GroupId, p.Authority.DB)
+		err = PG.DeletePageGroupAliases(&deletegroupali, val.GroupId, p.Authority.DB)
 
 	}
 
@@ -1154,7 +1159,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 		deletegroup.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-		DeletePage(&deletegroup, val.PgId, p.Authority.DB)
+		PG.DeletePage(&deletegroup, val.PgId, p.Authority.DB)
 
 		var deletegroupali TblPageAliases
 
@@ -1164,7 +1169,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 		deletegroupali.IsDeleted = 1
 
-		err = DeletePageAliases(&deletegroupali, val.PgId, p.Authority.DB)
+		err = PG.DeletePageAliases(&deletegroupali, val.PgId, p.Authority.DB)
 
 		/*This is for log*/
 		var pagelog TblPageAliasesLog
@@ -1189,7 +1194,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 		pagelog.Access = "public"
 
-		PageAliasesLog(&pagelog, p.Authority.DB)
+		PG.PageAliasesLog(&pagelog, p.Authority.DB)
 
 	}
 
@@ -1207,7 +1212,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 		deletegroup.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-		DeletePage(&deletegroup, val.SpgId, p.Authority.DB)
+		PG.DeletePage(&deletegroup, val.SpgId, p.Authority.DB)
 
 		var deletegroupali TblPageAliases
 
@@ -1217,7 +1222,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 		deletegroupali.IsDeleted = 1
 
-		err = DeletePageAliase(&deletegroupali, val.SpgId, p.Authority.DB)
+		err = PG.DeletePageAliase(&deletegroupali, val.SpgId, p.Authority.DB)
 
 		/*This is for log*/
 		var pagelog TblPageAliasesLog
@@ -1242,7 +1247,7 @@ func (p Page) InsertPage(c *http.Request) error {
 
 		pagelog.Access = "public"
 
-		PageAliasesLog(&pagelog, p.Authority.DB)
+		PG.PageAliasesLog(&pagelog, p.Authority.DB)
 
 	}
 

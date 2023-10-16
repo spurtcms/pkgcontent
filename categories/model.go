@@ -132,7 +132,7 @@ func CreateCategory(category *TblCategory, DB *gorm.DB) error {
 func UpdateCategory(category *TblCategory, DB *gorm.DB) error {
 
 	// return nil
-	if err := DB.Debug().Table(" tbl_categories").Where("id = ?", category.Id).UpdateColumns(map[string]interface{}{"category_name": category.CategoryName, "category_slug": category.CategorySlug, "description": category.Description, "image_path": category.ImagePath, "modified_by": category.ModifiedBy, "modified_on": category.ModifiedOn}).Error; err != nil {
+	if err := DB.Table(" tbl_categories").Where("id = ?", category.Id).UpdateColumns(map[string]interface{}{"category_name": category.CategoryName, "category_slug": category.CategorySlug, "description": category.Description, "image_path": category.ImagePath, "modified_by": category.ModifiedBy, "modified_on": category.ModifiedOn}).Error; err != nil {
 
 		return err
 	}
@@ -160,13 +160,14 @@ func DeleteCategoryById(category *TblCategory, categoryId int, DB *gorm.DB) erro
 }
 
 /*getCategory Details*/
-func GetCategoryById(category *TblCategory, categoryId int, DB *gorm.DB) error {
+func GetCategoryById(category *TblCategory, categoryId int, DB *gorm.DB) (categorylist TblCategory, err error) {
+	
 
 	if err := DB.Table("tbl_categories").Where("is_deleted=0 and id=?", categoryId).First(&category).Error; err != nil {
 
-		return err
+		return TblCategory{}, err
 	}
-	return nil
+	return *category, nil
 }
 
 // Get Childern list

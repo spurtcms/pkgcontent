@@ -151,7 +151,7 @@ type TblPageAliasesLog struct {
 	ParentId        int       `gorm:"<-:false"`
 }
 
-func CreatePageGroup(tblpagegroup *TblPagesGroup, DB *gorm.DB) (*TblPagesGroup, error) {
+func (P PageStrut) CreatePageGroup(tblpagegroup *TblPagesGroup, DB *gorm.DB) (*TblPagesGroup, error) {
 
 	if err := DB.Table("tbl_pages_group").Create(&tblpagegroup).Error; err != nil {
 
@@ -163,7 +163,7 @@ func CreatePageGroup(tblpagegroup *TblPagesGroup, DB *gorm.DB) (*TblPagesGroup, 
 }
 
 // create page
-func Createpage(tblpage *TblPage, DB *gorm.DB) error {
+func (P PageStrut) Createpage(tblpage *TblPage, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page").Create(&tblpage).Error; err != nil {
 
@@ -175,7 +175,7 @@ func Createpage(tblpage *TblPage, DB *gorm.DB) error {
 }
 
 // create PageAliases
-func CreatepageAliases(tblpageAliases *TblPageAliases, DB *gorm.DB) error {
+func (P PageStrut) CreatepageAliases(tblpageAliases *TblPageAliases, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page_aliases").Create(&tblpageAliases).Error; err != nil {
 
@@ -187,7 +187,7 @@ func CreatepageAliases(tblpageAliases *TblPageAliases, DB *gorm.DB) error {
 }
 
 /*Create PagegroupAliases */
-func CreatePageGroupAliases(tblpagegroup *TblPagesGroupAliases, DB *gorm.DB) error {
+func (P PageStrut) CreatePageGroupAliases(tblpagegroup *TblPagesGroupAliases, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_pages_group_aliases").Create(&tblpagegroup).Error; err != nil {
 
@@ -198,7 +198,7 @@ func CreatePageGroupAliases(tblpagegroup *TblPagesGroupAliases, DB *gorm.DB) err
 }
 
 /*Update pagegroup*/
-func UpdatePageGroup(tblpagegroup *TblPagesGroup, id int, DB *gorm.DB) error {
+func (P PageStrut) UpdatePageGroup(tblpagegroup *TblPagesGroup, id int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_pages_group").Where("id = ?", id).UpdateColumns(map[string]interface{}{"modified_on": tblpagegroup.ModifiedOn, "modified_by": tblpagegroup.ModifiedBy}).Error; err != nil {
 
@@ -209,7 +209,7 @@ func UpdatePageGroup(tblpagegroup *TblPagesGroup, id int, DB *gorm.DB) error {
 }
 
 /*pdate pagegroupAliases */
-func UpdatePageGroupAliases(tblpagegroup *TblPagesGroupAliases, id int, DB *gorm.DB) error {
+func (P PageStrut) UpdatePageGroupAliases(tblpagegroup *TblPagesGroupAliases, id int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_pages_group_aliases").Where("page_group_id = ?", id).UpdateColumns(map[string]interface{}{"group_name": tblpagegroup.GroupName, "group_slug": tblpagegroup.GroupSlug, "group_description": tblpagegroup.GroupDescription, "language_id": tblpagegroup.LanguageId, "modified_on": tblpagegroup.ModifiedOn, "modified_by": tblpagegroup.ModifiedBy}).Error; err != nil {
 
@@ -220,7 +220,7 @@ func UpdatePageGroupAliases(tblpagegroup *TblPagesGroupAliases, id int, DB *gorm
 }
 
 /*update page*/
-func UpdatePage(tblpage *TblPage, pageid int, DB *gorm.DB) error {
+func (P PageStrut) UpdatePage(tblpage *TblPage, pageid int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page").Where("id=?", pageid).UpdateColumns(map[string]interface{}{"page_group_id": tblpage.PageGroupId, "parent_id": tblpage.ParentId}).Error; err != nil {
 
@@ -231,7 +231,7 @@ func UpdatePage(tblpage *TblPage, pageid int, DB *gorm.DB) error {
 }
 
 /*update pagealiases*/
-func UpdatePageAliase(tblpageali *TblPageAliases, pageid int, DB *gorm.DB) error {
+func (P PageStrut) UpdatePageAliase(tblpageali *TblPageAliases, pageid int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page_aliases").Where("page_id=?", pageid).UpdateColumns(map[string]interface{}{
 		"page_title": tblpageali.PageTitle, "page_slug": tblpageali.PageSlug, "modified_on": tblpageali.ModifiedOn,
@@ -242,9 +242,9 @@ func UpdatePageAliase(tblpageali *TblPageAliases, pageid int, DB *gorm.DB) error
 	return nil
 }
 
-func SelectGroup(tblgroup *[]TblPagesGroup, id int, grpid []int, DB *gorm.DB) error {
+func (P PageStrut) SelectGroup(tblgroup *[]TblPagesGroup, id int, grpid []int, DB *gorm.DB) error {
 
-	query := DB.Table("tbl_pages_group").Where("spaces_id = ? and is_deleted=0", id).Find(&tblgroup)
+	query := DB.Table("tbl_pages_group").Where("spaces_id = ? and is_deleted=0", id)
 
 	if len(grpid) != 0 {
 
@@ -252,6 +252,8 @@ func SelectGroup(tblgroup *[]TblPagesGroup, id int, grpid []int, DB *gorm.DB) er
 
 	}
 
+	query.Find(&tblgroup)
+
 	if err := query.Error; err != nil {
 
 		return err
@@ -261,9 +263,9 @@ func SelectGroup(tblgroup *[]TblPagesGroup, id int, grpid []int, DB *gorm.DB) er
 	return nil
 }
 
-func SelectPage(tblpage *[]TblPage, id int, pgid []int, DB *gorm.DB) error {
+func (P PageStrut) SelectPage(tblpage *[]TblPage, id int, pgid []int, DB *gorm.DB) error {
 
-	query := DB.Table("tbl_page").Where("spaces_id = ? and is_deleted =0 ", id).Find(&tblpage)
+	query := DB.Table("tbl_page").Where("spaces_id = ? and is_deleted =0 ", id)
 
 	if len(pgid) != 0 {
 
@@ -271,6 +273,8 @@ func SelectPage(tblpage *[]TblPage, id int, pgid []int, DB *gorm.DB) error {
 
 	}
 
+	query.Find(&tblpage)
+
 	if err := query.Error; err != nil {
 
 		return err
@@ -279,7 +283,7 @@ func SelectPage(tblpage *[]TblPage, id int, pgid []int, DB *gorm.DB) error {
 
 	return nil
 }
-func PageGroup(tblpagegroup *TblPagesGroupAliases, id int, DB *gorm.DB) error {
+func (P PageStrut) PageGroup(tblpagegroup *TblPagesGroupAliases, id int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_pages_group_aliases").Where("is_deleted = 0 and page_group_id = ?", id).First(&tblpagegroup).Error; err != nil {
 
@@ -290,7 +294,7 @@ func PageGroup(tblpagegroup *TblPagesGroupAliases, id int, DB *gorm.DB) error {
 	return nil
 }
 
-func PageAliases(tblpagegroup *TblPageAliases, id int, DB *gorm.DB) error {
+func (P PageStrut) PageAliases(tblpagegroup *TblPageAliases, id int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page_aliases").Select("tbl_page_aliases.*,tbl_page.page_group_id").Joins("inner join tbl_page on tbl_page.id = tbl_page_aliases.page_id").Where("page_id = ? and tbl_page.is_deleted=0 and tbl_page_aliases.is_deleted=0", id).Find(&tblpagegroup).Error; err != nil {
 
@@ -302,7 +306,7 @@ func PageAliases(tblpagegroup *TblPageAliases, id int, DB *gorm.DB) error {
 }
 
 /* Delete group */
-func DeletePageGroup(tblpagegroup *TblPagesGroup, id int, DB *gorm.DB) error {
+func (P PageStrut) DeletePageGroup(tblpagegroup *TblPagesGroup, id int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_pages_group").Where("id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": 1, "deleted_on": tblpagegroup.DeletedOn, "deleted_by": tblpagegroup.DeletedBy}).Error; err != nil {
 
@@ -313,7 +317,7 @@ func DeletePageGroup(tblpagegroup *TblPagesGroup, id int, DB *gorm.DB) error {
 }
 
 /* Delete Groupaliases */
-func DeletePageGroupAliases(tblpagegroup *TblPagesGroupAliases, id int, DB *gorm.DB) error {
+func (P PageStrut) DeletePageGroupAliases(tblpagegroup *TblPagesGroupAliases, id int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_pages_group_aliases").Where("page_group_id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": 1, "deleted_on": tblpagegroup.DeletedOn, "deleted_by": tblpagegroup.DeletedBy}).Error; err != nil {
 
@@ -324,7 +328,7 @@ func DeletePageGroupAliases(tblpagegroup *TblPagesGroupAliases, id int, DB *gorm
 }
 
 // Delete Page
-func DeletePageAliases(tblpageAliases *TblPageAliases, id int, DB *gorm.DB) error {
+func (P PageStrut) DeletePageAliases(tblpageAliases *TblPageAliases, id int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page_aliases").Where("page_id=?", id).UpdateColumns(map[string]interface{}{"deleted_on": tblpageAliases.DeletedOn, "deleted_by": tblpageAliases.DeletedBy}).Error; err != nil {
 
@@ -335,7 +339,7 @@ func DeletePageAliases(tblpageAliases *TblPageAliases, id int, DB *gorm.DB) erro
 }
 
 /*Check if groupexist*/
-func CheckGroupExists(tblgroup *TblPagesGroup, id int, spaceid int, DB *gorm.DB) error {
+func (P PageStrut) CheckGroupExists(tblgroup *TblPagesGroup, id int, spaceid int, DB *gorm.DB) error {
 
 	if err := s.Authority.DB.Table("tbl_pages_group").Where("id=? and spaces_id=?", id, spaceid).First(&tblgroup).Error; err != nil {
 
@@ -346,7 +350,7 @@ func CheckGroupExists(tblgroup *TblPagesGroup, id int, spaceid int, DB *gorm.DB)
 }
 
 /*Check if page exists*/
-func CheckPageExists(tblpage *TblPage, pageid int, spaceid int, DB *gorm.DB) error {
+func (P PageStrut) CheckPageExists(tblpage *TblPage, pageid int, spaceid int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page").Where("id=? and spaces_id=?", pageid, spaceid).First(&tblpage).Error; err != nil {
 
@@ -357,7 +361,7 @@ func CheckPageExists(tblpage *TblPage, pageid int, spaceid int, DB *gorm.DB) err
 }
 
 /*Delete PageAliases*/
-func DeletePageAliase(tblpage *TblPageAliases, id int, DB *gorm.DB) error {
+func (P PageStrut) DeletePageAliase(tblpage *TblPageAliases, id int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page_aliases").Where("page_id=?", id).UpdateColumns(map[string]interface{}{"deleted_on": tblpage.DeletedOn, "deleted_by": tblpage.DeletedBy, "is_deleted": 1}).Error; err != nil {
 
@@ -369,7 +373,7 @@ func DeletePageAliase(tblpage *TblPageAliases, id int, DB *gorm.DB) error {
 }
 
 /*Delete PageAliases*/
-func DeletePage(tblpage *TblPage, id int, DB *gorm.DB) error {
+func (P PageStrut) DeletePage(tblpage *TblPage, id int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page").Where("id=?", id).UpdateColumns(map[string]interface{}{"deleted_on": tblpage.DeletedOn, "deleted_by": tblpage.DeletedBy, "is_deleted": 1}).Error; err != nil {
 
@@ -381,7 +385,7 @@ func DeletePage(tblpage *TblPage, id int, DB *gorm.DB) error {
 }
 
 /*PageGroup*/
-func GetPageGroupByName(TblPagesGroupAliases *TblPagesGroupAliases, spaceid int, name string, DB *gorm.DB) error {
+func (P PageStrut) GetPageGroupByName(TblPagesGroupAliases *TblPagesGroupAliases, spaceid int, name string, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_pages_group_aliases").Joins("inner join tbl_pages_group on tbl_pages_group.id=tbl_pages_group_aliases.page_group_id").Where("group_name=? and tbl_pages_group.spaces_id=? and tbl_pages_group_aliases.is_deleted=0", name, spaceid).Last(&TblPagesGroupAliases).Error; err != nil {
 
@@ -392,7 +396,7 @@ func GetPageGroupByName(TblPagesGroupAliases *TblPagesGroupAliases, spaceid int,
 }
 
 /*GetPage*/
-func GetPageDataByName(TblPageAliases *TblPageAliases, spaceid int, name string, DB *gorm.DB) error {
+func (P PageStrut) GetPageDataByName(TblPageAliases *TblPageAliases, spaceid int, name string, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page_aliases").Select("tbl_page_aliases.*").Joins("inner join tbl_page on tbl_page.id=tbl_page_aliases.page_id").Where("page_title=? and tbl_page.spaces_id=? and tbl_page_aliases.is_deleted=0", name, spaceid).Last(&TblPageAliases).Error; err != nil {
 
@@ -403,7 +407,7 @@ func GetPageDataByName(TblPageAliases *TblPageAliases, spaceid int, name string,
 }
 
 /*CreatePage*/
-func CreatePage(tblpage *TblPage, DB *gorm.DB) (*TblPage, error) {
+func (P PageStrut) CreatePage(tblpage *TblPage, DB *gorm.DB) (*TblPage, error) {
 
 	if err := DB.Table("tbl_page").Create(&tblpage).Error; err != nil {
 
@@ -414,7 +418,7 @@ func CreatePage(tblpage *TblPage, DB *gorm.DB) (*TblPage, error) {
 }
 
 /*Create page log*/
-func PageAliasesLog(tblpagelog *TblPageAliasesLog, DB *gorm.DB) error {
+func (P PageStrut) PageAliasesLog(tblpagelog *TblPageAliasesLog, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page_aliases_log").Create(&tblpagelog).Error; err != nil {
 
@@ -425,7 +429,7 @@ func PageAliasesLog(tblpagelog *TblPageAliasesLog, DB *gorm.DB) error {
 }
 
 /*Get page log*/
-func GetPageLogDetails(tblpagelog *[]TblPageAliasesLog, spaceid int, DB *gorm.DB) error {
+func (P PageStrut) GetPageLogDetails(tblpagelog *[]TblPageAliasesLog, spaceid int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page_aliases_log").Select("tbl_page_aliases_log.created_by,tbl_page_aliases_log.created_on,tbl_page_aliases_log.status,tbl_users.username,max(TBL_PAGE_ALIASES_LOG.modified_by) as modified_by,max(TBL_PAGE_ALIASES_LOG.modified_on) as modified_on").Joins("inner join tbl_page on tbl_page.id = tbl_page_aliases_log.page_id").Joins("inner join tbl_users on tbl_users.id = tbl_page_aliases_log.created_by").Where("tbl_page.spaces_id=?", spaceid).Group("tbl_page_aliases_log.created_by,tbl_page_aliases_log.created_on,tbl_page_aliases_log.status,tbl_users.username").Order("tbl_page_aliases_log.created_on desc").Find(&tblpagelog).Error; err != nil {
 
