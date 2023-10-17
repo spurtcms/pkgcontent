@@ -49,6 +49,15 @@ type CatgoriesOrd struct {
 	Category string
 }
 
+type CategoryCreate struct {
+	Id           int
+	CategoryName string
+	CategorySlug string
+	Description  string
+	ImagePath    string
+	ParentId     int
+}
+
 // Parent Category List
 func GetCategoryList(categories *[]TblCategory, offset int, limit int, filter Filter, DB *gorm.DB) (count int64) {
 
@@ -76,7 +85,7 @@ func GetCategoryList(categories *[]TblCategory, offset int, limit int, filter Fi
 }
 
 // Children Category List
-func GetSubCategoryList(categories *[]TblCategory, offset int, limit int, filter Filter, parent_id int, flag int, DB *gorm.DB) (count int64) {
+func GetSubCategoryList(categories *[]TblCategory, offset int, limit int, filter Filter, parent_id int, flag int, DB *gorm.DB) (categorylist *[]TblCategory, count int64) {
 
 	var categorycount int64
 
@@ -95,7 +104,8 @@ func GetSubCategoryList(categories *[]TblCategory, offset int, limit int, filter
 	if filter.Keyword != "" {
 		if limit == 0 {
 			query = query.Raw(` `+res+` select count(*) from cat_tree where LOWER(TRIM(category_name)) ILIKE LOWER(TRIM(?)) group by cat_tree.id `, parent_id, "%"+filter.Keyword+"%").Count(&categorycount)
-			return categorycount
+
+			return categories, categorycount
 		}
 		query = query.Raw(` `+res+` select * from cat_tree where LOWER(TRIM(category_name)) ILIKE LOWER(TRIM(?)) limit(?) offset(?) `, parent_id, "%"+filter.Keyword+"%", limit, offset)
 	} else if flag == 0 {
@@ -107,15 +117,16 @@ func GetSubCategoryList(categories *[]TblCategory, offset int, limit int, filter
 
 		query.Find(&categories)
 
+		return categories, categorycount
+
 	} else {
 
-		DB.Raw(` `+res+` SELECT count(*)
-		  FROM cat_tree where is_deleted = 0 and id not in (?)  group by cat_tree.id order by id desc`, parent_id, parent_id).Count(&categorycount)
+		DB.Raw(` `+res+` SELECT count(*) FROM cat_tree where is_deleted = 0 and id not in (?)  group by cat_tree.id order by id desc`, parent_id, parent_id).Count(&categorycount)
 
-		return categorycount
+		return categories, categorycount
 	}
 
-	return 0
+	return &[]TblCategory{}, 0
 }
 
 func CreateCategory(category *TblCategory, DB *gorm.DB) error {
@@ -140,12 +151,13 @@ func UpdateCategory(category *TblCategory, DB *gorm.DB) error {
 	return nil
 }
 
-func DeletePopup(category *TblCategory, id int, DB *gorm.DB) error {
+// delete sub category
+func DeletePopup(category *TblCategory, id int, DB *gorm.DB) (categorylist TblCategory, err error) {
 
-	if err := DB.Table("tbl_categories").Where("parent_id=? and is_deleted =0", id).Find(category).Error; err != nil {
-		return err
+	if err := DB.Table("tbl_categories").Where("parent_id=? and is_deleted =0", id).First(category).Error; err != nil {
+		return TblCategory{}, err
 	}
-	return nil
+	return *category, nil
 }
 
 func DeleteCategoryById(category *TblCategory, categoryId int, DB *gorm.DB) error {
@@ -161,7 +173,6 @@ func DeleteCategoryById(category *TblCategory, categoryId int, DB *gorm.DB) erro
 
 /*getCategory Details*/
 func GetCategoryById(category *TblCategory, categoryId int, DB *gorm.DB) (categorylist TblCategory, err error) {
-	
 
 	if err := DB.Table("tbl_categories").Where("is_deleted=0 and id=?", categoryId).First(&category).Error; err != nil {
 
@@ -171,13 +182,13 @@ func GetCategoryById(category *TblCategory, categoryId int, DB *gorm.DB) (catego
 }
 
 // Get Childern list
-func GetCategoryDetails(id int, category *TblCategory, DB *gorm.DB) error {
+func GetCategoryDetails(id int, category *TblCategory, DB *gorm.DB) (categorylist TblCategory, err error) {
 
-	if err := DB.Where("id=?", id).Find(&category).Error; err != nil {
+	if err := DB.Table("tbl_categories").Where("id=?", id).First(&category).Error; err != nil {
 
-		return err
+		return TblCategory{}, err
 	}
-	return nil
+	return *category, nil
 
 }
 

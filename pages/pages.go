@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -342,7 +340,7 @@ func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPag
 }
 
 /*Create page*/
-func (p Page) InsertPage(c *http.Request) error {
+func (p Page) InsertPage(Pagec PageCreate) error {
 
 	userid, _, checkerr := authcore.VerifyToken(p.Authority.Token, p.Authority.Secret)
 
@@ -351,16 +349,13 @@ func (p Page) InsertPage(c *http.Request) error {
 		return checkerr
 	}
 
-	publish := c.PostFormValue("publish")
-
-	save := c.PostFormValue("save")
-
 	var status string
 
-	if publish != "" {
+	if Pagec.Status == "publish" {
 
 		status = "publish"
-	} else if save != "" {
+
+	} else if Pagec.Status != "save" {
 
 		status = "draft"
 	}
@@ -395,19 +390,19 @@ func (p Page) InsertPage(c *http.Request) error {
 		DBid       int
 	}
 
-	spaceId, _ := strconv.Atoi(c.PostFormValue("spaceid"))
+	spaceId := Pagec.SpaceId
 
-	creategroup := c.PostFormValue("creategroups")
+	creategroup := Pagec.NewGroup
 
-	createpages := c.PostFormValue("createpages")
+	createpages := Pagec.NewPages
 
-	createsubpage := c.PostFormValue("createsubpage")
+	createsubpage := Pagec.SubPage
 
-	deletegroup := c.PostFormValue("deletegroup")
+	deletegroup := Pagec.DeleteGroup
 
-	deletepage := c.PostFormValue("deletepage")
+	deletepage := Pagec.DeletePages
 
-	deletesub := c.PostFormValue("deletesub")
+	deletesub := Pagec.DeleteSubPage
 
 	/*CreateFunc*/
 

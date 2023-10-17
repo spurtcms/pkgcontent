@@ -91,6 +91,14 @@ type TblLanguage struct {
 	JsonPath     string
 }
 
+type SpaceCreation struct {
+	Name        string
+	Description string
+	ImagePath   string
+	CategoryId  int //child category id
+	LanguageId  int //For specific language space
+}
+
 type Filter struct {
 	Keyword    string
 	CategoryId []int
@@ -222,13 +230,13 @@ func (SP SPM) SpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, off
 }
 
 /*spaceList*/
-func (SP SPM)  MemberSpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, offset int, filter Filter, spaceid []int, DB *gorm.DB) (spacecount int64, err error) {
+func (SP SPM) MemberSpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, offset int, filter Filter, spaceid []int, DB *gorm.DB) (spacecount int64, err error) {
 
 	query := DB.Table("tbl_spaces_aliases").Select("tbl_spaces_aliases.*,tbl_spaces.page_category_id,tbl_pages_categories.parent_id").
 		Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
 		Joins("inner join tbl_language on tbl_language.id = tbl_spaces_aliases.language_id").
 		Joins("inner join tbl_pages_categories on tbl_pages_categories.id = tbl_spaces.page_category_id").
-		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = ? tbl_spaces.id in (?)", langId,spaceid)
+		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = ? tbl_spaces.id in (?)", langId, spaceid)
 
 	if filter.Keyword != "" {
 
@@ -330,7 +338,7 @@ func (SP SPM) ClonePagesGroup(pagegroup *TblPagesGroupAliases, DB *gorm.DB) erro
 }
 
 /*Update Space*/
-func(SP SPM)  EditSpace(tblspace *TblSpacesAliases, id int, DB *gorm.DB) error {
+func (SP SPM) EditSpace(tblspace *TblSpacesAliases, id int, DB *gorm.DB) error {
 
 	if tblspace.ImagePath != "" {
 		DB.Table("tbl_spaces_aliases").Where("spaces_id = ?", tblspace.Id).UpdateColumns(map[string]interface{}{"spaces_name": tblspace.SpacesName, "spaces_description": tblspace.SpacesDescription, "spaces_slug": tblspace.SpacesSlug, "image_path": tblspace.ImagePath, "modified_by": tblspace.ModifiedBy, "modified_on": tblspace.ModifiedOn})
@@ -369,7 +377,7 @@ func (SP SPM) DeleteSpaceAliases(tblspace *TblSpacesAliases, id int, DB *gorm.DB
 }
 
 /*Deleted space*/
-func(SP SPM)  DeleteSpace(tblspace *TblSpaces, id int, DB *gorm.DB) error {
+func (SP SPM) DeleteSpace(tblspace *TblSpaces, id int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_spaces").Where("id = ?", id).UpdateColumns(map[string]interface{}{"deleted_by": tblspace.DeletedBy, "deleted_on": tblspace.DeletedOn, "is_deleted": tblspace.IsDeleted}).Error; err != nil {
 
@@ -417,7 +425,7 @@ func (SP SPM) GetPageCategoryTree(id int, DB *gorm.DB) ([]TblPagesCategoriesAlia
 	return categories, nil
 }
 
-func(SP SPM)  GetParentPageCategory(pagecategory *TblPagesCategoriesAliases, page_category_id int, DB *gorm.DB) (error, TblPagesCategoriesAliases) {
+func (SP SPM) GetParentPageCategory(pagecategory *TblPagesCategoriesAliases, page_category_id int, DB *gorm.DB) (error, TblPagesCategoriesAliases) {
 
 	if err := DB.Table("tbl_pages_categories_aliases").Where("is_deleted = 0 and page_category_id=?", page_category_id).Find(&pagecategory).Error; err != nil {
 
@@ -427,7 +435,7 @@ func(SP SPM)  GetParentPageCategory(pagecategory *TblPagesCategoriesAliases, pag
 	return nil, *pagecategory
 }
 
-func (SP SPM)  GetChildPageCategories(pagecategory *[]TblPagesCategoriesAliases, parent_id int, DB *gorm.DB) (error, []TblPagesCategoriesAliases) {
+func (SP SPM) GetChildPageCategories(pagecategory *[]TblPagesCategoriesAliases, parent_id int, DB *gorm.DB) (error, []TblPagesCategoriesAliases) {
 
 	if err := DB.Table("tbl_pages_categories_aliases").Where("is_deleted=0 and page_category_id=?", parent_id).Find(&pagecategory).Error; err != nil {
 
@@ -438,7 +446,7 @@ func (SP SPM)  GetChildPageCategories(pagecategory *[]TblPagesCategoriesAliases,
 }
 
 // Category based space list
-func (SP SPM)  GetSpacesData(spaces *[]TblSpaces, id int, DB *gorm.DB) error {
+func (SP SPM) GetSpacesData(spaces *[]TblSpaces, id int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_spaces").Where("is_deleted=0 and page_category_id = ?", id).Find(&spaces).Error; err != nil {
 
@@ -486,7 +494,7 @@ func (SP SPM) GetIdInPage(pageid *TblPagesGroupAliases, spaceid int, DB *gorm.DB
 	return nil
 }
 
-func(SP SPM)  GetPageInPage(pageid *[]TblPageAliases, spaceid int, DB *gorm.DB) error {
+func (SP SPM) GetPageInPage(pageid *[]TblPageAliases, spaceid int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page_aliases").Select("tbl_page_aliases.*").Joins("inner join tbl_page on tbl_page_aliases.page_id = tbl_page.id").Where("tbl_page.is_deleted = ? and tbl_page_aliases.is_deleted = ? and tbl_page.page_group_id = ? and  parent_id = ? and  tbl_page.spaces_id = ?", 0, 0, 0, 0, spaceid).Find(&pageid).Error; err != nil {
 
@@ -508,7 +516,7 @@ func (SP SPM) GetDetailsInPageAli(pagedetails *TblPagesGroupAliases, groupname s
 	return nil
 }
 
-func(SP SPM)  GetDetailsInPageAlia(pageid *TblPagesGroupAliases, pagegroupid int, spaceid int, DB *gorm.DB) error {
+func (SP SPM) GetDetailsInPageAlia(pageid *TblPagesGroupAliases, pagegroupid int, spaceid int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_pages_group_aliases").Joins("inner join tbl_pages_group on tbl_pages_group_aliases.page_group_id = tbl_pages_group.id").Where("tbl_pages_group_aliases.page_group_id = ? and  tbl_pages_group.spaces_id = ?", pagegroupid, spaceid).First(&pageid).Error; err != nil {
 
@@ -541,7 +549,7 @@ func (SP SPM) GetPageAliasesInPageData(result *[]TblPageAliases, spacid int, DB 
 	return nil
 }
 
-func(SP SPM)  LastLoopAliasesInPage(data *TblPageAliases, pagetitle string, spacid int, DB *gorm.DB) error {
+func (SP SPM) LastLoopAliasesInPage(data *TblPageAliases, pagetitle string, spacid int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page_aliases").Select("tbl_page_aliases.*").Joins("inner join tbl_page on tbl_page_aliases.page_id = tbl_page.id").Where("tbl_page_aliases.page_title = ? and  tbl_page.spaces_id = ?", pagetitle, spacid).First(&data).Error; err != nil {
 
@@ -574,7 +582,7 @@ func (SP SPM) ParentWithChild(parent *TblPage, id int, spaceid int, DB *gorm.DB)
 	return nil
 }
 
-func (SP SPM)  PageParentCategoryList(pagecategory *[]TblPagesCategoriesAliases, DB *gorm.DB) error {
+func (SP SPM) PageParentCategoryList(pagecategory *[]TblPagesCategoriesAliases, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_pages_categories_aliases").Where("is_deleted = 0").Find(&pagecategory).Error; err != nil {
 
@@ -585,7 +593,7 @@ func (SP SPM)  PageParentCategoryList(pagecategory *[]TblPagesCategoriesAliases,
 }
 
 /*spacename*/
-func (SP SPM)  GetSpaceName(TblSpacesAliases *TblSpacesAliases, spaceid int, DB *gorm.DB) error {
+func (SP SPM) GetSpaceName(TblSpacesAliases *TblSpacesAliases, spaceid int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_spaces_aliases").Where("spaces_id=?", spaceid).First(&TblSpacesAliases).Error; err != nil {
 
@@ -595,7 +603,7 @@ func (SP SPM)  GetSpaceName(TblSpacesAliases *TblSpacesAliases, spaceid int, DB 
 	return nil
 }
 
-func (SP SPM)  GetPageDetailsBySpaceId(getpg *[]TblPage, id int, DB *gorm.DB) (*[]TblPage, error) {
+func (SP SPM) GetPageDetailsBySpaceId(getpg *[]TblPage, id int, DB *gorm.DB) (*[]TblPage, error) {
 
 	if err := DB.Table("tbl_page").Where("tbl_page.is_deleted = ? and tbl_page.spaces_id = ?", 0, id).Find(&getpg).Error; err != nil {
 
@@ -605,7 +613,7 @@ func (SP SPM)  GetPageDetailsBySpaceId(getpg *[]TblPage, id int, DB *gorm.DB) (*
 	return getpg, nil
 }
 
-func (SP SPM)  DeletePageInSpace(page *TblPage, id []int, DB *gorm.DB) error {
+func (SP SPM) DeletePageInSpace(page *TblPage, id []int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page").Where("tbl_page.id IN ?", id).UpdateColumns(map[string]interface{}{"deleted_by": page.DeletedBy, "deleted_on": page.DeletedOn, "is_deleted": page.IsDeleted}).Error; err != nil {
 
@@ -615,7 +623,7 @@ func (SP SPM)  DeletePageInSpace(page *TblPage, id []int, DB *gorm.DB) error {
 	return nil
 }
 
-func (SP SPM)  DeletePageAliInSpace(pageali *TblPageAliases, id []int, DB *gorm.DB) error {
+func (SP SPM) DeletePageAliInSpace(pageali *TblPageAliases, id []int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page_aliases").Where("tbl_page_aliases.page_id IN ?", id).UpdateColumns(map[string]interface{}{"deleted_by": pageali.DeletedBy, "deleted_on": pageali.DeletedOn, "is_deleted": pageali.IsDeleted}).Error; err != nil {
 

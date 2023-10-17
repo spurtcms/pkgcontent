@@ -3,8 +3,6 @@ package categories
 import (
 	"errors"
 	"fmt"
-	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -59,7 +57,7 @@ func (c Category) CategoryGroupList(limit int, offset int, filter Filter) (Categ
 }
 
 /*Add Category Group*/
-func (c Category) CreateCategoryGroup(req *http.Request) error {
+func (c Category) CreateCategoryGroup(req CategoryCreate) error {
 
 	userid, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
 
@@ -77,18 +75,18 @@ func (c Category) CreateCategoryGroup(req *http.Request) error {
 
 	if check {
 
-		if req.FormValue("category_name") == "" || req.FormValue("category_desc") == "" {
+		if req.CategoryName == "" || req.Description == "" {
 
 			return errors.New("given some values is empty")
 		}
 
 		var category TblCategory
 
-		category.CategoryName = req.FormValue("category_name")
+		category.CategoryName = req.CategoryName
 
-		category.CategorySlug = strings.ToLower(req.FormValue("category_name"))
+		category.CategorySlug = strings.ToLower(req.CategoryName)
 
-		category.Description = req.FormValue("category_desc")
+		category.Description = req.Description
 
 		category.CreatedBy = userid
 
@@ -111,7 +109,7 @@ func (c Category) CreateCategoryGroup(req *http.Request) error {
 }
 
 /*UpdateCategoryGroup*/
-func (c Category) UpdateCategoryGroup(req *http.Request) error {
+func (c Category) UpdateCategoryGroup(req CategoryCreate) error {
 
 	userid, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
 
@@ -129,20 +127,19 @@ func (c Category) UpdateCategoryGroup(req *http.Request) error {
 
 	if check {
 
-		if req.FormValue("category_id") == "" || req.FormValue("category_name") == "" || req.FormValue("category_desc") == "" {
+		if req.Id <= 0 || req.CategoryName == "" || req.Description == "" {
 
 			return errors.New("given some values is empty")
 		}
-
 		var category TblCategory
 
-		category.Id, _ = strconv.Atoi(req.FormValue("category_id"))
+		category.Id = req.Id
 
-		category.CategoryName = req.FormValue("category_name")
+		category.CategoryName = req.CategoryName
 
-		category.Description = req.FormValue("category_desc")
+		category.Description = req.Description
 
-		category.CategorySlug = strings.ToLower(req.FormValue("category_name"))
+		category.CategorySlug = strings.ToLower(req.CategoryName)
 
 		category.ModifiedBy = userid
 
@@ -203,7 +200,7 @@ func (c Category) DeleteCategoryGroup(Categoryid int) error {
 }
 
 /*ListCategory*/
-func (c Category) ListCategory(limit int, offset int, filter Filter, parent_id int) (tblcat []TblCategory, category []TblCategory, parentcategory TblCategory, categorycount int64, err error) {
+func (c Category) ListCategory(offset int, limit int, filter Filter, parent_id int) (tblcat []TblCategory, category []TblCategory, parentcategory TblCategory, categorycount int64, err error) {
 
 	_, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
 
@@ -234,13 +231,14 @@ func (c Category) ListCategory(limit int, offset int, filter Filter, parent_id i
 		if err1 != nil {
 			fmt.Println(err)
 		}
-		count := GetSubCategoryList(&categorys, offset, limit, Filter{}, parent_id, 1, c.Authority.DB)
 
-		GetSubCategoryList(&categorylist, 0, 0, filter, parent_id, 0, c.Authority.DB)
+		childcategorys, _ := GetSubCategoryList(&categorys, offset, limit, Filter{}, parent_id, 1, c.Authority.DB)
 
-		GetSubCategoryList(&categorylist, offset, limit, filter, parent_id, 0, c.Authority.DB)
+		_, count := GetSubCategoryList(&categorylist, 0, 0, Filter{}, parent_id, 0, c.Authority.DB)
 
-		for _, val := range categorylist {
+		childcategory, _ := GetSubCategoryList(&categorylist, offset, limit, Filter{}, parent_id, 0, c.Authority.DB)
+
+		for _, val := range *childcategory {
 
 			if !val.ModifiedOn.IsZero() {
 
@@ -370,7 +368,7 @@ func (c Category) ListCategory(limit int, offset int, filter Filter, parent_id i
 
 		var FinalModalCategoriesList []TblCategory
 
-		for index, val := range categorys {
+		for index, val := range *childcategorys {
 
 			var finalcat TblCategory
 
@@ -408,6 +406,7 @@ func (c Category) ListCategory(limit int, offset int, filter Filter, parent_id i
 			}
 			FinalCategoriesList = append(FinalCategoriesList, finalcat)
 		}
+
 		return FinalCategoriesList, FinalModalCategoriesList, parentcategory, count, nil
 	}
 
@@ -415,7 +414,7 @@ func (c Category) ListCategory(limit int, offset int, filter Filter, parent_id i
 }
 
 /*Add Category*/
-func (c Category) AddCategory(req *http.Request) error {
+func (c Category) AddCategory(req CategoryCreate) error {
 
 	userid, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
 
@@ -432,30 +431,30 @@ func (c Category) AddCategory(req *http.Request) error {
 	}
 
 	if check {
-
-		if req.FormValue("cname") == "" || req.FormValue("cdesc") == "" {
+		if req.CategoryName == "" || req.Description == "" {
 
 			return errors.New("given some values is empty")
-
 		}
 
 		var category TblCategory
 
-		category.CategoryName = req.FormValue("cname")
+		category.CategoryName = req.CategoryName
 
-		category.CategorySlug = strings.ToLower(req.FormValue("cname"))
+		category.CategorySlug = strings.ToLower(req.CategoryName)
 
-		category.Description = req.FormValue("cdesc")
+		category.Description = req.Description
 
-		category.ImagePath = req.FormValue("image")
+		category.ImagePath = req.ImagePath
 
 		category.CreatedBy = userid
 
-		if req.FormValue("groupid") == "" {
-			category.ParentId, _ = strconv.Atoi(req.FormValue("categoryid"))
-		} else {
-			category.ParentId, _ = strconv.Atoi(req.FormValue("groupid"))
-		}
+		category.ParentId = req.ParentId
+
+		// if req.FormValue("groupid") == "" {
+		// 	category.ParentId, _ = strconv.Atoi(req.FormValue("categoryid"))
+		// } else {
+		// 	category.ParentId, _ = strconv.Atoi(req.FormValue("groupid"))
+		// }
 
 		category.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
@@ -474,7 +473,7 @@ func (c Category) AddCategory(req *http.Request) error {
 }
 
 /*Update Sub category*/
-func (c Category) UpdateSubCategory(req *http.Request) error {
+func (c Category) UpdateSubCategory(req CategoryCreate) error {
 
 	userid, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
 
@@ -492,23 +491,26 @@ func (c Category) UpdateSubCategory(req *http.Request) error {
 
 	if check {
 
-		var category TblCategory
-
-		if req.FormValue("cname") == "" || req.FormValue("cdesc") == "" {
+		if req.Id <= 0 || req.CategoryName == "" || req.Description == "" {
 
 			return errors.New("given some values is empty")
-
 		}
 
-		category.CategoryName = req.FormValue("cname")
+		var category TblCategory
 
-		category.CategorySlug = strings.ToLower(req.FormValue("cname"))
+		category.CategoryName = req.CategoryName
 
-		category.Description = req.FormValue("cdesc")
+		category.CategorySlug = strings.ToLower(req.CategoryName)
 
-		category.ImagePath = req.FormValue("image")
+		category.Description = req.Description
 
-		category.Id, _ = strconv.Atoi(req.FormValue("id"))
+		category.ImagePath = req.ImagePath
+
+		category.ParentId = req.ParentId
+
+		category.CreatedBy = userid
+
+		category.Id = req.Id
 
 		category.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
@@ -568,183 +570,216 @@ func (c Category) DeleteSubCategory(categoryid int) error {
 	return errors.New("not authorized")
 }
 
-func (c Category) FilterSubCategory(limit int, offset int, filter Filter, id int) {
+func (c Category) FilterSubCategory(limit int, offset int, filter Filter, parent_id int) (tblcat []TblCategory, category []TblCategory, parentcategory TblCategory, categorycount int64, err error) {
 
-	// 	_, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
+	_, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
 
-	// 	if checkerr != nil {
+	if checkerr != nil {
 
-	// 		return []TblCategory{}, 0, checkerr
-	// 	}
+		return []TblCategory{}, []TblCategory{}, TblCategory{}, 0, checkerr
+	}
 
-	// 	check, err := c.Authority.IsGranted("Categories", auth.Read)
+	check, err := c.Authority.IsGranted("Categories", auth.Read)
 
-	// 	if err != nil {
+	if err != nil {
 
-	// 		return []TblCategory{}, 0, err
-	// 	}
+		return []TblCategory{}, []TblCategory{}, TblCategory{}, 0, err
+	}
 
-	// 	if check {
+	if check {
 
-	// 		parent_id := id
+		var categorylist []TblCategory
 
-	// 		// var filter Filter
+		var categorylists []TblCategory
 
-	// 		// filter.Keyword = strings.Trim(c.DefaultQuery("keyword", ""), " ")
+		var categorys []TblCategory
 
-	// 		var categorylists []TblCategory
+		var category TblCategory
 
-	// 		var category TblCategory
+		parentcategory, err1 := GetCategoryById(&category, parent_id, c.Authority.DB)
 
-	// 		var categorys []TblCategory
+		if err1 != nil {
+			fmt.Println(err)
+		}
 
-	// 		var categorylist []TblCategory
+		childcategorys, _ := GetSubCategoryList(&categorys, offset, limit, Filter{}, parent_id, 1, c.Authority.DB)
 
-	// 		parentcategory, err := GetCategoryById(&category, parent_id, c.Authority.DB)
+		_, count := GetSubCategoryList(&categorylist, 0, 0, Filter{}, parent_id, 0, c.Authority.DB)
 
-	// 		if err != nil {
-	// 			fmt.Println(err)
-	// 		}
+		childcategory, _ := GetSubCategoryList(&categorylist, offset, limit, Filter{}, parent_id, 0, c.Authority.DB)
 
-	// 		var Limit = 10
+		for _, val := range *childcategory {
 
-	// 		GetSubCategoryList(&categorys, 0, Limit, filter, parent_id, 0, c.Authority.DB)
+			if !val.ModifiedOn.IsZero() {
 
-	// 		Total_categories := GetSubCategoryList(&categorylist, 0, 0, filter, parent_id, 0, c.Authority.DB)
+				val.DateString = val.ModifiedOn.Format("02 Jan 2006 03:04 PM")
 
-	// 		GetSubCategoryList(&categorylist, 0, Limit, filter, parent_id, 0, c.Authority.DB)
+			} else {
+				val.DateString = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
 
-	// 		for _, val := range categorylist {
+			}
 
-	// 			if !val.ModifiedOn.IsZero() {
+			categorylists = append(categorylists, val)
 
-	// 				val.DateString = val.ModifiedOn.Format("02 Jan 2006 03:04 PM")
+		}
+		var AllCategorieswithSubCategories []Arrangecategories
 
-	// 			} else {
-	// 				val.DateString = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
+		GetData, _ := GetCategoryTree(parent_id, c.Authority.DB)
 
-	// 			}
+		var pid int
 
-	// 			categorylists = append(categorylists, val)
+		for _, categories := range GetData {
 
-	// 		}
+			var addcat Arrangecategories
 
-	// 		var AllCategorieswithSubCategories []Arrangecategories
+			var individualid []CatgoriesOrd
 
-	// 		GetData, _ := GetCategoryTree(parent_id, c.Authority.DB)
+			pid = categories.ParentId
 
-	// 		var pid int
+		LOOP:
+			for _, GetParent := range GetData {
 
-	// 		for _, categories := range GetData {
+				var indivi CatgoriesOrd
 
-	// 			var addcat Arrangecategories
+				if pid == GetParent.Id {
 
-	// 			var individualid []CatgoriesOrd
+					pid = GetParent.ParentId
 
-	// 			pid = categories.ParentId
+					indivi.Id = GetParent.Id
 
-	// 		LOOP:
-	// 			for _, GetParent := range GetData {
+					indivi.Category = GetParent.CategoryName
 
-	// 				var indivi CatgoriesOrd
+					individualid = append(individualid, indivi)
 
-	// 				if pid == GetParent.Id {
+					if pid != 0 {
 
-	// 					pid = GetParent.ParentId
+						goto LOOP
 
-	// 					indivi.Id = GetParent.Id
+					}
+				}
 
-	// 					indivi.Category = GetParent.CategoryName
+			}
 
-	// 					individualid = append(individualid, indivi)
+			var ReverseOrder Arrangecategories
 
-	// 					if pid != 0 {
+			addcat.Categories = append(addcat.Categories, individualid...)
 
-	// 						goto LOOP
+			var singlecat []CatgoriesOrd
 
-	// 					}
-	// 				}
+			for i := len(addcat.Categories) - 1; i >= 0; i-- {
 
-	// 			}
+				var Sing CatgoriesOrd
 
-	// 			var ReverseOrder Arrangecategories
+				Sing.Id = addcat.Categories[i].Id
 
-	// 			addcat.Categories = append(addcat.Categories, individualid...)
+				Sing.Category = addcat.Categories[i].Category
 
-	// 			var singlecat []CatgoriesOrd
+				singlecat = append(singlecat, Sing)
 
-	// 			for i := len(addcat.Categories) - 1; i >= 0; i-- {
+			}
 
-	// 				var Sing CatgoriesOrd
+			var newcate CatgoriesOrd
 
-	// 				Sing.Id = addcat.Categories[i].Id
+			newcate.Id = categories.Id
 
-	// 				Sing.Category = addcat.Categories[i].Category
+			newcate.Category = categories.CategoryName
 
-	// 				singlecat = append(singlecat, Sing)
+			addcat.Categories = append(addcat.Categories, newcate)
 
-	// 			}
+			singlecat = append(singlecat, newcate)
 
-	// 			var newcate CatgoriesOrd
+			ReverseOrder.Categories = singlecat
 
-	// 			newcate.Id = categories.Id
+			AllCategorieswithSubCategories = append(AllCategorieswithSubCategories, ReverseOrder)
 
-	// 			newcate.Category = categories.CategoryName
+		}
 
-	// 			addcat.Categories = append(addcat.Categories, newcate)
+		var FinalCategoryList []Arrangecategories
 
-	// 			singlecat = append(singlecat, newcate)
+		for _, val := range AllCategorieswithSubCategories {
 
-	// 			ReverseOrder.Categories = singlecat
+			var infinalarray Arrangecategories
 
-	// 			AllCategorieswithSubCategories = append(AllCategorieswithSubCategories, ReverseOrder)
+			for index, res := range val.Categories {
 
-	// 		}
+				if index < len(val.Categories)-1 {
 
-	// 		var FinalCategoryList []Arrangecategories
+					var cate CatgoriesOrd
 
-	// 		for _, val := range AllCategorieswithSubCategories {
+					cate = res
 
-	// 			var infinalarray Arrangecategories
+					infinalarray.Categories = append(infinalarray.Categories, cate)
 
-	// 			for index, res := range val.Categories {
+				}
 
-	// 				if index < len(val.Categories)-1 {
+			}
+			FinalCategoryList = append(FinalCategoryList, infinalarray)
+		}
 
-	// 					var cate CatgoriesOrd
+		var FinalModalCategoryList []Arrangecategories
 
-	// 					cate = res
+		for _, val := range AllCategorieswithSubCategories {
 
-	// 					infinalarray.Categories = append(infinalarray.Categories, cate)
+			var infinalarray Arrangecategories
 
-	// 				}
+			for index, res := range val.Categories {
 
-	// 			}
-	// 			FinalCategoryList = append(FinalCategoryList, infinalarray)
-	// 		}
+				if index < len(val.Categories) {
 
-	// 		var FinalCategoriesList []TblCategory
+					var cate CatgoriesOrd
 
-	// 		for index, val := range categorylists {
+					cate = res
 
-	// 			var finalcat TblCategory
+					infinalarray.Categories = append(infinalarray.Categories, cate)
+				}
+			}
+			FinalModalCategoryList = append(FinalModalCategoryList, infinalarray)
+		}
 
-	// 			finalcat = val
+		var FinalModalCategoriesList []TblCategory
 
-	// 			for cindex, val2 := range FinalCategoryList {
+		for index, val := range *childcategorys {
 
-	// 				if index == cindex {
+			var finalcat TblCategory
 
-	// 					for _, va3 := range val2.Categories {
+			finalcat = val
 
-	// 						finalcat.Parent = append(finalcat.Parent, va3.Category)
-	// 					}
-	// 				}
-	// 			}
-	// 			FinalCategoriesList = append(FinalCategoriesList, finalcat)
-	// 		}
-	// 		return FinalCategoriesList, Total_categories, nil
-	// 	}
-	// 	return []TblCategory{}, 0, errors.New("not authorized")
+			for cindex, val2 := range FinalModalCategoryList {
+
+				if index == cindex {
+
+					for _, va3 := range val2.Categories {
+
+						finalcat.Parent = append(finalcat.Parent, va3.Category)
+					}
+				}
+			}
+			FinalModalCategoriesList = append(FinalModalCategoriesList, finalcat)
+		}
+		var FinalCategoriesList []TblCategory
+
+		for index, val := range categorylists {
+
+			var finalcat TblCategory
+
+			finalcat = val
+
+			for cindex, val2 := range FinalCategoryList {
+
+				if index == cindex {
+
+					for _, va3 := range val2.Categories {
+
+						finalcat.Parent = append(finalcat.Parent, va3.Category)
+					}
+				}
+			}
+			FinalCategoriesList = append(FinalCategoriesList, finalcat)
+		}
+
+		return FinalCategoriesList, FinalModalCategoriesList, parentcategory, count, nil
+	}
+
+	return []TblCategory{}, []TblCategory{}, TblCategory{}, 0, errors.New("not authorized")
 
 }

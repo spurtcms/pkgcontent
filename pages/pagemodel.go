@@ -151,6 +151,17 @@ type TblPageAliasesLog struct {
 	ParentId        int       `gorm:"<-:false"`
 }
 
+type PageCreate struct {
+	SpaceId       int    //spaceid
+	NewPages      string //pages only
+	NewGroup      string //groups only
+	SubPage       string //subpages only
+	DeletePages   string //delete pages only
+	DeleteGroup   string //delete groups only
+	DeleteSubPage string //delete subpages only
+	Status        string //publish,draft
+}
+
 func (P PageStrut) CreatePageGroup(tblpagegroup *TblPagesGroup, DB *gorm.DB) (*TblPagesGroup, error) {
 
 	if err := DB.Table("tbl_pages_group").Create(&tblpagegroup).Error; err != nil {

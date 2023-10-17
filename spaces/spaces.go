@@ -3,8 +3,6 @@ package spaces
 import (
 	"errors"
 	"log"
-	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -128,7 +126,6 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 		return []TblSpacesAliases{}, 0, checkerr
 	}
 
-
 	var mem memberaccore.AccessAuth
 
 	mem.Authority = *s.MemAuth
@@ -198,7 +195,7 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 }
 
 // create space
-func (s Space) SpaceCreation(c *http.Request) error {
+func (s Space) SpaceCreation(SPC SpaceCreation) error {
 
 	userid, _, checkerr := authcore.VerifyToken(s.Authority.Token, s.Authority.Secret)
 
@@ -216,14 +213,14 @@ func (s Space) SpaceCreation(c *http.Request) error {
 
 	if check {
 
-		if c.PostFormValue("spacename") == "" || c.PostFormValue("spacedescription") == "" {
+		if SPC.Name == "" || SPC.Description == "" || SPC.CategoryId == 0 {
 
 			return errors.New("given some values is empty")
 		}
 
 		var spaces TblSpaces
 
-		spaces.PageCategoryId, _ = strconv.Atoi(c.PostFormValue("spacecategory"))
+		spaces.PageCategoryId = SPC.CategoryId
 
 		spaces.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
@@ -236,13 +233,13 @@ func (s Space) SpaceCreation(c *http.Request) error {
 
 		var space TblSpacesAliases
 
-		space.SpacesName = c.PostFormValue("spacename")
+		space.SpacesName = SPC.Name
 
-		space.SpacesDescription = c.PostFormValue("spacedescription")
+		space.SpacesDescription = SPC.Description
 
-		space.ImagePath = c.PostFormValue("spaceimagepath")
+		space.ImagePath = SPC.ImagePath
 
-		space.LanguageId, _ = strconv.Atoi(c.PostFormValue("langid"))
+		space.LanguageId = SPC.LanguageId
 
 		space.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
@@ -264,7 +261,7 @@ func (s Space) SpaceCreation(c *http.Request) error {
 }
 
 // update space
-func (s Space) SpaceUpdate(c *http.Request) error {
+func (s Space) SpaceUpdate(SPC SpaceCreation, spaceid int) error {
 
 	userid, _, checkerr := authcore.VerifyToken(s.Authority.Token, s.Authority.Secret)
 
@@ -282,9 +279,7 @@ func (s Space) SpaceUpdate(c *http.Request) error {
 
 	if check {
 
-
-
-		if c.PostFormValue("spacename") == "" || c.PostFormValue("spacedescription") == "" {
+		if SPC.Name == "" || SPC.Description == "" {
 
 			return nil
 		}
@@ -293,21 +288,19 @@ func (s Space) SpaceUpdate(c *http.Request) error {
 
 		var spaces TblSpacesAliases
 
-		id, _ := strconv.Atoi(c.PostFormValue("id"))
+		spaces.Id = spaceid
 
-		spaces.Id = id
+		space.Id = spaceid
 
-		space.Id = id
+		spaces.SpacesName = SPC.Name
 
-		spaces.SpacesName = c.PostFormValue("spacename")
+		spaces.SpacesDescription = SPC.Description
 
-		spaces.SpacesDescription = c.PostFormValue("spacedescription")
+		spaces.SpacesSlug = strings.ToLower(SPC.Name)
 
-		spaces.SpacesSlug = strings.ToLower(spaces.SpacesName)
+		space.PageCategoryId = SPC.CategoryId
 
-		space.PageCategoryId, _ = strconv.Atoi(c.PostFormValue("spacecategory"))
-
-		spaces.ImagePath = c.PostFormValue("spaceimagepath")
+		spaces.ImagePath = SPC.ImagePath
 
 		spaces.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
@@ -317,14 +310,14 @@ func (s Space) SpaceUpdate(c *http.Request) error {
 
 		space.ModifiedBy = userid
 
-		err1 := SP.EditSpace(&spaces, id, s.Authority.DB)
+		err1 := SP.EditSpace(&spaces, spaceid, s.Authority.DB)
 
 		if err != nil {
 
 			return err1
 		}
 
-		err2 := SP.UpdateSpace(&space, id, s.Authority.DB)
+		err2 := SP.UpdateSpace(&space, spaceid, s.Authority.DB)
 
 		if err2 != nil {
 
@@ -355,7 +348,6 @@ func (s Space) DeleteSpace(spaceid int) error {
 	}
 
 	if check {
-
 
 		var spaces TblSpacesAliases
 
@@ -439,7 +431,7 @@ func (s Space) DeleteSpace(spaceid int) error {
 
 // Clone
 
-func (s Space) CloneSpace(c *http.Request) error {
+func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 	userid, _, checkerr := authcore.VerifyToken(s.Authority.Token, s.Authority.Secret)
 
@@ -448,7 +440,7 @@ func (s Space) CloneSpace(c *http.Request) error {
 		return checkerr
 	}
 
-	if c.PostFormValue("spacename") == "" || c.PostFormValue("spacedescription") == "" {
+	if SPC.Name == "" || SPC.Description == "" {
 
 		return errors.New("given some values is empty")
 	}
@@ -457,19 +449,19 @@ func (s Space) CloneSpace(c *http.Request) error {
 
 	var space TblSpacesAliases
 
-	space.SpacesName = c.PostFormValue("spacename")
+	space.SpacesName = SPC.Name
 
-	space.SpacesDescription = c.PostFormValue("spacedescription")
+	space.SpacesDescription = SPC.Description
 
-	space.SpacesSlug = strings.ToLower(space.SpacesName)
+	space.SpacesSlug = strings.ToLower(SPC.Name)
 
-	spaces.PageCategoryId, _ = strconv.Atoi(c.PostFormValue("spacecategory"))
+	spaces.PageCategoryId = SPC.CategoryId
 
-	space.ImagePath = c.PostFormValue("spaceimagepath")
+	space.ImagePath = SPC.ImagePath
 
-	space.LanguageId, _ = strconv.Atoi(c.PostFormValue("langid"))
+	space.LanguageId = SPC.LanguageId
 
-	spaceid, _ := strconv.Atoi(c.PostFormValue("id"))
+	spaceid := clonespaceid
 
 	spaces.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
@@ -630,7 +622,6 @@ func (s Space) CloneSpace(c *http.Request) error {
 }
 
 func (s Space) PageCategoryList() []Arrangecategories {
-
 
 	var getallparentcat []TblPagesCategoriesAliases
 
