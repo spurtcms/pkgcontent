@@ -17,6 +17,7 @@ type Space struct {
 }
 
 type SPM struct{}
+
 var SP SPM
 
 type MemberSpace struct {
@@ -37,6 +38,54 @@ func MigrateTable(db *gorm.DB) {
 }
 
 var IST, _ = time.LoadLocation("Asia/Kolkata")
+
+/*SpaceDetail*/
+func (s Space) SpaceDetail(spaceid int) (space TblSpaces, err error) {
+
+	_, _, checkerr := authcore.VerifyToken(s.Authority.Token, s.Authority.Secret)
+
+	if checkerr != nil {
+
+		return TblSpaces{}, checkerr
+	}
+
+	check, err := s.Authority.IsGranted("Spaces", authcore.CRUD)
+
+	if err != nil {
+
+		return TblSpaces{}, err
+	}
+
+	if check {
+
+		var SP SPM
+
+		var spacename TblSpacesAliases
+
+		err1 := SP.GetSpaceName(&spacename, spaceid, s.Authority.DB)
+
+		var tblspace TblSpaces
+
+		SP.GetSpaceDetails(&tblspace, spaceid, s.Authority.DB)
+
+		tblspace.SpaceName = spacename.SpacesName
+
+		tblspace.CreatedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
+
+		if tblspace.ModifiedOn.IsZero() {
+
+			tblspace.ModifiedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
+
+		} else {
+
+			tblspace.ModifiedDate = tblspace.ModifiedOn.Format("02 Jan 2006 3:04 PM")
+		}
+
+		return tblspace, err1
+
+	}
+	return TblSpaces{}, errors.New("not authorized")
+}
 
 /*spacelist*/
 func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpacesAliases, totalcount int64, err error) {

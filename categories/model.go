@@ -142,8 +142,7 @@ func CreateCategory(category *TblCategory, DB *gorm.DB) error {
 // Update Children list
 func UpdateCategory(category *TblCategory, DB *gorm.DB) error {
 
-	// return nil
-	if err := DB.Table(" tbl_categories").Where("id = ?", category.Id).UpdateColumns(map[string]interface{}{"category_name": category.CategoryName, "category_slug": category.CategorySlug, "description": category.Description, "image_path": category.ImagePath, "modified_by": category.ModifiedBy, "modified_on": category.ModifiedOn}).Error; err != nil {
+	if err := DB.Table("tbl_categories").Where("id = ?", category.Id).UpdateColumns(map[string]interface{}{"category_name": category.CategoryName, "parent_id": category.ParentId, "category_slug": category.CategorySlug, "description": category.Description, "image_path": category.ImagePath, "modified_by": category.ModifiedBy, "modified_on": category.ModifiedOn}).Error; err != nil {
 
 		return err
 	}
@@ -240,4 +239,4 @@ func GetCategoryTree(categoryID int, DB *gorm.DB) ([]TblCategory, error) {
 	}
 
 	return categories, nil
-}
+}	

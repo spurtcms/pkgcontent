@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spurtcms/spurtcms-content/spaces"
 	authcore "github.com/spurtcms/spurtcms-core/auth"
 	membercore "github.com/spurtcms/spurtcms-core/member"
 	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
@@ -27,6 +26,7 @@ type MemberPage struct {
 }
 
 type PageStrut struct{}
+
 var PG PageStrut
 
 func MigrateTable(db *gorm.DB) {
@@ -39,54 +39,6 @@ func MigrateTable(db *gorm.DB) {
 		&TblPageAliasesLog{},
 	)
 
-}
-
-/*SpaceDetail*/
-func (p Page) SpaceDetail(spaceid int) (space spaces.TblSpaces, err error) {
-
-	_, _, checkerr := authcore.VerifyToken(p.Authority.Token, p.Authority.Secret)
-
-	if checkerr != nil {
-
-		return spaces.TblSpaces{}, checkerr
-	}
-
-	check, err := s.Authority.IsGranted("Spaces", authcore.CRUD)
-
-	if err != nil {
-
-		return spaces.TblSpaces{}, err
-	}
-
-	if check {
-
-		var SP spaces.SPM
-
-		var spacename spaces.TblSpacesAliases
-
-		err1 := SP.GetSpaceName(&spacename, spaceid, s.Authority.DB)
-
-		var tblspace spaces.TblSpaces
-
-		SP.GetSpaceDetails(&tblspace, spaceid, p.Authority.DB)
-
-		tblspace.SpaceName = spacename.SpacesName
-
-		tblspace.CreatedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
-
-		if tblspace.ModifiedOn.IsZero() {
-
-			tblspace.ModifiedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
-
-		} else {
-
-			tblspace.ModifiedDate = tblspace.ModifiedOn.Format("02 Jan 2006 3:04 PM")
-		}
-
-		return tblspace, err1
-
-	}
-	return spaces.TblSpaces{}, errors.New("not authorized")
 }
 
 /*Get Page log*/
