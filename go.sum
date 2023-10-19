@@ -31,6 +31,8 @@ github.com/spurtcms/spurtcms-core v1.0.3 h1:FnrBBVgYuP4OyntIazTxfNrqpbjvsJ7Zkgvo
 github.com/spurtcms/spurtcms-core v1.0.3/go.mod h1:clHDL7GukdyMl20qMtx9nY+QFkx/jsVjiwWULNhqt2c=
 github.com/spurtcms/spurtcms-core v1.0.4 h1:0aISfLcid9jAb1s07QK6hAuxRNb4bcvZBe8P3jNgm5Y=
 github.com/spurtcms/spurtcms-core v1.0.4/go.mod h1:clHDL7GukdyMl20qMtx9nY+QFkx/jsVjiwWULNhqt2c=
+github.com/spurtcms/spurtcms-core v1.0.5 h1:0FX5IsIc9xbql79+gl921ymP6laf01+ozNLSFjT3wd0=
+github.com/spurtcms/spurtcms-core v1.0.5/go.mod h1:clHDL7GukdyMl20qMtx9nY+QFkx/jsVjiwWULNhqt2c=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
