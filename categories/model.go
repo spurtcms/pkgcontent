@@ -59,7 +59,7 @@ type CategoryCreate struct {
 }
 
 // Parent Category List
-func GetCategoryList(categories *[]TblCategory, offset int, limit int, filter Filter, DB *gorm.DB) (count int64) {
+func GetCategoryList(categories []TblCategory, offset int, limit int, filter Filter, DB *gorm.DB) (category []TblCategory, count int64) {
 
 	var categorycount int64
 
@@ -74,14 +74,14 @@ func GetCategoryList(categories *[]TblCategory, offset int, limit int, filter Fi
 
 		query.Limit(limit).Offset(offset).Find(&categories)
 
-	} else {
+		return categories, categorycount
 
-		query.Find(&categories).Count(&categorycount)
-
-		return categorycount
 	}
 
-	return 0
+	query.Find(&categories).Count(&categorycount)
+
+	return categories, categorycount
+
 }
 
 // Children Category List
@@ -239,4 +239,4 @@ func GetCategoryTree(categoryID int, DB *gorm.DB) ([]TblCategory, error) {
 	}
 
 	return categories, nil
-}	
+}
