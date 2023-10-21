@@ -231,10 +231,11 @@ func (c Category) ListCategory(offset int, limit int, filter Filter, parent_id i
 		if err1 != nil {
 			fmt.Println(err)
 		}
+		_, count := GetSubCategoryList(&categorylist, 0, 0, filter, parent_id, 0, c.Authority.DB)
+
+		fmt.Println("d", count)
 
 		childcategorys, _ := GetSubCategoryList(&categorys, offset, limit, filter, parent_id, 1, c.Authority.DB)
-
-		_, count := GetSubCategoryList(&categorylist, 0, 0, filter, parent_id, 0, c.Authority.DB)
 
 		childcategory, _ := GetSubCategoryList(&categorylist, offset, limit, filter, parent_id, 0, c.Authority.DB)
 
@@ -570,429 +571,252 @@ func (c Category) DeleteSubCategory(categoryid int) error {
 	return errors.New("not authorized")
 }
 
-// func (c Category) FilterSubCategory(limit int, offset int, filter Filter, parent_id int) (tblcat []TblCategory, categorycount int64, err error) {
+// Get Sub Category List
 
-// 	_, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
+func (c Category) GetSubCategoryDetails(categoryid int) (categorys TblCategory, err error) {
 
-// 	if checkerr != nil {
+	_, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
 
-// 		return []TblCategory{}, 0, checkerr
-// 	}
+	if checkerr != nil {
 
-// 	check, err := c.Authority.IsGranted("Categories", auth.Read)
+		return TblCategory{}, checkerr
+	}
 
-// 	if err != nil {
+	check, err := c.Authority.IsGranted("Categories", auth.Delete)
 
-// 		return []TblCategory{}, 0, err
-// 	}
+	if err != nil {
 
-// 	if check {
+		return TblCategory{}, err
+	}
 
-// 		var categorylist []TblCategory
+	if check {
 
-// 		var categorylists []TblCategory
+		var category TblCategory
 
-// 		var categorys []TblCategory
+		category, err := GetCategoryDetails(categoryid, &category, c.Authority.DB)
 
-// 		var category TblCategory
+		if err != nil {
 
-// 		_, err1 := GetCategoryById(&category, parent_id, c.Authority.DB)
+			return TblCategory{}, err
+		}
 
-// 		if err1 != nil {
-// 			fmt.Println(err)
-// 		}
+		return category, nil
+	}
 
-// 		childcategorys, _ := GetSubCategoryList(&categorys, offset, limit, filter, parent_id, 1, c.Authority.DB)
+	return TblCategory{}, errors.New("not authorized")
+}
 
-// 		_, count := GetSubCategoryList(&categorylist, 0, 0, filter, parent_id, 0, c.Authority.DB)
+// Filter Category
+func (c Category) FilterSubCategory(limit int, filter Filter, parent_id int) (tblcat []TblCategory, categorycount int64, err error) {
 
-// 		childcategory, _ := GetSubCategoryList(&categorylist, offset, limit, filter, parent_id, 0, c.Authority.DB)
+	_, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
 
-// 		for _, val := range *childcategory {
+	if checkerr != nil {
 
-// 			if !val.ModifiedOn.IsZero() {
+		return []TblCategory{}, 0, checkerr
+	}
 
-// 				val.DateString = val.ModifiedOn.Format("02 Jan 2006 03:04 PM")
+	check, err := c.Authority.IsGranted("Categories", auth.Read)
 
-// 			} else {
-// 				val.DateString = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
+	if err != nil {
 
-// 			}
+		return []TblCategory{}, 0, err
+	}
 
-// 			categorylists = append(categorylists, val)
+	if check {
 
-// 		}
-// 		var AllCategorieswithSubCategories []Arrangecategories
+		var categorylist []TblCategory
 
-// 		GetData, _ := GetCategoryTree(parent_id, c.Authority.DB)
+		var categorylists []TblCategory
 
-// 		var pid int
+		var categorys []TblCategory
 
-// 		for _, categories := range GetData {
+		var category TblCategory
 
-// 			var addcat Arrangecategories
+		_, err1 := GetCategoryById(&category, parent_id, c.Authority.DB)
 
-// 			var individualid []CatgoriesOrd
+		if err1 != nil {
+			fmt.Println(err)
+		}
 
-// 			pid = categories.ParentId
+		childcategorys, _ := GetSubCategoryList(&categorys, 0, limit, filter, parent_id, 0, c.Authority.DB)
 
-// 		LOOP:
-// 			for _, GetParent := range GetData {
+		_, count := GetSubCategoryList(&categorylist, 0, 0, filter, parent_id, 0, c.Authority.DB)
 
-// 				var indivi CatgoriesOrd
+		childcategory, _ := GetSubCategoryList(&categorylist, 0, limit, filter, parent_id, 0, c.Authority.DB)
 
-// 				if pid == GetParent.Id {
+		for _, val := range *childcategory {
 
-// 					pid = GetParent.ParentId
+			if !val.ModifiedOn.IsZero() {
 
-// 					indivi.Id = GetParent.Id
+				val.DateString = val.ModifiedOn.Format("02 Jan 2006 03:04 PM")
 
-// 					indivi.Category = GetParent.CategoryName
+			} else {
+				val.DateString = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
 
-// 					individualid = append(individualid, indivi)
+			}
 
-// 					if pid != 0 {
+			categorylists = append(categorylists, val)
 
-// 						goto LOOP
+		}
+		var AllCategorieswithSubCategories []Arrangecategories
 
-// 					}
-// 				}
+		GetData, _ := GetCategoryTree(parent_id, c.Authority.DB)
 
-// 			}
+		var pid int
 
-// 			var ReverseOrder Arrangecategories
+		for _, categories := range GetData {
 
-// 			addcat.Categories = append(addcat.Categories, individualid...)
+			var addcat Arrangecategories
 
-// 			var singlecat []CatgoriesOrd
+			var individualid []CatgoriesOrd
 
-// 			for i := len(addcat.Categories) - 1; i >= 0; i-- {
+			pid = categories.ParentId
 
-// 				var Sing CatgoriesOrd
+		LOOP:
+			for _, GetParent := range GetData {
 
-// 				Sing.Id = addcat.Categories[i].Id
+				var indivi CatgoriesOrd
 
-// 				Sing.Category = addcat.Categories[i].Category
+				if pid == GetParent.Id {
 
-// 				singlecat = append(singlecat, Sing)
+					pid = GetParent.ParentId
 
-// 			}
+					indivi.Id = GetParent.Id
 
-// 			var newcate CatgoriesOrd
+					indivi.Category = GetParent.CategoryName
 
-// 			newcate.Id = categories.Id
+					individualid = append(individualid, indivi)
 
-// 			newcate.Category = categories.CategoryName
+					if pid != 0 {
 
-// 			addcat.Categories = append(addcat.Categories, newcate)
+						goto LOOP
 
-// 			singlecat = append(singlecat, newcate)
+					}
+				}
 
-// 			ReverseOrder.Categories = singlecat
+			}
 
-// 			AllCategorieswithSubCategories = append(AllCategorieswithSubCategories, ReverseOrder)
+			var ReverseOrder Arrangecategories
 
-// 		}
+			addcat.Categories = append(addcat.Categories, individualid...)
 
-// 		var FinalCategoryList []Arrangecategories
+			var singlecat []CatgoriesOrd
 
-// 		for _, val := range AllCategorieswithSubCategories {
+			for i := len(addcat.Categories) - 1; i >= 0; i-- {
 
-// 			var infinalarray Arrangecategories
+				var Sing CatgoriesOrd
 
-// 			for index, res := range val.Categories {
+				Sing.Id = addcat.Categories[i].Id
 
-// 				if index < len(val.Categories)-1 {
+				Sing.Category = addcat.Categories[i].Category
 
-// 					var cate CatgoriesOrd
+				singlecat = append(singlecat, Sing)
 
-// 					cate = res
+			}
 
-// 					infinalarray.Categories = append(infinalarray.Categories, cate)
+			var newcate CatgoriesOrd
 
-// 				}
+			newcate.Id = categories.Id
 
-// 			}
-// 			FinalCategoryList = append(FinalCategoryList, infinalarray)
-// 		}
+			newcate.Category = categories.CategoryName
 
-// 		var FinalModalCategoryList []Arrangecategories
+			addcat.Categories = append(addcat.Categories, newcate)
 
-// 		for _, val := range AllCategorieswithSubCategories {
+			singlecat = append(singlecat, newcate)
 
-// 			var infinalarray Arrangecategories
+			ReverseOrder.Categories = singlecat
 
-// 			for index, res := range val.Categories {
+			AllCategorieswithSubCategories = append(AllCategorieswithSubCategories, ReverseOrder)
 
-// 				if index < len(val.Categories) {
+		}
 
-// 					var cate CatgoriesOrd
+		var FinalCategoryList []Arrangecategories
 
-// 					cate = res
+		for _, val := range AllCategorieswithSubCategories {
 
-// 					infinalarray.Categories = append(infinalarray.Categories, cate)
-// 				}
-// 			}
-// 			FinalModalCategoryList = append(FinalModalCategoryList, infinalarray)
-// 		}
+			var infinalarray Arrangecategories
 
-// 		var FinalModalCategoriesList []TblCategory
+			for index, res := range val.Categories {
 
-// 		for index, val := range *childcategorys {
+				if index < len(val.Categories)-1 {
 
-// 			var finalcat TblCategory
+					var cate CatgoriesOrd
 
-// 			finalcat = val
+					cate = res
 
-// 			for cindex, val2 := range FinalModalCategoryList {
+					infinalarray.Categories = append(infinalarray.Categories, cate)
 
-// 				if index == cindex {
+				}
 
-// 					for _, va3 := range val2.Categories {
+			}
+			FinalCategoryList = append(FinalCategoryList, infinalarray)
+		}
 
-// 						finalcat.Parent = append(finalcat.Parent, va3.Category)
-// 					}
-// 				}
-// 			}
-// 			FinalModalCategoriesList = append(FinalModalCategoriesList, finalcat)
-// 		}
-// 		var FinalCategoriesList []TblCategory
+		var FinalModalCategoryList []Arrangecategories
 
-// 		for index, val := range categorylists {
+		for _, val := range AllCategorieswithSubCategories {
 
-// 			var finalcat TblCategory
+			var infinalarray Arrangecategories
 
-// 			finalcat = val
+			for index, res := range val.Categories {
 
-// 			for cindex, val2 := range FinalCategoryList {
+				if index < len(val.Categories) {
 
-// 				if index == cindex {
+					var cate CatgoriesOrd
 
-// 					for _, va3 := range val2.Categories {
+					cate = res
 
-// 						finalcat.Parent = append(finalcat.Parent, va3.Category)
-// 					}
-// 				}
-// 			}
-// 			FinalCategoriesList = append(FinalCategoriesList, finalcat)
-// 		}
-// 		fmt.Println("fdgdfg", FinalCategoriesList)
-// 		return FinalCategoriesList, count, nil
-// 	}
+					infinalarray.Categories = append(infinalarray.Categories, cate)
+				}
+			}
+			FinalModalCategoryList = append(FinalModalCategoryList, infinalarray)
+		}
 
-// 	return []TblCategory{}, 0, errors.New("not authorized")
+		var FinalModalCategoriesList []TblCategory
 
-// }
+		for index, val := range *childcategorys {
 
-// func (c Category) ListCategory(offset int, limit int, filter Filter, parent_id int) (tblcat []TblCategory, category []TblCategory, parentcategory TblCategory, categorycount int64, err error) {
+			var finalcat TblCategory
 
-// 	_, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
+			finalcat = val
 
-// 	if checkerr != nil {
+			for cindex, val2 := range FinalModalCategoryList {
 
-// 		return []TblCategory{}, []TblCategory{}, TblCategory{}, 0, checkerr
-// 	}
+				if index == cindex {
 
-// 	check, err := c.Authority.IsGranted("Categories", auth.Read)
+					for _, va3 := range val2.Categories {
 
-// 	if err != nil {
+						finalcat.Parent = append(finalcat.Parent, va3.Category)
+					}
+				}
+			}
+			FinalModalCategoriesList = append(FinalModalCategoriesList, finalcat)
+		}
+		var FinalCategoriesList []TblCategory
 
-// 		return []TblCategory{}, []TblCategory{}, TblCategory{}, 0, err
-// 	}
+		for index, val := range categorylists {
 
-// 	if check {
+			var finalcat TblCategory
 
-// 		var categorylist []TblCategory
+			finalcat = val
 
-// 		var categorylists []TblCategory
+			for cindex, val2 := range FinalCategoryList {
 
-// 		var categorys []TblCategory
+				if index == cindex {
 
-// 		var category TblCategory
+					for _, va3 := range val2.Categories {
 
-// 		parentcategory, err1 := GetCategoryById(&category, parent_id, c.Authority.DB)
+						finalcat.Parent = append(finalcat.Parent, va3.Category)
+					}
+				}
+			}
+			FinalCategoriesList = append(FinalCategoriesList, finalcat)
+		}
 
-// 		if err1 != nil {
-// 			fmt.Println(err)
-// 		}
+		return FinalCategoriesList, count, nil
+	}
 
-// 		childcategorys, _ := GetSubCategoryList(&categorys, offset, limit, filter, parent_id, 1, c.Authority.DB)
+	return []TblCategory{}, 0, errors.New("not authorized")
 
-// 		_, count := GetSubCategoryList(&categorylist, 0, 0, filter, parent_id, 0, c.Authority.DB)
-
-// 		childcategory, _ := GetSubCategoryList(&categorylist, offset, limit, filter, parent_id, 0, c.Authority.DB)
-
-// 		for _, val := range *childcategory {
-
-// 			if !val.ModifiedOn.IsZero() {
-
-// 				val.DateString = val.ModifiedOn.Format("02 Jan 2006 03:04 PM")
-
-// 			} else {
-// 				val.DateString = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
-
-// 			}
-
-// 			categorylists = append(categorylists, val)
-
-// 		}
-// 		var AllCategorieswithSubCategories []Arrangecategories
-
-// 		GetData, _ := GetCategoryTree(parent_id, c.Authority.DB)
-
-// 		var pid int
-
-// 		for _, categories := range GetData {
-
-// 			var addcat Arrangecategories
-
-// 			var individualid []CatgoriesOrd
-
-// 			pid = categories.ParentId
-
-// 		LOOP:
-// 			for _, GetParent := range GetData {
-
-// 				var indivi CatgoriesOrd
-
-// 				if pid == GetParent.Id {
-
-// 					pid = GetParent.ParentId
-
-// 					indivi.Id = GetParent.Id
-
-// 					indivi.Category = GetParent.CategoryName
-
-// 					individualid = append(individualid, indivi)
-
-// 					if pid != 0 {
-
-// 						goto LOOP
-
-// 					}
-// 				}
-
-// 			}
-
-// 			var ReverseOrder Arrangecategories
-
-// 			addcat.Categories = append(addcat.Categories, individualid...)
-
-// 			var singlecat []CatgoriesOrd
-
-// 			for i := len(addcat.Categories) - 1; i >= 0; i-- {
-
-// 				var Sing CatgoriesOrd
-
-// 				Sing.Id = addcat.Categories[i].Id
-
-// 				Sing.Category = addcat.Categories[i].Category
-
-// 				singlecat = append(singlecat, Sing)
-
-// 			}
-
-// 			var newcate CatgoriesOrd
-
-// 			newcate.Id = categories.Id
-
-// 			newcate.Category = categories.CategoryName
-
-// 			addcat.Categories = append(addcat.Categories, newcate)
-
-// 			singlecat = append(singlecat, newcate)
-
-// 			ReverseOrder.Categories = singlecat
-
-// 			AllCategorieswithSubCategories = append(AllCategorieswithSubCategories, ReverseOrder)
-
-// 		}
-
-// 		var FinalCategoryList []Arrangecategories
-
-// 		for _, val := range AllCategorieswithSubCategories {
-
-// 			var infinalarray Arrangecategories
-
-// 			for index, res := range val.Categories {
-
-// 				if index < len(val.Categories)-1 {
-
-// 					var cate CatgoriesOrd
-
-// 					cate = res
-
-// 					infinalarray.Categories = append(infinalarray.Categories, cate)
-
-// 				}
-
-// 			}
-// 			FinalCategoryList = append(FinalCategoryList, infinalarray)
-// 		}
-
-// 		var FinalModalCategoryList []Arrangecategories
-
-// 		for _, val := range AllCategorieswithSubCategories {
-
-// 			var infinalarray Arrangecategories
-
-// 			for index, res := range val.Categories {
-
-// 				if index < len(val.Categories) {
-
-// 					var cate CatgoriesOrd
-
-// 					cate = res
-
-// 					infinalarray.Categories = append(infinalarray.Categories, cate)
-// 				}
-// 			}
-// 			FinalModalCategoryList = append(FinalModalCategoryList, infinalarray)
-// 		}
-
-// 		var FinalModalCategoriesList []TblCategory
-
-// 		for index, val := range *childcategorys {
-
-// 			var finalcat TblCategory
-
-// 			finalcat = val
-
-// 			for cindex, val2 := range FinalModalCategoryList {
-
-// 				if index == cindex {
-
-// 					for _, va3 := range val2.Categories {
-
-// 						finalcat.Parent = append(finalcat.Parent, va3.Category)
-// 					}
-// 				}
-// 			}
-// 			FinalModalCategoriesList = append(FinalModalCategoriesList, finalcat)
-// 		}
-// 		var FinalCategoriesList []TblCategory
-
-// 		for index, val := range categorylists {
-
-// 			var finalcat TblCategory
-
-// 			finalcat = val
-
-// 			for cindex, val2 := range FinalCategoryList {
-
-// 				if index == cindex {
-
-// 					for _, va3 := range val2.Categories {
-
-// 						finalcat.Parent = append(finalcat.Parent, va3.Category)
-// 					}
-// 				}
-// 			}
-// 			FinalCategoriesList = append(FinalCategoriesList, finalcat)
-// 		}
-
-// 		return FinalCategoriesList, FinalModalCategoriesList, parentcategory, count, nil
-// 	}
-
-// 	return []TblCategory{}, []TblCategory{}, TblCategory{}, 0, errors.New("not authorized")
-// }
+}

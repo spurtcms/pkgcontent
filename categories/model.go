@@ -102,6 +102,7 @@ func GetSubCategoryList(categories *[]TblCategory, offset int, limit int, filter
 	query := DB
 
 	if filter.Keyword != "" {
+
 		if limit == 0 {
 			query = query.Raw(` `+res+` select count(*) from cat_tree where LOWER(TRIM(category_name)) ILIKE LOWER(TRIM(?)) group by cat_tree.id `, parent_id, "%"+filter.Keyword+"%").Count(&categorycount)
 
@@ -142,9 +143,17 @@ func CreateCategory(category *TblCategory, DB *gorm.DB) error {
 // Update Children list
 func UpdateCategory(category *TblCategory, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_categories").Where("id = ?", category.Id).UpdateColumns(map[string]interface{}{"category_name": category.CategoryName, "parent_id": category.ParentId, "category_slug": category.CategorySlug, "description": category.Description, "image_path": category.ImagePath, "modified_by": category.ModifiedBy, "modified_on": category.ModifiedOn}).Error; err != nil {
+	if category.ParentId == 0 && category.ImagePath == "" {
 
-		return err
+		if err := DB.Debug().Table("tbl_categories").Where("id = ?", category.Id).UpdateColumns(map[string]interface{}{"category_name": category.CategoryName, "category_slug": category.CategorySlug, "description": category.Description, "modified_by": category.ModifiedBy, "modified_on": category.ModifiedOn}).Error; err != nil {
+
+			return err
+		}
+	} else {
+		if err := DB.Debug().Table("tbl_categories").Where("id = ?", category.Id).UpdateColumns(map[string]interface{}{"category_name": category.CategoryName, "parent_id": category.ParentId, "category_slug": category.CategorySlug, "description": category.Description, "image_path": category.ImagePath, "modified_by": category.ModifiedBy, "modified_on": category.ModifiedOn}).Error; err != nil {
+
+			return err
+		}
 	}
 
 	return nil

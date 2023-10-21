@@ -119,8 +119,8 @@ type TblPageAliases struct {
 	CreatedDate     string `gorm:"-"`
 	ModifiedDate    string `gorm:"-"`
 	Username        string `gorm:"-"`
-	PageGroupId     int    `gorm:"<-:false"`
-	ParentId        int    `gorm:"<-:false"`
+	PageGroupId     int    `gorm:"-:migration;<-:false"`
+	ParentId        int    `gorm:"-:migration;<-:false"`
 }
 
 type TblPageAliasesLog struct {
@@ -146,9 +146,9 @@ type TblPageAliasesLog struct {
 	DeletedBy       int       `gorm:"DEFAULT:NULL"`
 	CreatedDate     string    `gorm:"-"`
 	ModifiedDate    string    `gorm:"-"`
-	Username        string    `gorm:"<-:false"`
-	PageGroupId     int       `gorm:"<-:false"`
-	ParentId        int       `gorm:"<-:false"`
+	Username        string    `gorm:"-:migration;<-:false"`
+	PageGroupId     int       `gorm:"-:migration;<-:false"`
+	ParentId        int       `gorm:"-:migration;<-:false"`
 }
 
 type PageCreate struct {

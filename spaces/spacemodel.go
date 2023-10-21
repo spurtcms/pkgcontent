@@ -17,7 +17,7 @@ type TblSpaces struct {
 	DeletedOn      time.Time `gorm:"DEFAULT:NULL"`
 	DeletedBy      int       `gorm:"DEFAULT:NULL"`
 	IsDeleted      int       `gorm:"DEFAULT:0"`
-	Username       string    `gorm:"<-:false"`
+	Username       string    `gorm:"-:migration;<-:false"`
 	CreatedDate    string    `gorm:"-"`
 	ModifiedDate   string    `gorm:"-"`
 	SpaceName      string    `gorm:"-"`
@@ -38,8 +38,8 @@ type TblSpacesAliases struct {
 	DeletedOn         time.Time                   `gorm:"DEFAULT:NULL"`
 	DeletedBy         int                         `gorm:"DEFAULT:NULL"`
 	IsDeleted         int                         `gorm:"DEFAULT:0"`
-	PageCategoryId    int                         `gorm:"column:page_category_id;<-:false"`
-	ParentId          int                         `gorm:"column:parent_id;<-:false"`
+	PageCategoryId    int                         `gorm:"-:migration;column:page_category_id;<-:false"`
+	ParentId          int                         `gorm:"-:migration;column:parent_id;<-:false"`
 	ParentCategory    TblPagesCategoriesAliases   `gorm:"-"`
 	ChildCategories   []TblPagesCategoriesAliases `gorm:"-"`
 	CreatedDate       string                      `gorm:"-"`
@@ -189,8 +189,8 @@ type TblPageAliases struct {
 	CreatedDate     string `gorm:"-"`
 	ModifiedDate    string `gorm:"-"`
 	Username        string `gorm:"-"`
-	PageGroupId     int    `gorm:"<-:false"`
-	ParentId        int    `gorm:"<-:false"`
+	PageGroupId     int    `gorm:"-:migration;<-:false"`
+	ParentId        int    `gorm:"-:migration;<-:false"`
 }
 
 /*spaceList*/
