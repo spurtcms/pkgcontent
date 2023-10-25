@@ -373,7 +373,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 	var Temparr []TempCheck
 
 	var err error
-
+	
 	for _, val := range createGroup.NewGroup {
 
 		/*check if exists*/
@@ -479,7 +479,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 				for _, newval := range createSub.SubPage {
 
-					if newval.ParentId == val.PgId && newval.NewParentId == val.NewPgId {
+					if newval.ParentId == 0 && newval.NewParentId == val.ParentId || newval.ParentId == 0 && newval.NewParentId == val.NewPgId || newval.ParentId == val.PgId && newval.NewParentId == 0 || newval.ParentId == val.NewPgId && newval.NewParentId == 0 {
 
 						var Temarr TempCheck
 
@@ -490,8 +490,6 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 						Temarr.DBid = pageret.Id
 
 						Temparr = append(Temparr, Temarr)
-
-						break
 
 					}
 
@@ -626,7 +624,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 				for _, newval := range createSub.SubPage {
 
-					if newval.ParentId == val.PgId && newval.NewParentId == val.NewPgId {
+					if newval.ParentId == 0 && newval.NewParentId == val.ParentId || newval.ParentId == 0 && newval.NewParentId == val.NewPgId || newval.ParentId == val.PgId && newval.NewParentId == 0 || newval.ParentId == val.NewPgId && newval.NewParentId == 0 {
 
 						var Temarr TempCheck
 
@@ -637,8 +635,6 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 						Temarr.DBid = pageret.Id
 
 						Temparr = append(Temparr, Temarr)
-
-						break
 
 					}
 
@@ -753,9 +749,6 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 		}
 
 	}
-
-	log.Println(Temparr)
-
 	/*createsub*/
 	for _, val := range createSub.SubPage {
 
@@ -785,7 +778,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 				}
 
 			}
-			if val.NewParentId == pg.NewPgId {
+			if val.NewParentId == pg.NewPgId || val.NewParentId == pg.ParentId {
 
 				if val.SpgId == 0 {
 
@@ -799,7 +792,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 			for _, newpgid := range Temparr {
 
-				if newpgid.FrontId == val.SpgId && newpgid.NewFrontId == val.NewSpId {
+				if newpgid.FrontId == 0 && newpgid.NewFrontId == val.NewSpId || newpgid.FrontId == 0 && newpgid.NewFrontId == val.SpgId || newpgid.FrontId == val.SpgId && newpgid.NewFrontId == 0 || newpgid.FrontId == val.NewSpId && newpgid.NewFrontId == 0 {
 
 					pgid = newpgid.DBid
 
