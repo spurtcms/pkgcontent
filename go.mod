@@ -3,7 +3,7 @@ module github.com/spurtcms/spurtcms-content
 go 1.20
 
 require (
-	github.com/spurtcms/spurtcms-core v1.0.9
+	github.com/spurtcms/spurtcms-core v1.0.11-0.20231031141709-01991099d83c
 	gorm.io/datatypes v1.2.0
 	gorm.io/gorm v1.25.5
 )

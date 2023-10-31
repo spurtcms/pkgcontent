@@ -449,3 +449,14 @@ func (P PageStrut) GetPageLogDetails(tblpagelog *[]TblPageAliasesLog, spaceid in
 
 	return nil
 }
+
+/*Get Content*/
+func (P PageStrut) GetContentByPageId(tblpage *TblPageAliases, id int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_page_aliases").Where("page_id=?", id).First(&tblpage).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}

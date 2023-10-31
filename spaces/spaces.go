@@ -7,7 +7,6 @@ import (
 	"time"
 
 	authcore "github.com/spurtcms/spurtcms-core/auth"
-	membercore "github.com/spurtcms/spurtcms-core/member"
 	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
 	"gorm.io/gorm"
 )
@@ -168,23 +167,23 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 /*spacelist*/
 func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace []TblSpacesAliases, totalcount int64, err error) {
 
-	_, _, checkerr := membercore.VerifyToken(s.MemAuth.Token, s.MemAuth.Secret)
+	// _, _, checkerr := membercore.VerifyToken(s.MemAuth.Token, s.MemAuth.Secret)
 
-	if checkerr != nil {
+	// if checkerr != nil {
 
-		return []TblSpacesAliases{}, 0, checkerr
-	}
+	// 	return []TblSpacesAliases{}, 0, checkerr
+	// }
 
 	var mem memberaccore.AccessAuth
 
 	mem.Authority = *s.MemAuth
 
-	spceid, err := mem.GetSpace()
+	// spceid, err := mem.GetSpace()
 
-	if err != nil {
+	// if err != nil {
 
-		log.Println(err)
-	}
+	// 	log.Println(err)
+	// }
 
 	var default_lang TblLanguage
 
@@ -192,7 +191,7 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 
 	var spaces []TblSpacesAliases
 
-	_, spaceerr := SP.MemberSpaceList(&spaces, default_lang.Id, limit, offset, filter, spceid, s.MemAuth.DB)
+	_, spaceerr := SP.MemberSpaceList(&spaces, default_lang.Id, limit, offset, filter, s.MemAuth.DB)
 
 	if spaceerr != nil {
 
@@ -237,7 +236,7 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 
 	}
 
-	count, _ := SP.SpaceList(&spaces, default_lang.Id, 0, 0, filter, spceid, s.MemAuth.DB)
+	count, _ := SP.MemberSpaceList(&spaces, default_lang.Id, 0, 0, filter, s.MemAuth.DB)
 
 	return SpaceDetails, count, nil
 

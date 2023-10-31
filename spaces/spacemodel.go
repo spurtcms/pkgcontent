@@ -44,6 +44,7 @@ type TblSpacesAliases struct {
 	ChildCategories   []TblPagesCategoriesAliases `gorm:"-"`
 	CreatedDate       string                      `gorm:"-"`
 	ModifiedDate      string                      `gorm:"-"`
+	CategoryName      string                      `gorm:"-"`
 }
 
 type TblPagesCategoriesAliases struct {
@@ -230,13 +231,14 @@ func (SP SPM) SpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, off
 }
 
 /*spaceList*/
-func (SP SPM) MemberSpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, offset int, filter Filter, spaceid []int, DB *gorm.DB) (spacecount int64, err error) {
+func (SP SPM) MemberSpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, offset int, filter Filter, DB *gorm.DB) (spacecount int64, err error) {
 
-	query := DB.Table("tbl_spaces_aliases").Select("tbl_spaces_aliases.*,tbl_spaces.page_category_id,tbl_pages_categories.parent_id").
-		Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
+	query := DB.Table("tbl_spaces_aliases").Select("distinct(tbl_spaces_aliases.id),tbl_spaces_aliases.*,tbl_spaces.page_category_id,tbl_pages_categories.parent_id").Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
 		Joins("inner join tbl_language on tbl_language.id = tbl_spaces_aliases.language_id").
+		Joins("inner join tbl_page on tbl_page.spaces_id = tbl_spaces_aliases.spaces_id").
+		Joins("inner join tbl_page_aliases on tbl_page_aliases.page_id = tbl_page.id").
 		Joins("left join tbl_pages_categories on tbl_pages_categories.id = tbl_spaces.page_category_id").
-		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = ? and tbl_spaces.id in (?)", langId, spaceid)
+		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = ? and tbl_page_aliases.status='publish'", langId)
 
 	if filter.Keyword != "" {
 

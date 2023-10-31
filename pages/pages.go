@@ -8,7 +8,6 @@ import (
 	"time"
 
 	authcore "github.com/spurtcms/spurtcms-core/auth"
-	membercore "github.com/spurtcms/spurtcms-core/member"
 	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
 	"gorm.io/gorm"
 )
@@ -181,13 +180,6 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 /*list page*/
 func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 
-	_, _, checkerr := membercore.VerifyToken(p.MemAuth.Token, p.MemAuth.Secret)
-
-	if checkerr != nil {
-
-		return []PageGroups{}, []Pages{}, []SubPages{}, checkerr
-	}
-
 	var mem memberaccore.AccessAuth
 
 	mem.Authority = *p.MemAuth
@@ -254,7 +246,7 @@ func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPag
 
 			subpage.Name = page_aliases.PageTitle
 
-			subpage.Content = page_aliases.PageDescription
+			// subpage.Content = page_aliases.PageDescription
 
 			subpage.ParentId = page.ParentId
 
@@ -274,7 +266,7 @@ func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPag
 
 			one_page.Name = page_aliases.PageTitle
 
-			one_page.Content = page_aliases.PageDescription
+			// one_page.Content = page_aliases.PageDescription
 
 			one_page.OrderIndex = page_aliases.OrderIndex
 
@@ -289,6 +281,33 @@ func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPag
 	}
 
 	return pagegroups, pages, subpages, nil
+}
+
+/*Get Page content - PAGE VIEW*/
+func (m MemberPage) GetPageContent(pageid int) (TblPageAliases, error) {
+
+	var mem memberaccore.AccessAuth
+
+	mem.Authority = *m.MemAuth
+
+	flg, err := mem.CheckPageLogin(pageid)
+
+	if err != nil {
+
+		log.Println(err)
+
+	}
+
+	if flg {
+
+		var tblpage TblPageAliases
+
+		PG.GetContentByPageId(&tblpage, pageid, m.MemAuth.DB)
+
+		return tblpage, nil
+	}
+
+	return TblPageAliases{}, err
 }
 
 /*Create page*/
@@ -373,7 +392,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 	var Temparr []TempCheck
 
 	var err error
-	
+
 	for _, val := range createGroup.NewGroup {
 
 		/*check if exists*/
