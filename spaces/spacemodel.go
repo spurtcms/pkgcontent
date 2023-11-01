@@ -3,6 +3,7 @@ package spaces
 import (
 	"time"
 
+	"github.com/spurtcms/spurtcms-content/categories"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -45,6 +46,8 @@ type TblSpacesAliases struct {
 	CreatedDate       string                      `gorm:"-"`
 	ModifiedDate      string                      `gorm:"-"`
 	CategoryName      string                      `gorm:"-"`
+	ChildCat          categories.TblCategory      `gorm:"-"`
+	ParentCat         []categories.TblCategory    `gorm:"-"`
 }
 
 type TblPagesCategoriesAliases struct {
@@ -250,7 +253,7 @@ func (SP SPM) MemberSpaceList(tblspace *[]TblSpacesAliases, langId int, limit in
 
 	if limit != 0 {
 
-		query.Limit(limit).Offset(offset).Order("tbl_spaces.id desc").Find(&tblspace)
+		query.Limit(limit).Offset(offset).Find(&tblspace)
 
 	} else {
 

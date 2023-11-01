@@ -180,29 +180,11 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 /*list page*/
 func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 
-	var mem memberaccore.AccessAuth
-
-	mem.Authority = *p.MemAuth
-
-	pageid, err := mem.GetPage()
-
-	if err != nil {
-
-		log.Println(err)
-	}
-
-	grpid, err1 := mem.GetGroup()
-
-	if err1 != nil {
-
-		log.Println(err1)
-	}
-
 	var group []TblPagesGroup
 
 	var pagegroups []PageGroups
 
-	PG.SelectGroup(&group, spaceid, grpid, p.MemAuth.DB)
+	PG.SelectGroup(&group, spaceid, []int{}, p.MemAuth.DB)
 
 	for _, group := range group {
 
@@ -221,14 +203,13 @@ func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPag
 		pagegroups = append(pagegroups, page_group)
 
 	}
-
 	var page []TblPage
 
 	var pages []Pages
 
 	var subpages []SubPages
 
-	PG.SelectPage(&page, spaceid, pageid, p.MemAuth.DB)
+	PG.SelectPage(&page, spaceid, []int{}, p.MemAuth.DB)
 
 	for _, page := range page {
 

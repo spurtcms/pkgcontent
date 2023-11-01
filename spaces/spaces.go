@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spurtcms/spurtcms-content/categories"
 	authcore "github.com/spurtcms/spurtcms-core/auth"
 	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
 	"gorm.io/gorm"
@@ -167,23 +168,9 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 /*spacelist*/
 func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace []TblSpacesAliases, totalcount int64, err error) {
 
-	// _, _, checkerr := membercore.VerifyToken(s.MemAuth.Token, s.MemAuth.Secret)
-
-	// if checkerr != nil {
-
-	// 	return []TblSpacesAliases{}, 0, checkerr
-	// }
-
 	var mem memberaccore.AccessAuth
 
 	mem.Authority = *s.MemAuth
-
-	// spceid, err := mem.GetSpace()
-
-	// if err != nil {
-
-	// 	log.Println(err)
-	// }
 
 	var default_lang TblLanguage
 
@@ -202,25 +189,32 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 
 	for _, space := range spaces {
 
-		var parent_page_Category TblPagesCategoriesAliases
+		var child_page_Category categories.TblCategory
 
-		_, parent_page := SP.GetParentPageCategory(&parent_page_Category, space.ParentId, s.MemAuth.DB)
+		_, child_page := categories.GetChildPageCategoriess(&child_page_Category, space.PageCategoryId, s.MemAuth.DB)
 
-		space.ParentCategory = parent_page
+		space.ChildCat = child_page
 
-		if parent_page.Id != 0 {
+		if child_page.Id != 0 {
+			var parent_page_Category []categories.TblCategory
+			_, parent_page := categories.GetParentPageCategorys(&parent_page_Category, space.ParentId, s.MemAuth.DB)
 
-			var child_page_Categories []TblPagesCategoriesAliases
-
-			_, child_page := SP.GetChildPageCategories(&child_page_Categories, space.PageCategoryId, s.MemAuth.DB)
-
-			for _, child_category := range child_page {
-
-				space.ChildCategories = append(space.ChildCategories, child_category)
+			for space.ParentId != 0 {
+				for _, parent_category := range parent_page {
+					space.ParentCat = append(space.ParentCat, parent_category)
+				}
+				if len(parent_page) > 0 {
+					_, parent_page = categories.GetParentPageCategorys(&parent_page_Category, parent_page[0].ParentId, s.MemAuth.DB)
+				} else {
+					break
+				}
+			}
+			for i := 0; i < len(space.ParentCat)/2; i++ {
+				j := len(space.ParentCat) - i - 1
+				space.ParentCat[i], space.ParentCat[j] = space.ParentCat[j], space.ParentCat[i]
 			}
 
 		}
-
 		space.CreatedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
 
 		if !space.ModifiedOn.IsZero() {
@@ -232,6 +226,7 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 			space.ModifiedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
 
 		}
+		
 		SpaceDetails = append(SpaceDetails, space)
 
 	}

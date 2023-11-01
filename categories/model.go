@@ -249,3 +249,23 @@ func GetCategoryTree(categoryID int, DB *gorm.DB) ([]TblCategory, error) {
 
 	return categories, nil
 }
+
+func GetChildPageCategoriess(category *TblCategory, category_id int, DB *gorm.DB) (error, TblCategory) {
+
+	if err := DB.Table("tbl_categories").Where("is_deleted=0 and id=?", category_id).Find(&category).Error; err != nil {
+
+		return err, TblCategory{}
+	}
+
+	return nil, *category
+}
+
+func GetParentPageCategorys(category *[]TblCategory, parent_id int, DB *gorm.DB) (error, []TblCategory) {
+
+	if err := DB.Table("tbl_categories").Where("is_deleted = 0 and id=?", parent_id).Find(&category).Error; err != nil {
+
+		return err, []TblCategory{}
+	}
+
+	return nil, *category
+}
