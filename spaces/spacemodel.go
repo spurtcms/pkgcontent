@@ -25,7 +25,7 @@ type TblSpaces struct {
 }
 
 type TblSpacesAliases struct {
-	Id                int `gorm:"primaryKey;auto_increment"`
+	Id                int
 	SpacesId          int
 	LanguageId        int
 	SpacesName        string
@@ -34,20 +34,18 @@ type TblSpacesAliases struct {
 	ImagePath         string
 	CreatedOn         time.Time
 	CreatedBy         int
-	ModifiedOn        time.Time                   `gorm:"DEFAULT:NULL"`
-	ModifiedBy        int                         `gorm:"DEFAULT:NULL"`
-	DeletedOn         time.Time                   `gorm:"DEFAULT:NULL"`
-	DeletedBy         int                         `gorm:"DEFAULT:NULL"`
-	IsDeleted         int                         `gorm:"DEFAULT:0"`
-	PageCategoryId    int                         `gorm:"-:migration;column:page_category_id;<-:false"`
-	ParentId          int                         `gorm:"-:migration;column:parent_id;<-:false"`
-	ParentCategory    TblPagesCategoriesAliases   `gorm:"-"`
-	ChildCategories   []TblPagesCategoriesAliases `gorm:"-"`
-	CreatedDate       string                      `gorm:"-"`
-	ModifiedDate      string                      `gorm:"-"`
-	CategoryName      string                      `gorm:"-"`
-	ChildCat          categories.TblCategory      `gorm:"-"`
-	ParentCat         []categories.TblCategory    `gorm:"-"`
+	ModifiedOn        time.Time                `gorm:"DEFAULT:NULL"`
+	ModifiedBy        int                      `gorm:"DEFAULT:NULL"`
+	DeletedOn         time.Time                `gorm:"DEFAULT:NULL"`
+	DeletedBy         int                      `gorm:"DEFAULT:NULL"`
+	IsDeleted         int                      `gorm:"DEFAULT:0"`
+	PageCategoryId    int                      `gorm:"column:page_category_id;<-:false"`
+	ParentId          int                      `gorm:"column:parent_id;<-:false"`
+	CreatedDate       string                   `gorm:"-"`
+	ModifiedDate      string                   `gorm:"-"`
+	CategoryNames     []categories.TblCategory `gorm:"-"`
+	CategoryId        int                      `gorm:"column:category_id;<-:false"`
+	FullSpaceAccess   bool                     `gorm:"-"`
 }
 
 type TblPagesCategoriesAliases struct {

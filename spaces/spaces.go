@@ -123,24 +123,56 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 		for _, space := range spaces {
 
-			var parent_page_Category TblPagesCategoriesAliases
+			var child_page_Category categories.TblCategory
 
-			_, parent_page := SP.GetParentPageCategory(&parent_page_Category, space.ParentId, s.Authority.DB)
+			_, child_page := categories.GetChildPageCategoriess(&child_page_Category, space.PageCategoryId, s.Authority.DB)
 
-			space.ParentCategory = parent_page
+			var categorynames []categories.TblCategory
 
-			if parent_page.Id != 0 {
+			var flg int
 
-				var child_page_Categories []TblPagesCategoriesAliases
+			categorynames = append(categorynames, child_page)
 
-				_, child_page := SP.GetChildPageCategories(&child_page_Categories, space.PageCategoryId, s.Authority.DB)
+			flg = child_page.ParentId
 
-				for _, child_category := range child_page {
+			if flg != 0 {
 
-					space.ChildCategories = append(space.ChildCategories, child_category)
+			CLOOP:
+
+				for {
+
+					var newchildcategory categories.TblCategory
+
+					_, child := categories.GetChildPageCategoriess(&newchildcategory, flg, s.Authority.DB)
+
+					flg = child.ParentId
+
+					if flg != 0 {
+
+						categorynames = append(categorynames, child)
+
+						goto CLOOP
+
+					} else {
+
+						categorynames = append(categorynames, child)
+
+						break
+					}
+
 				}
 
 			}
+
+			var reverseCategoryOrder []categories.TblCategory
+
+			for i := len(categorynames) - 1; i >= 0; i-- {
+
+				reverseCategoryOrder = append(reverseCategoryOrder, categorynames[i])
+
+			}
+
+			space.CategoryNames = reverseCategoryOrder
 
 			space.CreatedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
 
@@ -193,28 +225,53 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 
 		_, child_page := categories.GetChildPageCategoriess(&child_page_Category, space.PageCategoryId, s.MemAuth.DB)
 
-		space.ChildCat = child_page
+		var categorynames []categories.TblCategory
 
-		if child_page.Id != 0 {
-			var parent_page_Category []categories.TblCategory
-			_, parent_page := categories.GetParentPageCategorys(&parent_page_Category, space.ParentId, s.MemAuth.DB)
+		var flg int
 
-			for space.ParentId != 0 {
-				for _, parent_category := range parent_page {
-					space.ParentCat = append(space.ParentCat, parent_category)
-				}
-				if len(parent_page) > 0 {
-					_, parent_page = categories.GetParentPageCategorys(&parent_page_Category, parent_page[0].ParentId, s.MemAuth.DB)
+		categorynames = append(categorynames, child_page)
+
+		flg = child_page.ParentId
+
+		if flg != 0 {
+
+		CLOOP:
+
+			for {
+
+				var newchildcategory categories.TblCategory
+
+				_, child := categories.GetChildPageCategoriess(&newchildcategory, flg, s.MemAuth.DB)
+
+				flg = child.ParentId
+
+				if flg != 0 {
+
+					categorynames = append(categorynames, child)
+
+					goto CLOOP
+
 				} else {
+
+					categorynames = append(categorynames, child)
+
 					break
 				}
-			}
-			for i := 0; i < len(space.ParentCat)/2; i++ {
-				j := len(space.ParentCat) - i - 1
-				space.ParentCat[i], space.ParentCat[j] = space.ParentCat[j], space.ParentCat[i]
+
 			}
 
 		}
+
+		var reverseCategoryOrder []categories.TblCategory
+
+		for i := len(categorynames) - 1; i >= 0; i-- {
+
+			reverseCategoryOrder = append(reverseCategoryOrder, categorynames[i])
+
+		}
+
+		space.CategoryNames = reverseCategoryOrder
+
 		space.CreatedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
 
 		if !space.ModifiedOn.IsZero() {
@@ -226,7 +283,6 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 			space.ModifiedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
 
 		}
-		
 		SpaceDetails = append(SpaceDetails, space)
 
 	}
