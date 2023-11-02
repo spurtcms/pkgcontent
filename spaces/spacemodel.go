@@ -198,11 +198,11 @@ type TblPageAliases struct {
 /*spaceList*/
 func (SP SPM) SpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, offset int, filter Filter, spaceid []int, DB *gorm.DB) (spacecount int64, err error) {
 
-	query := DB.Table("tbl_spaces_aliases").Select("tbl_spaces_aliases.*,tbl_spaces.page_category_id,tbl_pages_categories.parent_id").
-		Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
-		Joins("inner join tbl_language on tbl_language.id = tbl_spaces_aliases.language_id").
-		Joins("inner join tbl_pages_categories on tbl_pages_categories.id = tbl_spaces.page_category_id").
-		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = ?", langId)
+	query := DB.Table("tbl_spaces_aliases").Select("tbl_spaces_aliases.*,tbl_spaces.page_category_id,tbl_categories.parent_id").
+	Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
+	Joins("inner join tbl_language on tbl_language.id = tbl_spaces_aliases.language_id").
+	Joins("inner join tbl_categories on tbl_categories.id = tbl_spaces.page_category_id").
+	Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = 1")
 
 	if len(spaceid) != 0 {
 
