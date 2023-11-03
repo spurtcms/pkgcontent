@@ -162,6 +162,21 @@ type PageCreate struct {
 	Status        string //publish,draft
 }
 
+type TblMemberNotesHighlight struct {
+	Id                     int `gorm:"primaryKey;auto_increment"`
+	MemberId               int
+	PageId                 int
+	NotesHighlightsContent string
+	NotesHighlightsType    string
+	CreatedBy              int
+	CreatedOn              time.Time
+	ModifiedOn             time.Time `gorm:"DEFAULT:NULL"`
+	ModifiedBy             int       `gorm:"DEFAULT:NULL"`
+	DeletedOn              time.Time `gorm:"DEFAULT:NULL"`
+	DeletedBy              int       `gorm:"DEFAULT:NULL"`
+	IsDeleted              int
+}
+
 func (P PageStrut) CreatePageGroup(tblpagegroup *TblPagesGroup, DB *gorm.DB) (*TblPagesGroup, error) {
 
 	if err := DB.Table("tbl_pages_group").Create(&tblpagegroup).Error; err != nil {
@@ -459,4 +474,49 @@ func (P PageStrut) GetContentByPageId(tblpage *TblPageAliases, id int, DB *gorm.
 	}
 
 	return nil
+}
+
+/*GET NOTES*/
+func (p PageStrut) GetNotes(notes *[]TblMemberNotesHighlight, memberid int, pageid int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_member_notes_highlights").Where("member_id=? and page_id=? and notes_highlights_type='notes'", memberid, pageid).Find(&notes).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/*GET NOTES*/
+func (p PageStrut) GetHighlights(notes *[]TblMemberNotesHighlight, memberid int, pageid int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_member_notes_highlights").Where("member_id=? and page_id=? and notes_highlights_type='highlights'", memberid, pageid).Find(&notes).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/*Insert Notes*/
+func (p PageStrut) UpdateNotesHighlights(notes *TblMemberNotesHighlight, contype string, DB *gorm.DB) error {
+
+	if contype == "notes" {
+
+		if err := DB.Model(TblMemberNotesHighlight{}).Create(notes).Error; err != nil {
+
+			return err
+
+		}
+
+	} else if contype == "highlights" {
+
+		if err := DB.Model(TblMemberNotesHighlight{}).Create(notes).Error; err != nil {
+
+			return err
+
+		}
+
+	}
+
+	return nil
+
 }

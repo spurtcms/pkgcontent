@@ -8,6 +8,7 @@ import (
 	"time"
 
 	authcore "github.com/spurtcms/spurtcms-core/auth"
+	"github.com/spurtcms/spurtcms-core/member"
 	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
 	"gorm.io/gorm"
 )
@@ -289,6 +290,104 @@ func (m MemberPage) GetPageContent(pageid int) (TblPageAliases, error) {
 	}
 
 	return TblPageAliases{}, err
+}
+
+/*Get Page content - PAGE VIEW*/
+func (m MemberPage) GetNotes(pageid int) ([]TblMemberNotesHighlight, error) {
+
+	memberid, _, checkerr := member.VerifyToken(m.MemAuth.Token, m.MemAuth.Secret)
+
+	if checkerr != nil {
+
+		return []TblMemberNotesHighlight{}, checkerr
+	}
+
+	var notes []TblMemberNotesHighlight
+
+	PG.GetNotes(&notes, memberid, pageid, m.MemAuth.DB)
+
+	return notes, nil
+}
+
+/*Get Page content - PAGE VIEW*/
+func (m MemberPage) GetHighlights(pageid int) ([]TblMemberNotesHighlight, error) {
+
+	memberid, _, checkerr := member.VerifyToken(m.MemAuth.Token, m.MemAuth.Secret)
+
+	if checkerr != nil {
+
+		return []TblMemberNotesHighlight{}, checkerr
+	}
+
+	var Highlights []TblMemberNotesHighlight
+
+	PG.GetHighlights(&Highlights, memberid, pageid, m.MemAuth.DB)
+
+	return Highlights, nil
+}
+
+/*Update Notes*/
+func (m MemberPage) UpdateNotes(pageid int, content string) (flg bool, err error) {
+
+	memberid, _, checkerr := member.VerifyToken(m.MemAuth.Token, m.MemAuth.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	var notes TblMemberNotesHighlight
+
+	notes.PageId = pageid
+
+	notes.NotesHighlightsContent = content
+
+	notes.NotesHighlightsType = "notes"
+
+	notes.CreatedBy = memberid
+
+	notes.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	err1 := PG.UpdateNotesHighlights(&notes, "notes", m.MemAuth.DB)
+
+	if err1 != nil {
+
+		return false, err1
+	}
+
+	return true, nil
+}
+
+/*Update Highlights*/
+func (m MemberPage) UpdateHighlights(pageid int, content string) (flg bool, err error) {
+
+	memberid, _, checkerr := member.VerifyToken(m.MemAuth.Token, m.MemAuth.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	var notes TblMemberNotesHighlight
+
+	notes.PageId = pageid
+
+	notes.NotesHighlightsContent = content
+
+	notes.NotesHighlightsType = "highlights"
+
+	notes.CreatedBy = memberid
+
+	notes.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	err1 := PG.UpdateNotesHighlights(&notes, "highlights", m.MemAuth.DB)
+
+	if err1 != nil {
+
+		return false, err1
+	}
+
+	return true, nil
 }
 
 /*Create page*/
