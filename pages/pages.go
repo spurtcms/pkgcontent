@@ -877,18 +877,25 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 				}
 
 			}
-			if val.NewParentId == pg.NewPgId || val.NewParentId == pg.ParentId {
 
-				if val.SpgId == 0 {
+			for _, pgd := range createPage.NewPages {
 
-					var getpage TblPageAliases
+				if val.NewParentId == pgd.NewPgId && val.NewParentId == pgd.ParentId && val.ParentId == pgd.PgId {
 
-					PG.GetPageDataByName(&getpage, spaceId, pg.Name, p.Authority.DB)
+					if val.SpgId == 0 {
 
-					pgid = getpage.PageId
+						var getpage TblPageAliases
+	
+						PG.GetPageDataByName(&getpage, spaceId, pg.Name, p.Authority.DB)
+	
+						pgid = getpage.PageId
+
+						break
+					}
 				}
-			}
 
+			}
+		
 			for _, newpgid := range Temparr {
 
 				if newpgid.FrontId == 0 && newpgid.NewFrontId == val.NewSpId || newpgid.FrontId == 0 && newpgid.NewFrontId == val.SpgId || newpgid.FrontId == val.SpgId && newpgid.NewFrontId == 0 || newpgid.FrontId == val.NewSpId && newpgid.NewFrontId == 0 {
