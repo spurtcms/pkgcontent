@@ -367,7 +367,7 @@ func (P PageStrut) DeletePageAliases(tblpageAliases *TblPageAliases, id int, DB 
 /*Check if groupexist*/
 func (P PageStrut) CheckGroupExists(tblgroup *TblPagesGroup, id int, spaceid int, DB *gorm.DB) error {
 
-	if err := s.Authority.DB.Table("tbl_pages_group").Where("id=? and spaces_id=?", id, spaceid).First(&tblgroup).Error; err != nil {
+	if err := DB.Table("tbl_pages_group").Where("id=? and spaces_id=?", id, spaceid).First(&tblgroup).Error; err != nil {
 
 		return err
 	}

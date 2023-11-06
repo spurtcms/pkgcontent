@@ -406,7 +406,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 		status = "publish"
 
-	} else if Pagec.Status != "save" {
+	} else if Pagec.Status == "save" {
 
 		status = "draft"
 	}

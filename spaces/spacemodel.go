@@ -199,10 +199,10 @@ type TblPageAliases struct {
 func (SP SPM) SpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, offset int, filter Filter, spaceid []int, DB *gorm.DB) (spacecount int64, err error) {
 
 	query := DB.Table("tbl_spaces_aliases").Select("tbl_spaces_aliases.*,tbl_spaces.page_category_id,tbl_categories.parent_id").
-	Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
-	Joins("inner join tbl_language on tbl_language.id = tbl_spaces_aliases.language_id").
-	Joins("inner join tbl_categories on tbl_categories.id = tbl_spaces.page_category_id").
-	Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = 1")
+		Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
+		Joins("inner join tbl_language on tbl_language.id = tbl_spaces_aliases.language_id").
+		Joins("inner join tbl_categories on tbl_categories.id = tbl_spaces.page_category_id").
+		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = 1")
 
 	if len(spaceid) != 0 {
 
@@ -246,6 +246,7 @@ func (SP SPM) MemberSpaceList(tblspace *[]TblSpacesAliases, langId int, limit in
 		query = query.Where("LOWER(TRIM(tbl_spaces_aliases.spaces_name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%")
 	}
 	if len(filter.CategoryId) > 0 && filter.CategoryId[0] != 0 {
+		
 		query = query.Where("tbl_spaces.page_category_id IN (?)", filter.CategoryId)
 	}
 
@@ -254,6 +255,8 @@ func (SP SPM) MemberSpaceList(tblspace *[]TblSpacesAliases, langId int, limit in
 		query.Limit(limit).Offset(offset).Find(&tblspace)
 
 	} else {
+
+		query = query.Select("COUNT(DISTINCT(TBL_SPACES_ALIASES.ID)) as deleted_by")
 
 		query.Find(&tblspace).Count(&spacecount)
 
