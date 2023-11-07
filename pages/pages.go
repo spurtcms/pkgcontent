@@ -472,7 +472,6 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 	var Temparr []TempCheck
 
 	var err error
-
 	for _, val := range createGroup.NewGroup {
 
 		/*check if exists*/
@@ -487,7 +486,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 			groups.SpacesId = spaceId
 
-			groups.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+			groups.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 			groups.CreatedBy = userid
 
@@ -508,7 +507,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 			groupali.CreatedBy = userid
 
-			groupali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+			groupali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 			err = PG.CreatePageGroupAliases(&groupali, p.Authority.DB)
 
@@ -526,7 +525,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 			uptgroup.ModifiedBy = userid
 
-			uptgroup.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+			uptgroup.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 			err = PG.UpdatePageGroupAliases(&uptgroup, val.GroupId, p.Authority.DB)
 
@@ -540,7 +539,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 		for _, grp := range createGroup.NewGroup {
 
-			if val.Pgroupid == grp.GroupId || val.NewGrpId == grp.NewGroupId {
+			if val.Pgroupid == grp.GroupId && val.NewGrpId == grp.NewGroupId {
 
 				var getgid TblPagesGroupAliases
 
@@ -570,7 +569,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 				page.ParentId = 0
 
-				page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+				page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 				page.CreatedBy = userid
 
@@ -607,13 +606,17 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 				pageali.PageSlug = strings.ToLower(strings.ReplaceAll(val.Name, " ", "_"))
 
-				pageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+				pageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 				pageali.CreatedBy = userid
 
 				pageali.OrderIndex = val.OrderIndex
 
 				pageali.Status = status
+
+				pageali.LastRevisionDate, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+				pageali.LastRevisionNo = 1
 
 				pageali.Access = "public"
 
@@ -634,7 +637,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 				pagelog.PageId = pageret.Id
 
-				pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+				pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 				pagelog.CreatedBy = userid
 
@@ -668,7 +671,9 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 				uptpageali.ModifiedBy = userid
 
-				uptpageali.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+				uptpageali.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+				uptpageali.LastRevisionDate, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 				err = PG.UpdatePageAliase(&uptpageali, val.PgId, p.Authority.DB)
 
@@ -685,11 +690,11 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 				pagelog.PageDescription = val.Content
 
-				pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+				pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 				pagelog.CreatedBy = userid
 
-				pagelog.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+				pagelog.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 				pagelog.ModifiedBy = userid
 
@@ -715,7 +720,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 				page.ParentId = 0
 
-				page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+				page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 				page.CreatedBy = userid
 
@@ -752,13 +757,17 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 				pageali.PageSlug = strings.ToLower(strings.ReplaceAll(val.Name, " ", "_"))
 
-				pageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+				pageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 				pageali.CreatedBy = userid
 
 				pageali.OrderIndex = val.OrderIndex
 
 				pageali.Status = status
+
+				pageali.LastRevisionDate, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+				pageali.LastRevisionNo = 1
 
 				pageali.Access = "public"
 
@@ -779,7 +788,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 				pagelog.PageId = pageret.Id
 
-				pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+				pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 				pagelog.CreatedBy = userid
 
@@ -813,7 +822,9 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 				uptpageali.ModifiedBy = userid
 
-				uptpageali.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+				uptpageali.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+				uptpageali.LastRevisionDate, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 				err = PG.UpdatePageAliase(&uptpageali, val.PgId, p.Authority.DB)
 
@@ -830,11 +841,11 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 				pagelog.PageDescription = val.Content
 
-				pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+				pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 				pagelog.CreatedBy = userid
 
-				pagelog.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+				pagelog.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 				pagelog.ModifiedBy = userid
 
@@ -848,6 +859,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 		}
 
 	}
+
 	/*createsub*/
 	for _, val := range createSub.SubPage {
 
@@ -885,9 +897,9 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 					if val.SpgId == 0 {
 
 						var getpage TblPageAliases
-	
-						PG.GetPageDataByName(&getpage, spaceId, pg.Name, p.Authority.DB)
-	
+
+						PG.GetPageDataByName(&getpage, spaceId, pgd.Name, p.Authority.DB)
+
 						pgid = getpage.PageId
 
 						break
@@ -895,7 +907,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 				}
 
 			}
-		
+
 			for _, newpgid := range Temparr {
 
 				if newpgid.FrontId == 0 && newpgid.NewFrontId == val.NewSpId || newpgid.FrontId == 0 && newpgid.NewFrontId == val.SpgId || newpgid.FrontId == val.SpgId && newpgid.NewFrontId == 0 || newpgid.FrontId == val.NewSpId && newpgid.NewFrontId == 0 {
@@ -920,7 +932,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 					page.ParentId = pgid
 
-					page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+					page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 					page.CreatedBy = userid
 
@@ -939,7 +951,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 					pageali.PageSlug = strings.ToLower(strings.ReplaceAll(val.Name, " ", "_"))
 
-					pageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+					pageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 					pageali.CreatedBy = userid
 
@@ -948,6 +960,10 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 					pageali.Status = status
 
 					pageali.Access = "public"
+
+					pageali.LastRevisionDate, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+					pageali.LastRevisionNo = 1
 
 					err = PG.CreatepageAliases(&pageali, p.Authority.DB)
 
@@ -964,7 +980,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 					pagelog.PageDescription = val.Content
 
-					pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+					pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 					pagelog.CreatedBy = userid
 
@@ -998,7 +1014,9 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 					uptpageali.ModifiedBy = userid
 
-					uptpageali.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+					uptpageali.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+					uptpageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 					err = PG.UpdatePageAliase(&uptpageali, val.SpgId, p.Authority.DB)
 
@@ -1015,11 +1033,11 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 					pagelog.PageDescription = val.Content
 
-					pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+					pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 					pagelog.CreatedBy = userid
 
-					pagelog.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+					pagelog.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 					pagelog.ModifiedBy = userid
 
@@ -1046,7 +1064,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 					page.ParentId = pgid
 
-					page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+					page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 					page.CreatedBy = userid
 
@@ -1065,7 +1083,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 					pageali.PageSlug = strings.ToLower(strings.ReplaceAll(val.Name, " ", "_"))
 
-					pageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+					pageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 					pageali.CreatedBy = userid
 
@@ -1074,6 +1092,10 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 					pageali.Status = status
 
 					pageali.Access = "public"
+
+					pageali.LastRevisionNo = 1
+
+					pageali.LastRevisionDate, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 					err = PG.CreatepageAliases(&pageali, p.Authority.DB)
 
@@ -1090,13 +1112,15 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 					pagelog.PageDescription = val.Content
 
-					pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+					pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 					pagelog.CreatedBy = userid
 
 					pagelog.Status = status
 
 					pagelog.Access = "public"
+
+					pageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 					PG.PageAliasesLog(&pagelog, p.Authority.DB)
 
@@ -1124,7 +1148,9 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 					uptpageali.ModifiedBy = userid
 
-					uptpageali.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+					uptpageali.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+					uptpageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 					err = PG.UpdatePageAliase(&uptpageali, val.SpgId, p.Authority.DB)
 
@@ -1141,11 +1167,11 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 					pagelog.PageDescription = val.Content
 
-					pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+					pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 					pagelog.CreatedBy = userid
 
-					pagelog.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+					pagelog.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 					pagelog.ModifiedBy = userid
 
@@ -1177,7 +1203,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 		deletegroup.IsDeleted = 1
 
-		deletegroup.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		deletegroup.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		PG.DeletePageGroup(&deletegroup, val.GroupId, p.Authority.DB)
 
@@ -1185,7 +1211,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 		deletegroupali.DeletedBy = userid
 
-		deletegroupali.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		deletegroupali.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		deletegroupali.IsDeleted = 1
 
@@ -1203,7 +1229,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 		deletegroup.DeletedBy = userid
 
-		deletegroup.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		deletegroup.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		PG.DeletePage(&deletegroup, val.PgId, p.Authority.DB)
 
@@ -1211,7 +1237,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 		deletegroupali.DeletedBy = userid
 
-		deletegroupali.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		deletegroupali.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		deletegroupali.IsDeleted = 1
 
@@ -1228,11 +1254,11 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 		pagelog.PageDescription = val.Content
 
-		pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		pagelog.CreatedBy = userid
 
-		pagelog.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		pagelog.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		pagelog.DeletedBy = userid
 
@@ -1256,7 +1282,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 		deletegroup.IsDeleted = 1
 
-		deletegroup.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		deletegroup.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		PG.DeletePage(&deletegroup, val.SpgId, p.Authority.DB)
 
@@ -1264,7 +1290,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 		deletegroupali.DeletedBy = userid
 
-		deletegroupali.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		deletegroupali.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		deletegroupali.IsDeleted = 1
 
@@ -1281,11 +1307,11 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 		pagelog.PageDescription = val.Content
 
-		pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		pagelog.CreatedBy = userid
 
-		pagelog.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		pagelog.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		pagelog.DeletedBy = userid
 

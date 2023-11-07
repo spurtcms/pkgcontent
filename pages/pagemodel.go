@@ -93,34 +93,36 @@ type MetaDetails struct {
 }
 
 type TblPageAliases struct {
-	Id              int `gorm:"primaryKey;auto_increment"`
-	PageId          int
-	LanguageId      int
-	PageTitle       string
-	PageSlug        string
-	PageDescription string
-	PublishedOn     time.Time `gorm:"DEFAULT:NULL"`
-	Author          string
-	Excerpt         string
-	FeaturedImages  string
-	Access          string
-	MetaDetails     datatypes.JSONType[MetaDetails]
-	Status          string
-	AllowComments   bool
-	CreatedOn       time.Time
-	CreatedBy       int
-	ModifiedOn      time.Time `gorm:"DEFAULT:NULL"`
-	ModifiedBy      int       `gorm:"DEFAULT:NULL"`
-	DeletedOn       time.Time `gorm:"DEFAULT:NULL"`
-	DeletedBy       int       `gorm:"DEFAULT:NULL"`
-	IsDeleted       int       `gorm:"DEFAULT:0"`
-	OrderIndex      int
-	PageSuborder    int
-	CreatedDate     string `gorm:"-"`
-	ModifiedDate    string `gorm:"-"`
-	Username        string `gorm:"-"`
-	PageGroupId     int    `gorm:"-:migration;<-:false"`
-	ParentId        int    `gorm:"-:migration;<-:false"`
+	Id               int `gorm:"primaryKey;auto_increment"`
+	PageId           int
+	LanguageId       int
+	PageTitle        string
+	PageSlug         string
+	PageDescription  string
+	PublishedOn      time.Time `gorm:"DEFAULT:NULL"`
+	Author           string
+	Excerpt          string
+	FeaturedImages   string
+	Access           string
+	MetaDetails      datatypes.JSONType[MetaDetails]
+	Status           string
+	AllowComments    bool
+	CreatedOn        time.Time
+	CreatedBy        int
+	ModifiedOn       time.Time `gorm:"DEFAULT:NULL"`
+	ModifiedBy       int       `gorm:"DEFAULT:NULL"`
+	DeletedOn        time.Time `gorm:"DEFAULT:NULL"`
+	DeletedBy        int       `gorm:"DEFAULT:NULL"`
+	IsDeleted        int       `gorm:"DEFAULT:0"`
+	OrderIndex       int
+	PageSuborder     int
+	CreatedDate      string `gorm:"-"`
+	ModifiedDate     string `gorm:"-"`
+	Username         string `gorm:"-"`
+	PageGroupId      int    `gorm:"-:migration;<-:false"`
+	ParentId         int    `gorm:"-:migration;<-:false"`
+	LastRevisionDate time.Time
+	LastRevisionNo   int
 }
 
 type TblPageAliasesLog struct {
