@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/spurtcms/spurtcms-content/categories"
+	"github.com/spurtcms/spurtcms-content/pages"
 	authcore "github.com/spurtcms/spurtcms-core/auth"
 	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
 	"gorm.io/gorm"
@@ -452,7 +453,7 @@ func (s Space) DeleteSpace(spaceid int) error {
 
 		var space TblSpaces
 
-		var pageali TblPageAliases
+		var pageali pages.TblPageAliases
 
 		spaces.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
@@ -490,7 +491,7 @@ func (s Space) DeleteSpace(spaceid int) error {
 			return err2
 		}
 
-		var page []TblPage
+		var page []pages.TblPage
 
 		SP.GetPageDetailsBySpaceId(&page, spaceid, s.Authority.DB)
 
@@ -502,7 +503,7 @@ func (s Space) DeleteSpace(spaceid int) error {
 
 		}
 
-		var pg TblPage
+		var pg pages.TblPage
 
 		pg.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
@@ -512,7 +513,7 @@ func (s Space) DeleteSpace(spaceid int) error {
 
 		SP.DeletePageInSpace(&pg, pid, s.Authority.DB)
 
-		var pgali TblPageAliases
+		var pgali pages.TblPageAliases
 
 		pgali.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
@@ -521,6 +522,14 @@ func (s Space) DeleteSpace(spaceid int) error {
 		pgali.IsDeleted = 1
 
 		SP.DeletePageAliInSpace(&pgali, pid, s.Authority.DB)
+
+		var pggroupdel pages.TblPagesGroup
+
+		pggroupdel.DeletedBy = userid
+
+		pggroupdel.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+		SP.DeletePageGroup(&pggroupdel, spaceid, s.Authority.DB)
 
 		return nil
 
@@ -581,19 +590,19 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 		log.Println(err)
 	}
 
-	var pagegroupdata []TblPagesGroupAliases
+	var pagegroupdata []pages.TblPagesGroupAliases
 
 	SP.GetPageGroupData(&pagegroupdata, spaceid, s.Authority.DB)
 
 	for _, value := range pagegroupdata {
 
-		var group TblPagesGroup
+		var group pages.TblPagesGroup
 
 		group.SpacesId = tblspaces.Id
 
 		groups, _ := SP.CloneSpaceInPagesGroup(&group, s.Authority.DB)
 
-		var pagegroup TblPagesGroupAliases
+		var pagegroup pages.TblPagesGroupAliases
 
 		pagegroup = value
 
@@ -602,13 +611,13 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 		SP.ClonePagesGroup(&pagegroup, s.Authority.DB)
 	}
 
-	var pageId []TblPageAliases
+	var pageId []pages.TblPageAliases
 
 	SP.GetPageInPage(&pageId, spaceid, s.Authority.DB) //parentid 0 and groupid 0
 
 	for _, val := range pageId {
 
-		var page TblPage
+		var page pages.TblPage
 
 		page.SpacesId = tblspaces.Id
 
@@ -618,7 +627,7 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		pageid, _ := SP.ClonePage(&page, s.Authority.DB)
 
-		var pagesali TblPageAliases
+		var pagesali pages.TblPageAliases
 
 		pagesali = val
 
@@ -628,17 +637,17 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 	}
 
-	var pagegroupaldata TblPagesGroupAliases
+	var pagegroupaldata pages.TblPagesGroupAliases
 
 	SP.GetIdInPage(&pagegroupaldata, spaceid, s.Authority.DB) // parentid = 0 and groupid != 0
 
-	var pagealiase []TblPageAliases
+	var pagealiase []pages.TblPageAliases
 
 	SP.GetPageAliasesInPage(&pagealiase, spaceid, s.Authority.DB) // parentid = 0 and groupid != 0
 
 	for _, value := range pagealiase {
 
-		var pageal TblPagesGroupAliases
+		var pageal pages.TblPagesGroupAliases
 
 		SP.GetDetailsInPageAli(&pageal, pagegroupaldata.GroupName, tblspaces.Id, s.Authority.DB)
 
@@ -646,7 +655,7 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		// ParentWithChild(&parent, value.PageGroupId, spaceid)
 
-		var page TblPage
+		var page pages.TblPage
 
 		page.SpacesId = tblspaces.Id
 
@@ -656,7 +665,7 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		pagess, _ := SP.ClonePage(&page, s.Authority.DB)
 
-		var pagesali TblPageAliases
+		var pagesali pages.TblPageAliases
 
 		pagesali = value
 
@@ -666,7 +675,7 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 	}
 
-	var pagealiasedata []TblPageAliases
+	var pagealiasedata []pages.TblPageAliases
 
 	SP.GetPageAliasesInPageData(&pagealiasedata, spaceid, s.Authority.DB) // parentid != 0 and groupid = 0
 
@@ -676,11 +685,11 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		if result.PageGroupId != 0 {
 
-			var pagesgroupal TblPagesGroupAliases
+			var pagesgroupal pages.TblPagesGroupAliases
 
 			SP.GetDetailsInPageAlia(&pagesgroupal, result.PageGroupId, spaceid, s.Authority.DB) // parentid != 0 and groupid = 0
 
-			var pageal TblPagesGroupAliases
+			var pageal pages.TblPagesGroupAliases
 
 			SP.GetDetailsInPageAli(&pageal, pagesgroupal.GroupName, tblspaces.Id, s.Authority.DB)
 
@@ -688,15 +697,15 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		}
 
-		var pagealid TblPageAliases
+		var pagealid pages.TblPageAliases
 
 		SP.AliasesInParentId(&pagealid, result.ParentId, spaceid, s.Authority.DB)
 
-		var pageali TblPageAliases
+		var pageali pages.TblPageAliases
 
 		SP.LastLoopAliasesInPage(&pageali, pagealid.PageTitle, tblspaces.Id, s.Authority.DB)
 
-		var page TblPage
+		var page pages.TblPage
 
 		page.SpacesId = tblspaces.Id
 
@@ -706,7 +715,7 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		pagealiid, _ := SP.ClonePage(&page, s.Authority.DB)
 
-		var pagesali TblPageAliases
+		var pagesali pages.TblPageAliases
 
 		pagesali = result
 

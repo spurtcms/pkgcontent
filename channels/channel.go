@@ -1,7 +1,6 @@
 package channels
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"strconv"
@@ -105,28 +104,13 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 
 	if check {
 
-		type Fiedlvalue struct {
-			Id         string   `json:"id"`
-			Fid        string   `json:"fid"`
-			Name       string   `json:"name"`
-			Desc       string   `json:"desc"`
-			Mandatory  int      `json:"mandatory"`
-			Initial    string   `json:"initial"`
-			Placehold  string   `json:"placehold"`
-			DateFormat string   `json:"dateformat"`
-			TimeFormat string   `json:"timeformat"`
-			Optionname []string `json:"optioname"`
-			ImgSrc     string   `json:"imgsrc"`
-			Url        string   `json:"url"`
-		}
+		// type field struct {
+		// 	Fiedlvalue []Fiedlvalue `json:"fiedlvalue"`
+		// }
 
-		type field struct {
-			Fiedlvalue []Fiedlvalue `json:"fiedlvalue"`
-		}
+		// var fieldval field
 
-		var fieldval field
-
-		json.Unmarshal([]byte(channelcreate.FieldValues), &fieldval)
+		// json.Unmarshal([]byte(channelcreate.FieldValues), &fieldval)
 
 		if channelcreate.ChannelName == "" || channelcreate.ChannelDescription == "" {
 
@@ -230,7 +214,7 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 		auth.AS.CreateRolePermissionsingle(&tblrole, Ch.Authority.DB)
 
 		/*create field*/
-		for _, val := range fieldval.Fiedlvalue {
+		for _, val := range channelcreate.FieldValues {
 
 			var cfld TblField
 
@@ -345,29 +329,29 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 	if check {
 
-		type Fiedlvalue struct {
-			Id         string   `json:"id"`
-			Fid        string   `json:"fid"`
-			FieldId    int      `json:"FieldId"`
-			Name       string   `json:"name"`
-			Desc       string   `json:"desc"`
-			Mandatory  int      `json:"mandatory"`
-			Initial    string   `json:"initial"`
-			Placehold  string   `json:"placehold"`
-			DateFormat string   `json:"dateformat"`
-			TimeFormat string   `json:"timeformat"`
-			Optionname []string `json:"optioname"`
-			ImgSrc     string   `json:"imgsrc"`
-			Url        string   `json:"url"`
-		}
+		// type Fiedlvalue struct {
+		// 	Id         string   `json:"id"`
+		// 	Fid        string   `json:"fid"`
+		// 	FieldId    int      `json:"FieldId"`
+		// 	Name       string   `json:"name"`
+		// 	Desc       string   `json:"desc"`
+		// 	Mandatory  int      `json:"mandatory"`
+		// 	Initial    string   `json:"initial"`
+		// 	Placehold  string   `json:"placehold"`
+		// 	DateFormat string   `json:"dateformat"`
+		// 	TimeFormat string   `json:"timeformat"`
+		// 	Optionname []string `json:"optioname"`
+		// 	ImgSrc     string   `json:"imgsrc"`
+		// 	Url        string   `json:"url"`
+		// }
 
-		type field struct {
-			Fiedlvalue []Fiedlvalue `json:"fiedlvalue"`
-		}
+		// type field struct {
+		// 	Fiedlvalue []Fiedlvalue `json:"fiedlvalue"`
+		// }
 
-		var fieldval field
+		// var fieldval field
 
-		json.Unmarshal([]byte(channelupt.FieldValues), &fieldval)
+		// json.Unmarshal([]byte(channelupt.FieldValues), &fieldval)
 
 		if channelupt.ChannelName == "" || channelupt.ChannelDescription == "" {
 
@@ -417,7 +401,7 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 		for _, gfd := range grpfield {
 
-			for _, val := range fieldval.Fiedlvalue {
+			for _, val := range channelupt.FieldValues {
 
 				if gfd.FieldId == val.FieldId {
 
@@ -476,7 +460,7 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 		}
 
-		if len(fieldval.Fiedlvalue) == 0 {
+		if len(channelupt.FieldValues) == 0 {
 
 			for _, gfd := range grpfield {
 
@@ -497,7 +481,7 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 		optval = []string{}
 
-		for _, val := range fieldval.Fiedlvalue {
+		for _, val := range channelupt.FieldValues {
 
 			var cid int
 

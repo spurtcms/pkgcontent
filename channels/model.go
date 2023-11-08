@@ -116,8 +116,24 @@ type FieldValueId struct {
 type ChannelCreate struct {
 	ChannelName        string
 	ChannelDescription string
-	FieldValues        string
+	FieldValues        []Fiedlvalue
 	CategoryIds        []string
+}
+
+type Fiedlvalue struct {
+	Id         string   `json:"id"`
+	Fid        string   `json:"fid"`
+	FieldId    int      `json:"FieldId"`
+	Name       string   `json:"name"`
+	Desc       string   `json:"desc"`
+	Mandatory  int      `json:"mandatory"`
+	Initial    string   `json:"initial"`
+	Placehold  string   `json:"placehold"`
+	DateFormat string   `json:"dateformat"`
+	TimeFormat string   `json:"timeformat"`
+	Optionname []string `json:"optioname"`
+	ImgSrc     string   `json:"imgsrc"`
+	Url        string   `json:"url"`
 }
 
 type Filter struct {
