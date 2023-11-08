@@ -1,7 +1,6 @@
 package pages
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"strings"
@@ -12,8 +11,6 @@ import (
 	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
 	"gorm.io/gorm"
 )
-
-var s Page
 
 var IST, _ = time.LoadLocation("Asia/Kolkata")
 
@@ -340,6 +337,8 @@ func (m MemberPage) UpdateNotes(pageid int, content string) (flg bool, err error
 
 	notes.PageId = pageid
 
+	notes.MemberId = memberid
+
 	notes.NotesHighlightsContent = content
 
 	notes.NotesHighlightsType = "notes"
@@ -376,6 +375,8 @@ func (m MemberPage) UpdateHighlights(pageid int, content string) (flg bool, err 
 
 	notes.NotesHighlightsType = "highlights"
 
+	notes.MemberId = memberid
+
 	notes.CreatedBy = memberid
 
 	notes.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
@@ -411,29 +412,29 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 		status = "draft"
 	}
 
-	type pagebind struct {
-		NewPages []Pages `json:"newpages"`
-	}
+	// type pagebind struct {
+	// 	NewPages []Pages `json:"newpages"`
+	// }
 
-	type GRP struct {
-		NewGroup []PageGroups `json:"newGroup"`
-	}
+	// type GRP struct {
+	// 	NewGroup []PageGroups `json:"newGroup"`
+	// }
 
-	type subpagebind struct {
-		SubPage []SubPages `json:"subpage"`
-	}
+	// type subpagebind struct {
+	// 	SubPage []SubPages `json:"subpage"`
+	// }
 
-	type deletePAGE struct {
-		NewPages []Pages `json:"deletePage"`
-	}
+	// type deletePAGE struct {
+	// 	NewPages []Pages `json:"deletePage"`
+	// }
 
-	type deleteGRP struct {
-		NewGroup []PageGroups `json:"deletegroup"`
-	}
+	// type deleteGRP struct {
+	// 	NewGroup []PageGroups `json:"deletegroup"`
+	// }
 
-	type deleteSUB struct {
-		SubPage []SubPages `json:"deletesub"`
-	}
+	// type deleteSUB struct {
+	// 	SubPage []SubPages `json:"deletesub"`
+	// }
 
 	type TempCheck struct {
 		FrontId    int
@@ -443,36 +444,36 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 	spaceId := Pagec.SpaceId
 
-	creategroup := Pagec.NewGroup
+	// creategroup := Pagec.NewGroup
 
-	createpages := Pagec.NewPages
+	// createpages := Pagec.NewPages
 
-	createsubpage := Pagec.SubPage
+	// createsubpage := Pagec.SubPage
 
-	deletegroup := Pagec.DeleteGroup
+	// deletegroup := Pagec.DeleteGroup
 
-	deletepage := Pagec.DeletePages
+	// deletepage := Pagec.DeletePages
 
-	deletesub := Pagec.DeleteSubPage
+	// deletesub := Pagec.DeleteSubPage
 
 	/*CreateFunc*/
 
-	var createGroup GRP
+	// var createGroup GRP
 
-	json.Unmarshal([]byte(creategroup), &createGroup)
+	// json.Unmarshal([]byte(creategroup), &createGroup)
 
-	var createPage pagebind
+	// var createPage pagebind
 
-	json.Unmarshal([]byte(createpages), &createPage)
+	// json.Unmarshal([]byte(createpages), &createPage)
 
-	var createSub subpagebind
+	// var createSub subpagebind
 
-	json.Unmarshal([]byte(createsubpage), &createSub)
+	// json.Unmarshal([]byte(createsubpage), &createSub)
 
 	var Temparr []TempCheck
 
 	var err error
-	for _, val := range createGroup.NewGroup {
+	for _, val := range Pagec.NewGroup {
 
 		/*check if exists*/
 		var ckgroupali TblPagesGroup
@@ -533,11 +534,11 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 	}
 
-	for _, val := range createPage.NewPages {
+	for _, val := range Pagec.NewPages {
 
 		var newgrpid int
 
-		for _, grp := range createGroup.NewGroup {
+		for _, grp := range Pagec.NewGroup {
 
 			if val.Pgroupid == grp.GroupId && val.NewGrpId == grp.NewGroupId {
 
@@ -575,7 +576,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 				pageret, _ := PG.CreatePage(&page, p.Authority.DB)
 
-				for _, newval := range createSub.SubPage {
+				for _, newval := range Pagec.SubPage {
 
 					if newval.ParentId == 0 && newval.NewParentId == val.ParentId || newval.ParentId == 0 && newval.NewParentId == val.NewPgId || newval.ParentId == val.PgId && newval.NewParentId == 0 || newval.ParentId == val.NewPgId && newval.NewParentId == 0 {
 
@@ -726,7 +727,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 				pageret, _ := PG.CreatePage(&page, p.Authority.DB)
 
-				for _, newval := range createSub.SubPage {
+				for _, newval := range Pagec.SubPage {
 
 					if newval.ParentId == 0 && newval.NewParentId == val.ParentId || newval.ParentId == 0 && newval.NewParentId == val.NewPgId || newval.ParentId == val.PgId && newval.NewParentId == 0 || newval.ParentId == val.NewPgId && newval.NewParentId == 0 {
 
@@ -861,9 +862,9 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 	}
 
 	/*createsub*/
-	for _, val := range createSub.SubPage {
+	for _, val := range Pagec.SubPage {
 
-		for _, pg := range createPage.NewPages {
+		for _, pg := range Pagec.NewPages {
 
 			var newgrpid int
 
@@ -873,7 +874,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 			if val.NewPgroupId != 0 {
 
-				for _, grp := range createGroup.NewGroup {
+				for _, grp := range Pagec.NewGroup {
 
 					if val.NewPgroupId == grp.NewGroupId {
 
@@ -890,7 +891,7 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 			}
 
-			for _, pgd := range createPage.NewPages {
+			for _, pgd := range Pagec.NewPages {
 
 				if val.NewParentId == pgd.NewPgId && val.NewParentId == pgd.ParentId && val.ParentId == pgd.PgId {
 
@@ -1191,11 +1192,11 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 	/*DeleteFunc*/
 
-	var deleteGroup deleteGRP
+	// var deleteGroup deleteGRP
 
-	json.Unmarshal([]byte(deletegroup), &deleteGroup)
+	// json.Unmarshal([]byte(deletegroup), &deleteGroup)
 
-	for _, val := range deleteGroup.NewGroup {
+	for _, val := range Pagec.DeleteGroup {
 
 		var deletegroup TblPagesGroup
 
@@ -1219,11 +1220,11 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 	}
 
-	var deletePage deletePAGE
+	// var deletePage deletePAGE
 
-	json.Unmarshal([]byte(deletepage), &deletePage)
+	// json.Unmarshal([]byte(deletepage), &deletePage)
 
-	for _, val := range deletePage.NewPages {
+	for _, val := range Pagec.DeletePages {
 
 		var deletegroup TblPage
 
@@ -1270,11 +1271,11 @@ func (p Page) InsertPage(Pagec PageCreate) error {
 
 	}
 
-	var deleteSubPage deleteSUB
+	// var deleteSubPage deleteSUB
 
-	json.Unmarshal([]byte(deletesub), &deleteSubPage)
+	// json.Unmarshal([]byte(deletesub), &deleteSubPage)
 
-	for _, val := range deleteSubPage.SubPage {
+	for _, val := range Pagec.DeleteSubPage {
 
 		var deletegroup TblPage
 

@@ -154,14 +154,14 @@ type TblPageAliasesLog struct {
 }
 
 type PageCreate struct {
-	SpaceId       int    //spaceid
-	NewPages      string //pages only
-	NewGroup      string //groups only
-	SubPage       string //subpages only
-	DeletePages   string //delete pages only
-	DeleteGroup   string //delete groups only
-	DeleteSubPage string //delete subpages only
-	Status        string //publish,draft
+	SpaceId       int          //spaceid
+	NewPages      []Pages      //pages only
+	NewGroup      []PageGroups //groups only
+	SubPage       []SubPages   //subpages only
+	DeletePages   []Pages      //delete pages only
+	DeleteGroup   []PageGroups //delete groups only
+	DeleteSubPage []SubPages   //delete subpages only
+	Status        string       //publish,draft
 }
 
 type TblMemberNotesHighlight struct {
@@ -415,7 +415,7 @@ func (P PageStrut) DeletePage(tblpage *TblPage, id int, DB *gorm.DB) error {
 /*PageGroup*/
 func (P PageStrut) GetPageGroupByName(TblPagesGroupAliases *TblPagesGroupAliases, spaceid int, name string, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_pages_group_aliases").Joins("inner join tbl_pages_group on tbl_pages_group.id=tbl_pages_group_aliases.page_group_id").Where("group_name=? and tbl_pages_group.spaces_id=? and tbl_pages_group_aliases.is_deleted=0", name, spaceid).Last(&TblPagesGroupAliases).Error; err != nil {
+	if err := DB.Debug().Table("tbl_pages_group_aliases").Joins("inner join tbl_pages_group on tbl_pages_group.id=tbl_pages_group_aliases.page_group_id").Where("LOWER(TRIM(group_name))=LOWER(TRIM(?)) and tbl_pages_group.spaces_id=? and tbl_pages_group_aliases.is_deleted=0", name, spaceid).Last(&TblPagesGroupAliases).Error; err != nil {
 
 		return err
 	}
