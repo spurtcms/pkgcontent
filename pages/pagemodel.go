@@ -170,7 +170,7 @@ type TblMemberNotesHighlight struct {
 	PageId                  int
 	NotesHighlightsContent  string
 	NotesHighlightsType     string
-	HighlightsConfiguration datatypes.JSONMap
+	HighlightsConfiguration datatypes.JSONMap `gorm:"type:jsonb"`
 	CreatedBy               int
 	CreatedOn               time.Time
 	ModifiedOn              time.Time `gorm:"DEFAULT:NULL"`
@@ -178,12 +178,6 @@ type TblMemberNotesHighlight struct {
 	DeletedOn               time.Time `gorm:"DEFAULT:NULL"`
 	DeletedBy               int       `gorm:"DEFAULT:NULL"`
 	IsDeleted               int
-}
-
-type Configuration struct {
-	Start      int
-	Offset     int
-	SelectPara string
 }
 
 type HighlightsReq struct {

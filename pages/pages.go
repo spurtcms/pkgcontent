@@ -35,6 +35,7 @@ func MigrateTable(db *gorm.DB) {
 		&TblPagesGroup{},
 		&TblPagesGroupAliases{},
 		&TblPageAliasesLog{},
+		&TblMemberNotesHighlight{},
 	)
 
 }
