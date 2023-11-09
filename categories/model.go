@@ -127,7 +127,6 @@ func GetSubCategoryList(categories *[]TblCategory, offset int, limit int, filter
 		return categories, categorycount
 	}
 
-	return &[]TblCategory{}, 0
 }
 
 func CreateCategory(category *TblCategory, DB *gorm.DB) error {

@@ -34,7 +34,7 @@ type ChannelStruct struct{}
 var CH ChannelStruct
 
 /*Get AllChannels*/
-func (Ch Channel) GetChannels(Channels TblChannel, limit, offset int, filter Filter) (channelList []TblChannel, channelcount int, err error) {
+func (Ch Channel) GetChannels(limit, offset int, filter Filter) (channelList []TblChannel, channelcount int, err error) {
 
 	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
 
@@ -403,9 +403,11 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 			for _, val := range channelupt.FieldValues {
 
-				if gfd.FieldId == val.FieldId {
+				fid, _ := strconv.Atoi(val.Fid)
 
-					isdeleteids = append(isdeleteids, val.FieldId)
+				if gfd.FieldId == fid {
+
+					isdeleteids = append(isdeleteids, fid)
 
 					optval = append(optval, val.Optionname...)
 
@@ -433,7 +435,7 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 					fieldsname.Url = val.Url
 
-					CH.UpdateFieldDetails(&fieldsname, val.FieldId, Ch.Authority.DB)
+					CH.UpdateFieldDetails(&fieldsname, fid, Ch.Authority.DB)
 
 					var fieldoptdel TblFieldOption
 
@@ -441,7 +443,7 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 					fieldoptdel.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-					CH.DeleteFieldOptionById(&fieldoptdel, val.Optionname, val.FieldId, Ch.Authority.DB)
+					CH.DeleteFieldOptionById(&fieldoptdel, val.Optionname, fid, Ch.Authority.DB)
 
 				}
 
@@ -483,9 +485,11 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 		for _, val := range channelupt.FieldValues {
 
+			fid, _ := strconv.Atoi(val.Fid)
+
 			var cid int
 
-			if val.FieldId == 0 {
+			if fid == 0 {
 
 				var cfld TblField
 
@@ -553,7 +557,7 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 			} else {
 
-				cid = val.FieldId
+				cid = fid
 			}
 
 			/*option value create*/

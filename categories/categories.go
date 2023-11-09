@@ -335,9 +335,9 @@ func (c Category) ListCategory(offset int, limit int, filter Filter, parent_id i
 
 				if index < len(val.Categories)-1 {
 
-					var cate CatgoriesOrd
+					// var cate CatgoriesOrd
 
-					cate = res
+					cate := res
 
 					infinalarray.Categories = append(infinalarray.Categories, cate)
 
@@ -357,9 +357,9 @@ func (c Category) ListCategory(offset int, limit int, filter Filter, parent_id i
 
 				if index < len(val.Categories) {
 
-					var cate CatgoriesOrd
+					// var cate CatgoriesOrd
 
-					cate = res
+					cate := res
 
 					infinalarray.Categories = append(infinalarray.Categories, cate)
 				}
@@ -371,9 +371,9 @@ func (c Category) ListCategory(offset int, limit int, filter Filter, parent_id i
 
 		for index, val := range *childcategorys {
 
-			var finalcat TblCategory
+			// var finalcat TblCategory
 
-			finalcat = val
+			finalcat := val
 
 			for cindex, val2 := range FinalModalCategoryList {
 
@@ -391,9 +391,9 @@ func (c Category) ListCategory(offset int, limit int, filter Filter, parent_id i
 
 		for index, val := range categorylists {
 
-			var finalcat TblCategory
+			// var finalcat TblCategory
 
-			finalcat = val
+			finalcat := val
 
 			for cindex, val2 := range FinalCategoryList {
 
@@ -741,9 +741,7 @@ func (c Category) FilterSubCategory(limit int, filter Filter, parent_id int) (tb
 
 				if index < len(val.Categories)-1 {
 
-					var cate CatgoriesOrd
-
-					cate = res
+					cate := res
 
 					infinalarray.Categories = append(infinalarray.Categories, cate)
 
@@ -763,9 +761,7 @@ func (c Category) FilterSubCategory(limit int, filter Filter, parent_id int) (tb
 
 				if index < len(val.Categories) {
 
-					var cate CatgoriesOrd
-
-					cate = res
+					cate := res
 
 					infinalarray.Categories = append(infinalarray.Categories, cate)
 				}
@@ -777,9 +773,9 @@ func (c Category) FilterSubCategory(limit int, filter Filter, parent_id int) (tb
 
 		for index, val := range *childcategorys {
 
-			var finalcat TblCategory
+			// var finalcat TblCategory
 
-			finalcat = val
+			finalcat := val
 
 			for cindex, val2 := range FinalModalCategoryList {
 
@@ -797,9 +793,9 @@ func (c Category) FilterSubCategory(limit int, filter Filter, parent_id int) (tb
 
 		for index, val := range categorylists {
 
-			var finalcat TblCategory
+			// var finalcat TblCategory
 
-			finalcat = val
+			finalcat := val
 
 			for cindex, val2 := range FinalCategoryList {
 

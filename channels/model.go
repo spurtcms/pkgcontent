@@ -123,7 +123,6 @@ type ChannelCreate struct {
 type Fiedlvalue struct {
 	Id         string   `json:"id"`
 	Fid        string   `json:"fid"`
-	FieldId    int      `json:"FieldId"`
 	Name       string   `json:"name"`
 	Desc       string   `json:"desc"`
 	Mandatory  int      `json:"mandatory"`

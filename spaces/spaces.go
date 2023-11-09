@@ -602,9 +602,9 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		groups, _ := SP.CloneSpaceInPagesGroup(&group, s.Authority.DB)
 
-		var pagegroup pages.TblPagesGroupAliases
+		// var pagegroup pages.TblPagesGroupAliases
 
-		pagegroup = value
+		pagegroup := value
 
 		pagegroup.PageGroupId = groups.Id
 
@@ -627,9 +627,9 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		pageid, _ := SP.ClonePage(&page, s.Authority.DB)
 
-		var pagesali pages.TblPageAliases
+		// var pagesali pages.TblPageAliases
 
-		pagesali = val
+		pagesali := val
 
 		pagesali.PageId = pageid.Id
 
@@ -665,9 +665,9 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		pagess, _ := SP.ClonePage(&page, s.Authority.DB)
 
-		var pagesali pages.TblPageAliases
+		// var pagesali pages.TblPageAliases
 
-		pagesali = value
+		pagesali := value
 
 		pagesali.PageId = pagess.Id
 
@@ -715,9 +715,9 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		pagealiid, _ := SP.ClonePage(&page, s.Authority.DB)
 
-		var pagesali pages.TblPageAliases
+		// var pagesali pages.TblPageAliases
 
-		pagesali = result
+		pagesali := result
 
 		pagesali.PageId = pagealiid.Id
 

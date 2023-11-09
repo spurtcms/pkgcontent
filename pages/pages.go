@@ -9,6 +9,7 @@ import (
 	authcore "github.com/spurtcms/spurtcms-core/auth"
 	"github.com/spurtcms/spurtcms-core/member"
 	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -358,7 +359,7 @@ func (m MemberPage) UpdateNotes(pageid int, content string) (flg bool, err error
 }
 
 /*Update Highlights*/
-func (m MemberPage) UpdateHighlights(pageid int, content string) (flg bool, err error) {
+func (m MemberPage) UpdateHighlights(highreq HighlightsReq) (flg bool, err error) {
 
 	memberid, _, checkerr := member.VerifyToken(m.MemAuth.Token, m.MemAuth.Secret)
 
@@ -369,11 +370,13 @@ func (m MemberPage) UpdateHighlights(pageid int, content string) (flg bool, err 
 
 	var notes TblMemberNotesHighlight
 
-	notes.PageId = pageid
+	notes.PageId = highreq.Pageid
 
-	notes.NotesHighlightsContent = content
+	notes.NotesHighlightsContent = highreq.Content
 
 	notes.NotesHighlightsType = "highlights"
+
+	notes.HighlightsConfiguration = datatypes.JSONMap{"start": highreq.Start, "offset": highreq.Offset, "selectedpara": highreq.SelectPara}
 
 	notes.MemberId = memberid
 

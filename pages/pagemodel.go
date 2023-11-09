@@ -165,18 +165,33 @@ type PageCreate struct {
 }
 
 type TblMemberNotesHighlight struct {
-	Id                     int `gorm:"primaryKey;auto_increment"`
-	MemberId               int
-	PageId                 int
-	NotesHighlightsContent string
-	NotesHighlightsType    string
-	CreatedBy              int
-	CreatedOn              time.Time
-	ModifiedOn             time.Time `gorm:"DEFAULT:NULL"`
-	ModifiedBy             int       `gorm:"DEFAULT:NULL"`
-	DeletedOn              time.Time `gorm:"DEFAULT:NULL"`
-	DeletedBy              int       `gorm:"DEFAULT:NULL"`
-	IsDeleted              int
+	Id                      int `gorm:"primaryKey;auto_increment"`
+	MemberId                int
+	PageId                  int
+	NotesHighlightsContent  string
+	NotesHighlightsType     string
+	HighlightsConfiguration datatypes.JSONMap
+	CreatedBy               int
+	CreatedOn               time.Time
+	ModifiedOn              time.Time `gorm:"DEFAULT:NULL"`
+	ModifiedBy              int       `gorm:"DEFAULT:NULL"`
+	DeletedOn               time.Time `gorm:"DEFAULT:NULL"`
+	DeletedBy               int       `gorm:"DEFAULT:NULL"`
+	IsDeleted               int
+}
+
+type Configuration struct {
+	Start      int
+	Offset     int
+	SelectPara string
+}
+
+type HighlightsReq struct {
+	Pageid     int
+	Content    string
+	Start      int
+	Offset     int
+	SelectPara string
 }
 
 func (P PageStrut) CreatePageGroup(tblpagegroup *TblPagesGroup, DB *gorm.DB) (*TblPagesGroup, error) {

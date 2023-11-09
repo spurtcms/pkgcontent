@@ -431,24 +431,24 @@ func (SP SPM) GetPageCategoryTree(id int, DB *gorm.DB) ([]TblPagesCategoriesAlia
 	return categories, nil
 }
 
-func (SP SPM) GetParentPageCategory(pagecategory *TblPagesCategoriesAliases, page_category_id int, DB *gorm.DB) (error, TblPagesCategoriesAliases) {
+func (SP SPM) GetParentPageCategory(pagecategory *TblPagesCategoriesAliases, page_category_id int, DB *gorm.DB) (TblPagesCategoriesAliases, error) {
 
 	if err := DB.Table("tbl_pages_categories_aliases").Where("is_deleted = 0 and page_category_id=?", page_category_id).Find(&pagecategory).Error; err != nil {
 
-		return err, TblPagesCategoriesAliases{}
+		return TblPagesCategoriesAliases{}, err
 	}
 
-	return nil, *pagecategory
+	return *pagecategory, nil
 }
 
-func (SP SPM) GetChildPageCategories(pagecategory *[]TblPagesCategoriesAliases, parent_id int, DB *gorm.DB) (error, []TblPagesCategoriesAliases) {
+func (SP SPM) GetChildPageCategories(pagecategory *[]TblPagesCategoriesAliases, parent_id int, DB *gorm.DB) ([]TblPagesCategoriesAliases, error) {
 
 	if err := DB.Table("tbl_pages_categories_aliases").Where("is_deleted=0 and page_category_id=?", parent_id).Find(&pagecategory).Error; err != nil {
 
-		return err, []TblPagesCategoriesAliases{}
+		return []TblPagesCategoriesAliases{}, err
 	}
 
-	return nil, *pagecategory
+	return *pagecategory, nil
 }
 
 // Category based space list
@@ -651,7 +651,7 @@ func (SP SPM) GetSpaceDetails(tblspace *TblSpaces, id int, DB *gorm.DB) error {
 
 func (SP SPM) DeletePageGroup(tblpage *pages.TblPagesGroup, spaceid int, DB *gorm.DB) error {
 
-	if err := DB.Model(pages.TblPagesGroup{}).Where("spaces_id=?", spaceid).Joins("inner join tbl_pages_group on tbl_pages_group.id = tbl_pages_group_aliases.page_group_id").UpdateColumns(map[string]interface{}{"tbl_pages_group.is_deleted": 1, "tbl_pages_group.deleted_on": tblpage.DeletedOn, "tbl_pages_group.deleted_by": tblpage.DeletedBy,"tbl_pages_group_aliases.is_deleted":1,"tbl_pages_group_aliases.deleted_on":tblpage.DeletedOn,"tbl_pages_group_aliases.deleted_by":tblpage.DeletedBy}).Error; err != nil {
+	if err := DB.Model(pages.TblPagesGroup{}).Where("spaces_id=?", spaceid).Joins("inner join tbl_pages_group on tbl_pages_group.id = tbl_pages_group_aliases.page_group_id").UpdateColumns(map[string]interface{}{"tbl_pages_group.is_deleted": 1, "tbl_pages_group.deleted_on": tblpage.DeletedOn, "tbl_pages_group.deleted_by": tblpage.DeletedBy, "tbl_pages_group_aliases.is_deleted": 1, "tbl_pages_group_aliases.deleted_on": tblpage.DeletedOn, "tbl_pages_group_aliases.deleted_by": tblpage.DeletedBy}).Error; err != nil {
 
 		return err
 	}
