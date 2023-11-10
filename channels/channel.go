@@ -403,11 +403,9 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 			for _, val := range channelupt.FieldValues {
 
-				fid, _ := strconv.Atoi(val.Fid)
+				if gfd.FieldId == val.FieldId {
 
-				if gfd.FieldId == fid {
-
-					isdeleteids = append(isdeleteids, fid)
+					isdeleteids = append(isdeleteids, val.FieldId)
 
 					optval = append(optval, val.Optionname...)
 
@@ -435,7 +433,7 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 					fieldsname.Url = val.Url
 
-					CH.UpdateFieldDetails(&fieldsname, fid, Ch.Authority.DB)
+					CH.UpdateFieldDetails(&fieldsname, val.FieldId, Ch.Authority.DB)
 
 					var fieldoptdel TblFieldOption
 
@@ -443,7 +441,7 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 					fieldoptdel.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-					CH.DeleteFieldOptionById(&fieldoptdel, val.Optionname, fid, Ch.Authority.DB)
+					CH.DeleteFieldOptionById(&fieldoptdel, val.Optionname, val.FieldId, Ch.Authority.DB)
 
 				}
 
