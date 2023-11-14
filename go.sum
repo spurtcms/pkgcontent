@@ -21,10 +21,10 @@ github.com/jinzhu/now v1.1.5/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/
 github.com/mattn/go-sqlite3 v1.14.15 h1:vfoHhTN1af61xCRSWzFIWzx2YskyMTwHLrExkBOjvxI=
 github.com/microsoft/go-mssqldb v0.17.0 h1:Fto83dMZPnYv1Zwx5vHHxpNraeEaUlQ/hhHLgZiaenE=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/spurtcms/spurtcms-core v1.0.11-0.20231106141021-bc6d9db4cea1 h1:TZa/wa7zxUVmeW4mPJtK7660fjjgJ1OP59HiakHVlXs=
-github.com/spurtcms/spurtcms-core v1.0.11-0.20231106141021-bc6d9db4cea1/go.mod h1:clHDL7GukdyMl20qMtx9nY+QFkx/jsVjiwWULNhqt2c=
 github.com/spurtcms/spurtcms-core v1.0.11-0.20231108070039-c42ff31726bc h1:wJEUEozzqo6e0yVFlUB2ldd9dhsyOx3FrrC+t+ltU4w=
 github.com/spurtcms/spurtcms-core v1.0.11-0.20231108070039-c42ff31726bc/go.mod h1:clHDL7GukdyMl20qMtx9nY+QFkx/jsVjiwWULNhqt2c=
+github.com/spurtcms/spurtcms-core v1.0.11-0.20231114073926-7185dd8b34b3 h1:rm6q5gLi2Bz19vMN28HiD/Xh+bpXjO4IkYchvqpGsnc=
+github.com/spurtcms/spurtcms-core v1.0.11-0.20231114073926-7185dd8b34b3/go.mod h1:clHDL7GukdyMl20qMtx9nY+QFkx/jsVjiwWULNhqt2c=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=

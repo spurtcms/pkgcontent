@@ -16,11 +16,11 @@ import (
 var IST, _ = time.LoadLocation("Asia/Kolkata")
 
 type Page struct {
-	Authority *authcore.Authority
+	Authority *authcore.Authorization
 }
 
 type MemberPage struct {
-	MemAuth *authcore.Authority
+	MemAuth *authcore.Authorization
 }
 
 type PageStrut struct{}
@@ -377,7 +377,7 @@ func (m MemberPage) UpdateHighlights(highreq HighlightsReq) (flg bool, err error
 
 	notes.NotesHighlightsType = "highlights"
 
-	notes.HighlightsConfiguration = datatypes.JSONMap{"start": highreq.Start, "offset": highreq.Offset, "selectedpara": highreq.SelectPara}
+	notes.HighlightsConfiguration = datatypes.JSONMap{"start": highreq.Start, "offset": highreq.Offset, "selectedpara": highreq.SelectPara, "color": highreq.ContentColor}
 
 	notes.MemberId = memberid
 

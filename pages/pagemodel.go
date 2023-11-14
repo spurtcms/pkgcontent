@@ -186,6 +186,7 @@ type HighlightsReq struct {
 	Start      int
 	Offset     int
 	SelectPara string
+	ContentColor string
 }
 
 func (P PageStrut) CreatePageGroup(tblpagegroup *TblPagesGroup, DB *gorm.DB) (*TblPagesGroup, error) {

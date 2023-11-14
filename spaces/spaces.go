@@ -14,7 +14,7 @@ import (
 )
 
 type Space struct {
-	Authority *authcore.Authority
+	Authority *authcore.Authorization
 }
 
 type SPM struct{}
@@ -22,7 +22,7 @@ type SPM struct{}
 var SP SPM
 
 type MemberSpace struct {
-	MemAuth *authcore.Authority
+	MemAuth *authcore.Authorization
 }
 
 func MigrateTable(db *gorm.DB) {

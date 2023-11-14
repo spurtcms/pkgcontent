@@ -26,7 +26,7 @@ func MigrateTable(db *gorm.DB) {
 }
 
 type Channel struct {
-	Authority *authcore.Authority
+	Authority *authcore.Authorization
 }
 
 type ChannelStruct struct{}
@@ -304,6 +304,8 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 			}
 
 		}
+
+		return nil
 
 	}
 
@@ -629,6 +631,8 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 		}
 
+		return nil
+
 	}
 
 	return errors.New("not authorized")
@@ -688,6 +692,8 @@ func (Ch Channel) DeleteChannel(channelid int) error {
 		var modpermission auth.TblModulePermission
 
 		auth.AS.DeleteModulePermissioninEntries(&modpermission, chid, Ch.Authority.DB)
+
+		return nil
 	}
 
 	return errors.New("not authorized")

@@ -13,7 +13,7 @@ import (
 var IST, _ = time.LoadLocation("Asia/Kolkata")
 
 type Category struct {
-	Authority *auth.Authority
+	Authority *auth.Authorization
 }
 
 func MigrateTable(DB *gorm.DB) {
