@@ -181,11 +181,11 @@ type TblMemberNotesHighlight struct {
 }
 
 type HighlightsReq struct {
-	Pageid     int
-	Content    string
-	Start      int
-	Offset     int
-	SelectPara string
+	Pageid       int
+	Content      string
+	Start        int
+	Offset       int
+	SelectPara   string
 	ContentColor string
 }
 
@@ -531,4 +531,15 @@ func (p PageStrut) UpdateNotesHighlights(notes *TblMemberNotesHighlight, contype
 
 	return nil
 
+}
+
+/*Remove Highligts*/
+func (P PageStrut) RemoveHighlights(high *TblMemberNotesHighlight, DB *gorm.DB) error {
+
+	if err := DB.Model(TblMemberNotesHighlight{}).Where("id=?", high.Id).UpdateColumns(map[string]interface{}{"is_deleted=?": high.IsDeleted, "deleted_by": high.DeletedBy, "deleted_on": high.DeletedOn}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
 }

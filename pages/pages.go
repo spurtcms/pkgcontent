@@ -395,6 +395,36 @@ func (m MemberPage) UpdateHighlights(highreq HighlightsReq) (flg bool, err error
 	return true, nil
 }
 
+/*Remove Highlights*/
+func (m MemberPage) RemoveHighlights(highlightId int) (flg bool, err error) {
+
+	memberid, _, checkerr := member.VerifyToken(m.MemAuth.Token, m.MemAuth.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	var notes TblMemberNotesHighlight
+
+	notes.Id = highlightId
+
+	notes.DeletedBy = memberid
+
+	notes.IsDeleted = 1
+
+	notes.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	err1 := PG.RemoveHighlights(&notes, m.MemAuth.DB)
+
+	if err1 != nil {
+
+		return false, err1
+	}
+
+	return true, nil
+}
+
 /*Create page*/
 func (p Page) InsertPage(Pagec PageCreate) error {
 
