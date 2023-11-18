@@ -396,7 +396,7 @@ func (m MemberPage) UpdateHighlights(highreq HighlightsReq) (flg bool, err error
 }
 
 /*Remove Highlights*/
-func (m MemberPage) RemoveHighlights(highlightId int) (flg bool, err error) {
+func (m MemberPage) RemoveHighlightsandNotes(Id int) (flg bool, err error) {
 
 	memberid, _, checkerr := member.VerifyToken(m.MemAuth.Token, m.MemAuth.Secret)
 
@@ -407,7 +407,7 @@ func (m MemberPage) RemoveHighlights(highlightId int) (flg bool, err error) {
 
 	var notes TblMemberNotesHighlight
 
-	notes.Id = highlightId
+	notes.Id = Id
 
 	notes.DeletedBy = memberid
 

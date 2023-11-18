@@ -491,7 +491,7 @@ func (P PageStrut) GetContentByPageId(tblpage *TblPageAliases, id int, DB *gorm.
 /*GET NOTES*/
 func (p PageStrut) GetNotes(notes *[]TblMemberNotesHighlight, memberid int, pageid int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_member_notes_highlights").Where("member_id=? and page_id=? and notes_highlights_type='notes'", memberid, pageid).Find(&notes).Error; err != nil {
+	if err := DB.Table("tbl_member_notes_highlights").Where("member_id=? and page_id=? and notes_highlights_type='notes' and is_deleted=0", memberid, pageid).Find(&notes).Error; err != nil {
 		return err
 	}
 
@@ -501,7 +501,7 @@ func (p PageStrut) GetNotes(notes *[]TblMemberNotesHighlight, memberid int, page
 /*GET NOTES*/
 func (p PageStrut) GetHighlights(notes *[]TblMemberNotesHighlight, memberid int, pageid int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_member_notes_highlights").Where("member_id=? and page_id=? and notes_highlights_type='highlights'", memberid, pageid).Find(&notes).Error; err != nil {
+	if err := DB.Table("tbl_member_notes_highlights").Where("member_id=? and page_id=? and notes_highlights_type='highlights' and is_deleted=0", memberid, pageid).Find(&notes).Error; err != nil {
 		return err
 	}
 
@@ -536,7 +536,7 @@ func (p PageStrut) UpdateNotesHighlights(notes *TblMemberNotesHighlight, contype
 /*Remove Highligts*/
 func (P PageStrut) RemoveHighlights(high *TblMemberNotesHighlight, DB *gorm.DB) error {
 
-	if err := DB.Model(TblMemberNotesHighlight{}).Where("id=?", high.Id).UpdateColumns(map[string]interface{}{"is_deleted=?": high.IsDeleted, "deleted_by": high.DeletedBy, "deleted_on": high.DeletedOn}).Error; err != nil {
+	if err := DB.Model(TblMemberNotesHighlight{}).Where("id=?", high.Id).UpdateColumns(map[string]interface{}{"is_deleted": high.IsDeleted, "deleted_by": high.DeletedBy, "deleted_on": high.DeletedOn}).Error; err != nil {
 
 		return err
 	}
