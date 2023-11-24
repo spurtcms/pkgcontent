@@ -85,6 +85,35 @@ func (Ch Channel) GetChannels(limit, offset int, filter Filter) (channelList []T
 	return []TblChannel{}, 0, errors.New("not authorized")
 }
 
+/*Get Channels By Id*/
+func (Ch Channel) GetChannelsById(channelid int) (channelList TblChannel, err error) {
+
+	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return TblChannel{}, checkerr
+	}
+
+	check, err := Ch.Authority.IsGranted("Channels", authcore.CRUD)
+
+	if err != nil {
+
+		return TblChannel{}, err
+	}
+
+	if check {
+
+		var channellist TblChannel
+
+		CH.GetChannelById(&channellist, channelid, Ch.Authority.DB)
+
+		return channellist, nil
+	}
+
+	return TblChannel{}, errors.New("not authorized")
+}
+
 /*Create Channel*/
 func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 
