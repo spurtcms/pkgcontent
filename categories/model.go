@@ -41,7 +41,8 @@ type Result struct {
 }
 
 type Arrangecategories struct {
-	Categories []CatgoriesOrd
+	Categories    []CatgoriesOrd
+	CategoryNames []string
 }
 
 type CatgoriesOrd struct {

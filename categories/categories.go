@@ -27,7 +27,7 @@ func MigrateTable(DB *gorm.DB) {
 /*List Category Group*/
 func (c Category) CategoryGroupList(limit int, offset int, filter Filter) (Categorylist []TblCategory, categorycount int64, err error) {
 
-	_, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
+	_,_ , checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -49,7 +49,24 @@ func (c Category) CategoryGroupList(limit int, offset int, filter Filter) (Categ
 
 		categorygrplist, _ := GetCategoryList(categorylist, offset, limit, filter, c.Authority.DB)
 
-		return categorygrplist, Total_categories, nil
+		var categorylists []TblCategory
+
+		for _, val := range categorygrplist {
+
+			if !val.ModifiedOn.IsZero() {
+
+				val.DateString = val.ModifiedOn.Format("02 Jan 2006 03:04 PM")
+
+			} else {
+
+				val.DateString = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+			}
+
+			categorylists = append(categorylists, val)
+
+		}
+		return categorylists, Total_categories, nil
 
 	}
 
@@ -814,5 +831,128 @@ func (c Category) FilterSubCategory(limit int, filter Filter, parent_id int) (tb
 	}
 
 	return []TblCategory{}, 0, errors.New("not authorized")
+
+}
+
+/*Get All cateogry with parents and subcategory*/
+func (c Category) AllCategoriesWithSubList() (arrangecategories []Arrangecategories, CategoryNames []string) {
+
+	var getallparentcat []TblCategory
+
+	GetAllParentCategory(&getallparentcat, c.Authority.DB)
+
+	var AllCategorieswithSubCategories []Arrangecategories
+
+	for _, Group := range getallparentcat {
+
+		GetData, _ := GetCategoryTree(Group.Id, c.Authority.DB)
+
+		var pid int
+
+		for _, categories := range GetData {
+
+			var addcat Arrangecategories
+
+			var individualid []CatgoriesOrd
+
+			pid = categories.ParentId
+
+		LOOP:
+			for _, GetParent := range GetData {
+
+				var indivi CatgoriesOrd
+
+				if pid == GetParent.Id {
+
+					pid = GetParent.ParentId
+
+					indivi.Id = GetParent.Id
+
+					indivi.Category = GetParent.CategoryName
+
+					individualid = append(individualid, indivi)
+
+					if pid != 0 {
+
+						goto LOOP
+
+					}
+				}
+
+			}
+
+			var ReverseOrder Arrangecategories
+
+			addcat.Categories = append(addcat.Categories, individualid...)
+
+			var singlecat []CatgoriesOrd
+
+			for i := len(addcat.Categories) - 1; i >= 0; i-- {
+
+				var Sing CatgoriesOrd
+
+				Sing.Id = addcat.Categories[i].Id
+
+				Sing.Category = addcat.Categories[i].Category
+
+				singlecat = append(singlecat, Sing)
+
+			}
+
+			var newcate CatgoriesOrd
+
+			newcate.Id = categories.Id
+
+			newcate.Category = categories.CategoryName
+
+			addcat.Categories = append(addcat.Categories, newcate)
+
+			singlecat = append(singlecat, newcate)
+
+			ReverseOrder.Categories = singlecat
+
+			AllCategorieswithSubCategories = append(AllCategorieswithSubCategories, ReverseOrder)
+		}
+
+	}
+
+	/*This for Channel category show also individual group*/
+	var FinalCategoryList []Arrangecategories
+
+	for _, val := range AllCategorieswithSubCategories {
+
+		if len(val.Categories) > 1 {
+
+			var infinalarray Arrangecategories
+
+			infinalarray.Categories = append(infinalarray.Categories, val.Categories...)
+
+			FinalCategoryList = append(FinalCategoryList, infinalarray)
+		}
+
+	}
+
+	var Categorynames []string
+
+	for _, val := range FinalCategoryList {
+
+		var name string
+
+		for index, cat := range val.Categories {
+
+			if len(val.Categories) == index {
+
+				name += cat.Category
+			} else {
+				name += cat.Category + " / "
+			}
+
+		}
+
+		Categorynames = append(Categorynames, name)
+
+	}
+
+	return FinalCategoryList, Categorynames
 
 }

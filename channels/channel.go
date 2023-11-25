@@ -727,3 +727,32 @@ func (Ch Channel) DeleteChannel(channelid int) error {
 
 	return errors.New("not authorized")
 }
+
+/*Get All Master Field type */
+func (Ch Channel) GetAllMasterFieldType() (field []TblFieldType, err error) {
+
+	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []TblFieldType{}, checkerr
+	}
+
+	check, err := Ch.Authority.IsGranted("Channels", authcore.CRUD)
+
+	if err != nil {
+
+		return []TblFieldType{}, err
+	}
+
+	if check {
+
+		var field []TblFieldType
+
+		CH.GetAllField(&field, Ch.Authority.DB)
+
+		return field, nil
+	}
+
+	return []TblFieldType{}, errors.New("not authorized")
+}
