@@ -41,8 +41,7 @@ type Result struct {
 }
 
 type Arrangecategories struct {
-	Categories    []CatgoriesOrd
-	CategoryNames []string
+	Categories []CatgoriesOrd
 }
 
 type CatgoriesOrd struct {
@@ -60,7 +59,7 @@ type CategoryCreate struct {
 }
 
 // Parent Category List
-func GetCategoryList(categories []TblCategory, offset int, limit int, filter Filter, DB *gorm.DB) (category []TblCategory, count int64) {
+func (c Authstruct) GetCategoryList(categories []TblCategory, offset int, limit int, filter Filter, DB *gorm.DB) (category []TblCategory, count int64) {
 
 	var categorycount int64
 
@@ -86,7 +85,7 @@ func GetCategoryList(categories []TblCategory, offset int, limit int, filter Fil
 }
 
 // Children Category List
-func GetSubCategoryList(categories *[]TblCategory, offset int, limit int, filter Filter, parent_id int, flag int, DB *gorm.DB) (categorylist *[]TblCategory, count int64) {
+func (c Authstruct) GetSubCategoryList(categories *[]TblCategory, offset int, limit int, filter Filter, parent_id int, flag int, DB *gorm.DB) (categorylist *[]TblCategory, count int64) {
 
 	var categorycount int64
 
@@ -130,7 +129,7 @@ func GetSubCategoryList(categories *[]TblCategory, offset int, limit int, filter
 
 }
 
-func CreateCategory(category *TblCategory, DB *gorm.DB) error {
+func (c Authstruct) CreateCategory(category *TblCategory, DB *gorm.DB) error {
 
 	if err := DB.Create(&category).Error; err != nil {
 
@@ -141,7 +140,7 @@ func CreateCategory(category *TblCategory, DB *gorm.DB) error {
 }
 
 // Update Children list
-func UpdateCategory(category *TblCategory, DB *gorm.DB) error {
+func (c Authstruct) UpdateCategory(category *TblCategory, DB *gorm.DB) error {
 
 	if category.ParentId == 0 && category.ImagePath == "" {
 
@@ -160,7 +159,7 @@ func UpdateCategory(category *TblCategory, DB *gorm.DB) error {
 }
 
 // delete sub category
-func DeletePopup(category *TblCategory, id int, DB *gorm.DB) (categorylist TblCategory, err error) {
+func (c Authstruct) DeletePopup(category *TblCategory, id int, DB *gorm.DB) (categorylist TblCategory, err error) {
 
 	if err := DB.Table("tbl_categories").Where("parent_id=? and is_deleted =0", id).First(category).Error; err != nil {
 		return TblCategory{}, err
@@ -168,7 +167,7 @@ func DeletePopup(category *TblCategory, id int, DB *gorm.DB) (categorylist TblCa
 	return *category, nil
 }
 
-func DeleteCategoryById(category *TblCategory, categoryId int, DB *gorm.DB) error {
+func (c Authstruct) DeleteCategoryById(category *TblCategory, categoryId int, DB *gorm.DB) error {
 
 	if err := DB.Model(&category).Where("id=?", categoryId).Updates(TblCategory{IsDeleted: category.IsDeleted, DeletedOn: category.DeletedOn, DeletedBy: category.DeletedBy}).Error; err != nil {
 
@@ -180,7 +179,7 @@ func DeleteCategoryById(category *TblCategory, categoryId int, DB *gorm.DB) erro
 }
 
 /*getCategory Details*/
-func GetCategoryById(category *TblCategory, categoryId int, DB *gorm.DB) (categorylist TblCategory, err error) {
+func (c Authstruct) GetCategoryById(category *TblCategory, categoryId int, DB *gorm.DB) (categorylist TblCategory, err error) {
 
 	if err := DB.Table("tbl_categories").Where("is_deleted=0 and id=?", categoryId).First(&category).Error; err != nil {
 
@@ -190,7 +189,7 @@ func GetCategoryById(category *TblCategory, categoryId int, DB *gorm.DB) (catego
 }
 
 // Get Childern list
-func GetCategoryDetails(id int, category *TblCategory, DB *gorm.DB) (categorylist TblCategory, err error) {
+func (c Authstruct) GetCategoryDetails(id int, category *TblCategory, DB *gorm.DB) (categorylist TblCategory, err error) {
 
 	if err := DB.Table("tbl_categories").Where("id=?", id).First(&category).Error; err != nil {
 
@@ -200,7 +199,7 @@ func GetCategoryDetails(id int, category *TblCategory, DB *gorm.DB) (categorylis
 
 }
 
-func GetChildCategoriesById(childCategories *[]TblCategory, parentId int, DB *gorm.DB) error {
+func (c Authstruct) GetChildCategoriesById(childCategories *[]TblCategory, parentId int, DB *gorm.DB) error {
 
 	if err := DB.Model(&childCategories).Where("is_deleted=0 and parent_id=?", parentId).Find(&childCategories).Error; err != nil {
 
@@ -209,7 +208,7 @@ func GetChildCategoriesById(childCategories *[]TblCategory, parentId int, DB *go
 	return nil
 }
 
-func GetAllParentCategory(categories *[]TblCategory, DB *gorm.DB) error {
+func (c Authstruct) GetAllParentCategory(categories *[]TblCategory, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_categories").Where("parent_id=0 and is_deleted=0").Find(&categories).Error; err != nil {
 
@@ -218,7 +217,7 @@ func GetAllParentCategory(categories *[]TblCategory, DB *gorm.DB) error {
 	return nil
 }
 
-func GetCategoryTree(categoryID int, DB *gorm.DB) ([]TblCategory, error) {
+func (c Authstruct) GetCategoryTree(categoryID int, DB *gorm.DB) ([]TblCategory, error) {
 	var categories []TblCategory
 	err := DB.Raw(`
 		WITH RECURSIVE cat_tree AS (
@@ -260,7 +259,7 @@ func GetChildPageCategoriess(category *TblCategory, category_id int, DB *gorm.DB
 	return nil, *category
 }
 
-func GetParentPageCategorys(category *[]TblCategory, parent_id int, DB *gorm.DB) (error, []TblCategory) {
+func (c Authstruct) GetParentPageCategorys(category *[]TblCategory, parent_id int, DB *gorm.DB) (error, []TblCategory) {
 
 	if err := DB.Table("tbl_categories").Where("is_deleted = 0 and id=?", parent_id).Find(&category).Error; err != nil {
 
@@ -268,4 +267,24 @@ func GetParentPageCategorys(category *[]TblCategory, parent_id int, DB *gorm.DB)
 	}
 
 	return nil, *category
+}
+
+// Check category group name already exists
+func (c Authstruct) CheckCategoryGroupName(category TblCategory, userid int, name string, DB *gorm.DB) error {
+
+	if userid == 0 {
+
+		if err := DB.Model(TblCategory{}).Where("LOWER(TRIM(category_name))=LOWER(TRIM(?)) and is_deleted=0", name).First(&category).Error; err != nil {
+
+			return err
+		}
+	} else {
+
+		if err := DB.Model(TblCategory{}).Where("LOWER(TRIM(category_name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0", name, userid).First(&category).Error; err != nil {
+
+			return err
+		}
+	}
+
+	return nil
 }

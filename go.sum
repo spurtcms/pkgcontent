@@ -27,6 +27,8 @@ github.com/spurtcms/spurtcms-core v1.0.11-0.20231114073926-7185dd8b34b3 h1:rm6q5
 github.com/spurtcms/spurtcms-core v1.0.11-0.20231114073926-7185dd8b34b3/go.mod h1:clHDL7GukdyMl20qMtx9nY+QFkx/jsVjiwWULNhqt2c=
 github.com/spurtcms/spurtcms-core v1.0.11-0.20231117144022-de357f64e7d4 h1:/HNAtDWZBVO9TCumG9172DRrs9YPPResYXDHVAiQhtI=
 github.com/spurtcms/spurtcms-core v1.0.11-0.20231117144022-de357f64e7d4/go.mod h1:clHDL7GukdyMl20qMtx9nY+QFkx/jsVjiwWULNhqt2c=
+github.com/spurtcms/spurtcms-core v1.0.11-0.20231128142335-44420571c333 h1:FwylHtFh0e6E1adbBcd9rEWXiC3BFWBoyaaWjr2Rsog=
+github.com/spurtcms/spurtcms-core v1.0.11-0.20231128142335-44420571c333/go.mod h1:clHDL7GukdyMl20qMtx9nY+QFkx/jsVjiwWULNhqt2c=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=

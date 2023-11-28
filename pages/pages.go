@@ -265,7 +265,7 @@ func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPag
 }
 
 /*Get Page content - PAGE VIEW*/
-func (m MemberPage) GetPageContent(pageid int) (string, error) {
+func (m MemberPage) GetPageContent(pageid int) (TblPageAliases, error) {
 
 	var mem memberaccore.AccessAuth
 
@@ -285,11 +285,12 @@ func (m MemberPage) GetPageContent(pageid int) (string, error) {
 
 		PG.GetContentByPageId(&tblpage, pageid, m.MemAuth.DB)
 
-		return tblpage.PageDescription, nil
+		return tblpage, nil
 	}
 
-	return "", err
+	return TblPageAliases{}, err
 }
+
 
 /*Get Page content - PAGE VIEW*/
 func (m MemberPage) GetNotes(pageid int) ([]TblMemberNotesHighlight, error) {
