@@ -1,3 +1,4 @@
+//Package Channel will help to create a channels in cms
 package channels
 
 import (
