@@ -1,4 +1,4 @@
-//Package Channel will help to create a channels in cms
+// Package Channel will help to create a channels in cms
 package channels
 
 import (
@@ -134,38 +134,10 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 
 	if check {
 
-		// type field struct {
-		// 	Fiedlvalue []Fiedlvalue `json:"fiedlvalue"`
-		// }
-
-		// var fieldval field
-
-		// json.Unmarshal([]byte(channelcreate.FieldValues), &fieldval)
-
 		if channelcreate.ChannelName == "" || channelcreate.ChannelDescription == "" {
 
 			return errors.New("empty value")
 
-		}
-
-		/*create field group*/
-		var cfldgroup TblFieldGroup
-
-		cfldgroup.GroupName = channelcreate.ChannelName
-
-		cfldgroup.CreatedBy = userid
-
-		cfldgroup.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-		cfgid, createfieldgrouperr := CH.CreateFieldGroup(&cfldgroup, Ch.Authority.DB)
-
-		if createfieldgrouperr != nil {
-
-			log.Println(createfieldgrouperr)
-
-			// json.NewEncoder(c.Writer).Encode(false)
-
-			return
 		}
 
 		/*create channel*/
@@ -176,8 +148,6 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 		channel.ChannelDescription = channelcreate.ChannelDescription
 
 		channel.SlugName = strings.ToLower(strings.ReplaceAll(channelcreate.ChannelName, " ", " "))
-
-		channel.FieldGroupId = cfgid.Id
 
 		channel.IsActive = 1
 
@@ -190,28 +160,8 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 		if chanerr != nil {
 
 			log.Println(chanerr)
-		}
 
-		for _, categoriesid := range channelcreate.CategoryIds {
-
-			var channelcategory TblChannelCategory
-
-			channelcategory.ChannelId = ch.Id
-
-			channelcategory.CategoryId = categoriesid
-
-			channelcategory.CreatedAt = userid
-
-			channelcategory.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-			err1 := CH.CreateChannelCategory(&channelcategory, Ch.Authority.DB)
-
-			if err1 != nil {
-
-				log.Println(err)
-
-			}
-
+			return
 		}
 
 		/*This is for module permission creation*/
@@ -243,49 +193,27 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 
 		auth.AS.CreateRolePermissionsingle(&tblrole, Ch.Authority.DB)
 
-		/*create field*/
-		for _, val := range channelcreate.FieldValues {
+		/*Temp store section id*/
+		type tempsection struct {
+			Id           int
+			SectionId    int
+			NewSectionId int
+		}
+
+		var TempSections []tempsection
+
+		/*create Section*/
+		for _, sectionvalue := range channelcreate.Sections {
 
 			var cfld TblField
 
-			cfld.FieldName = strings.TrimSpace(val.Name)
+			cfld.FieldName = strings.TrimSpace(sectionvalue.SectionName)
 
-			cfld.FieldDesc = val.Desc
-
-			cfld.FieldTypeId, _ = strconv.Atoi(val.Fid)
+			cfld.FieldTypeId = sectionvalue.MasterFieldId
 
 			cfld.CreatedBy = userid
 
 			cfld.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-			cfld.MandatoryField = val.Mandatory
-
-			cfld.OrderIndex, _ = strconv.Atoi(val.Id)
-
-			cfld.InitialValue = val.Initial
-
-			cfld.Placeholder = val.Placehold
-
-			cfld.ImagePath = val.ImgSrc
-
-			cfld.Url = val.Url
-
-			if val.Fid == "4" {
-
-				cfld.DatetimeFormat = val.DateFormat
-
-				cfld.TimeFormat = val.TimeFormat
-
-			}
-			if val.Fid == "6" {
-
-				cfld.DatetimeFormat = val.DateFormat
-			}
-
-			if len(val.Optionname) > 0 {
-
-				cfld.OptionExist = 1
-			}
 
 			cfid, fiderr := CH.CreateFields(&cfld, Ch.Authority.DB)
 
@@ -294,14 +222,95 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 				log.Println(fiderr)
 			}
 
+			/*create group field*/
+			var grpfield TblGroupField
+
+			grpfield.ChannelId = ch.Id
+
+			grpfield.FieldId = cfid.Id
+
+			grpfielderr := CH.CreateGroupField(&grpfield, Ch.Authority.DB)
+
+			if grpfielderr != nil {
+
+				log.Println(grpfielderr)
+
+			}
+
+			var TempSection tempsection
+
+			TempSection.Id = cfid.Id
+
+			TempSection.SectionId = sectionvalue.SectionId
+
+			TempSection.NewSectionId = sectionvalue.SectionNewId
+
+			TempSections = append(TempSections, TempSection)
+
+		}
+
+		/*create field*/
+		for _, val := range channelcreate.FieldValues {
+
+			var cfld TblField
+
+			cfld.FieldName = strings.TrimSpace(val.FieldName)
+
+			cfld.FieldTypeId = val.MasterFieldId
+
+			cfld.CreatedBy = userid
+
+			cfld.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			cfld.OrderIndex = val.OrderIndex
+
+			cfld.ImagePath = val.IconPath
+
+			cfld.Url = val.Url
+
+			if val.MasterFieldId == 4 {
+
+				cfld.DatetimeFormat = val.DateFormat
+
+				cfld.TimeFormat = val.TimeFormat
+
+			}
+			if val.MasterFieldId == 6 {
+
+				cfld.DatetimeFormat = val.DateFormat
+			}
+
+			if len(val.OptionValue) > 0 {
+
+				cfld.OptionExist = 1
+			}
+
+			for _, sectionid := range TempSections {
+
+				if sectionid.SectionId == val.SectionId && sectionid.NewSectionId == val.SectionNewId {
+
+					cfld.SectionParentId = sectionid.Id
+
+				}
+
+			}
+
+			cfid, fiderr := CH.CreateFields(&cfld, Ch.Authority.DB)
+
+			if fiderr != nil {
+
+				log.Println(fiderr)
+
+			}
+
 			/*option value create*/
-			for _, opt := range val.Optionname {
+			for _, opt := range val.OptionValue {
 
 				var fldopt TblFieldOption
 
-				fldopt.OptionName = opt
+				fldopt.OptionName = opt.Value
 
-				fldopt.OptionValue = opt
+				fldopt.OptionValue = opt.Value
 
 				fldopt.FieldId = cfid.Id
 
@@ -314,6 +323,7 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 				if fopterr != nil {
 
 					log.Println(fopterr)
+
 				}
 
 			}
@@ -321,7 +331,7 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 			/*create group field*/
 			var grpfield TblGroupField
 
-			grpfield.FieldGroupId = cfgid.Id
+			grpfield.ChannelId = ch.Id
 
 			grpfield.FieldId = cfid.Id
 
@@ -335,6 +345,28 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 
 		}
 
+		for _, categoriesid := range channelcreate.CategoryIds {
+
+			var channelcategory TblChannelCategory
+
+			channelcategory.ChannelId = ch.Id
+
+			channelcategory.CategoryId = categoriesid
+
+			channelcategory.CreatedAt = userid
+
+			channelcategory.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			err := CH.CreateChannelCategory(&channelcategory, Ch.Authority.DB)
+
+			if err != nil {
+
+				log.Println(err)
+
+			}
+
+		}
+
 		return nil
 
 	}
@@ -343,7 +375,7 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 }
 
 /*Edit channel*/
-func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
+func (Ch Channel) EditChannel(channelupt ChannelUpdate, channelid int) error {
 
 	userid, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
 
@@ -360,36 +392,6 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 	}
 
 	if check {
-
-		// type Fiedlvalue struct {
-		// 	Id         string   `json:"id"`
-		// 	Fid        string   `json:"fid"`
-		// 	FieldId    int      `json:"FieldId"`
-		// 	Name       string   `json:"name"`
-		// 	Desc       string   `json:"desc"`
-		// 	Mandatory  int      `json:"mandatory"`
-		// 	Initial    string   `json:"initial"`
-		// 	Placehold  string   `json:"placehold"`
-		// 	DateFormat string   `json:"dateformat"`
-		// 	TimeFormat string   `json:"timeformat"`
-		// 	Optionname []string `json:"optioname"`
-		// 	ImgSrc     string   `json:"imgsrc"`
-		// 	Url        string   `json:"url"`
-		// }
-
-		// type field struct {
-		// 	Fiedlvalue []Fiedlvalue `json:"fiedlvalue"`
-		// }
-
-		// var fieldval field
-
-		// json.Unmarshal([]byte(channelupt.FieldValues), &fieldval)
-
-		if channelupt.ChannelName == "" || channelupt.ChannelDescription == "" {
-
-			return errors.New("empty value")
-
-		}
 
 		var chn TblChannel
 
@@ -411,169 +413,98 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 		auth.AS.UpdateChannelNameInEntries(&modpermissionupdate, Ch.Authority.DB)
 
-		var getfieldid TblChannel
+		//delete sections & fields
+		var delid []int //temp array for delid
+		var optiondelid []int
 
-		CH.GetChannelById(&getfieldid, channelid, Ch.Authority.DB)
+		for _, val := range channelupt.Deletesections {
 
-		var fldgrpupd TblFieldGroup
-
-		fldgrpupd.ModifiedBy = userid
-
-		fldgrpupd.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-		CH.UpdateFieldGroup(&fldgrpupd, getfieldid.FieldGroupId, Ch.Authority.DB)
-
-		var grpfield []TblGroupField
-
-		CH.GetFieldIdByGroupId(&grpfield, getfieldid.FieldGroupId, Ch.Authority.DB)
-
-		var isdeleteids []int
-
-		var optval []string
-
-		for _, gfd := range grpfield {
-
-			for _, val := range channelupt.FieldValues {
-
-				if gfd.FieldId == val.FieldId {
-
-					isdeleteids = append(isdeleteids, val.FieldId)
-
-					optval = append(optval, val.Optionname...)
-
-					var fieldsname TblField
-
-					fieldsname.OrderIndex, _ = strconv.Atoi(val.Id)
-
-					fieldsname.FieldName = strings.TrimSpace(val.Name)
-
-					fieldsname.FieldDesc = val.Desc
-
-					fieldsname.InitialValue = val.Initial
-
-					fieldsname.MandatoryField = val.Mandatory
-
-					fieldsname.Placeholder = val.Placehold
-
-					fieldsname.DatetimeFormat = val.DateFormat
-
-					fieldsname.TimeFormat = val.TimeFormat
-
-					fieldsname.ModifiedBy = userid
-
-					fieldsname.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-					fieldsname.Url = val.Url
-
-					CH.UpdateFieldDetails(&fieldsname, val.FieldId, Ch.Authority.DB)
-
-					var fieldoptdel TblFieldOption
-
-					fieldoptdel.DeletedBy = userid
-
-					fieldoptdel.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-					CH.DeleteFieldOptionById(&fieldoptdel, val.Optionname, val.FieldId, Ch.Authority.DB)
-
-				}
-
-			}
+			delid = append(delid, val.SectionId)
 		}
 
-		var grpfieldnotinfid []TblGroupField
+		for _, val := range channelupt.DeleteFields {
 
-		CH.GetNotInFieldId(&grpfieldnotinfid, isdeleteids, getfieldid.FieldGroupId, Ch.Authority.DB)
+			delid = append(delid, val.FieldId)
+		}
 
-		var delids []int
+		for _, val := range channelupt.DeleteOptionsvalue {
 
-		for _, val := range grpfieldnotinfid {
-
-			delids = append(delids, val.FieldId)
+			optiondelid = append(optiondelid, val.Id)
 
 		}
 
-		if len(channelupt.FieldValues) == 0 {
+		if len(delid) > 0 || len(optiondelid) > 0 {
 
-			for _, gfd := range grpfield {
+			var delsection TblField
 
-				delids = append(delids, gfd.FieldId)
-			}
+			delsection.DeletedBy = userid
+
+			delsection.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			delsection.IsDeleted = 1
+
+			CH.DeleteFieldById(&delsection, delid, Ch.Authority.DB)
+
+			var deloption TblFieldOption
+
+			deloption.DeletedBy = userid
+
+			deloption.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			deloption.IsDeleted = 1
+
+			CH.DeleteOptionById(&deloption, optiondelid, delid, Ch.Authority.DB)
 
 		}
 
-		var fieldv TblField
+		/*Temp store section id*/
+		type tempsection struct {
+			Id           int
+			SectionId    int
+			NewSectionId int
+		}
 
-		fieldv.DeletedBy = userid
+		var TempSections []tempsection
 
-		fieldv.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+		for _, val := range channelupt.Sections {
 
-		DeleteFieldById(&fieldv, delids, Ch.Authority.DB)
+			var cfld TblField
 
-		isdeleteids = []int{}
+			cfld.FieldName = strings.TrimSpace(val.SectionName)
 
-		optval = []string{}
+			cfld.FieldTypeId = val.MasterFieldId
 
-		for _, val := range channelupt.FieldValues {
+			cfld.CreatedBy = userid
 
-			fid, _ := strconv.Atoi(val.Fid)
+			cfld.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-			var cid int
+			if val.SectionId != 0 {
 
-			if fid == 0 {
+				CH.UpdateFieldDetails(&cfld, val.SectionId, Ch.Authority.DB)
 
-				var cfld TblField
+				var TempSection tempsection
 
-				cfld.FieldName = val.Name
+				TempSection.Id = val.SectionId
 
-				cfld.FieldDesc = val.Desc
+				TempSection.SectionId = val.SectionId
 
-				cfld.FieldTypeId, _ = strconv.Atoi(val.Fid)
+				TempSection.NewSectionId = val.SectionNewId
 
-				cfld.CreatedBy = userid
+				TempSections = append(TempSections, TempSection)
 
-				cfld.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-				cfld.MandatoryField = val.Mandatory
-
-				cfld.OrderIndex, _ = strconv.Atoi(val.Id)
-
-				cfld.InitialValue = val.Initial
-
-				cfld.Placeholder = val.Placehold
-
-				cfld.ImagePath = val.ImgSrc
-
-				if val.Fid == "4" {
-
-					cfld.DatetimeFormat = val.DateFormat
-
-					cfld.TimeFormat = val.TimeFormat
-
-				}
-				if val.Fid == "6" {
-
-					cfld.DatetimeFormat = val.DateFormat
-				}
-
-				if len(val.Optionname) > 0 {
-
-					cfld.OptionExist = 1
-				}
+			} else {
 
 				cfid, fiderr := CH.CreateFields(&cfld, Ch.Authority.DB)
 
 				if fiderr != nil {
 
 					log.Println(fiderr)
-
 				}
-
-				cid = cfid.Id
 
 				/*create group field*/
 				var grpfield TblGroupField
 
-				grpfield.FieldGroupId = getfieldid.FieldGroupId
+				grpfield.ChannelId = channelid
 
 				grpfield.FieldId = cfid.Id
 
@@ -585,31 +516,130 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 
 				}
 
-			} else {
+				var TempSection tempsection
 
-				cid = fid
+				TempSection.Id = cfid.Id
+
+				TempSection.SectionId = val.SectionId
+
+				TempSection.NewSectionId = val.SectionNewId
+
+				TempSections = append(TempSections, TempSection)
+
 			}
 
-			/*option value create*/
-			for _, opt := range val.Optionname {
+		}
 
-				var optchk TblFieldOption
+		for _, val := range channelupt.FieldValues {
 
-				err := CH.CheckOptionAlreadyExist(&optchk, opt, cid, Ch.Authority.DB)
+			var cfld TblField
 
-				if errors.Is(err, gorm.ErrRecordNotFound) {
+			cfld.FieldName = strings.TrimSpace(val.FieldName)
 
-					var fldopt TblFieldOption
+			cfld.FieldTypeId = val.MasterFieldId
 
-					fldopt.OptionName = opt
+			cfld.CreatedBy = userid
 
-					fldopt.OptionValue = opt
+			cfld.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-					fldopt.FieldId = cid
+			cfld.OrderIndex = val.OrderIndex
 
-					fldopt.CreatedBy = userid
+			cfld.ImagePath = val.IconPath
 
-					fldopt.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+			cfld.Url = val.Url
+
+			if val.MasterFieldId == 4 {
+
+				cfld.DatetimeFormat = val.DateFormat
+
+				cfld.TimeFormat = val.TimeFormat
+
+			}
+			if val.MasterFieldId == 6 {
+
+				cfld.DatetimeFormat = val.DateFormat
+			}
+
+			if len(val.OptionValue) > 0 {
+
+				cfld.OptionExist = 1
+			}
+
+			for _, sectionid := range TempSections {
+
+				if sectionid.SectionId == val.SectionId && sectionid.NewSectionId == val.SectionNewId {
+
+					cfld.SectionParentId = sectionid.Id
+
+				}
+
+			}
+
+			var createdchannelid int
+
+			if val.FieldId != 0 {
+
+				cfld.ModifiedBy = userid
+
+				cfld.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+				CH.UpdateFieldDetails(&cfld, val.FieldId, Ch.Authority.DB)
+
+				createdchannelid = val.FieldId
+
+			} else {
+
+				cfid, fiderr := CH.CreateFields(&cfld, Ch.Authority.DB)
+
+				if fiderr != nil {
+
+					log.Println(fiderr)
+
+				}
+
+				/*create group field*/
+				var grpfield TblGroupField
+
+				grpfield.ChannelId = channelid
+
+				grpfield.FieldId = cfid.Id
+
+				grpfielderr := CH.CreateGroupField(&grpfield, Ch.Authority.DB)
+
+				if grpfielderr != nil {
+
+					log.Println(grpfielderr)
+
+				}
+
+				createdchannelid = cfld.Id
+
+			}
+			for _, optv := range val.OptionValue {
+
+				var fldopt TblFieldOption
+
+				fldopt.OptionName = optv.Value
+
+				fldopt.OptionValue = optv.Value
+
+				fldopt.CreatedBy = userid
+
+				fldopt.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+				if optv.Id != 0 {
+
+					fldopt.FieldId = optv.FieldId
+
+					fldopt.ModifiedBy = userid
+
+					fldopt.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+					CH.UpdateFieldOption(&fldopt, optv.Id, Ch.Authority.DB)
+
+				} else {
+
+					fldopt.FieldId = createdchannelid
 
 					fopterr := CH.CreateFieldOption(&fldopt, Ch.Authority.DB)
 
@@ -618,6 +648,7 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 						log.Println(fopterr)
 
 					}
+
 				}
 
 			}
@@ -660,8 +691,6 @@ func (Ch Channel) EditChannel(channelupt ChannelCreate, channelid int) error {
 			CH.DeleteChannelCategoryByValue(&deletechannelcategory, val.Id, Ch.Authority.DB)
 
 		}
-
-		return nil
 
 	}
 

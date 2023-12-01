@@ -8,6 +8,7 @@ import (
 
 	"github.com/spurtcms/spurtcms-content/categories"
 	"github.com/spurtcms/spurtcms-content/pages"
+	"github.com/spurtcms/spurtcms-core/auth"
 	authcore "github.com/spurtcms/spurtcms-core/auth"
 	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
 	"gorm.io/gorm"
@@ -828,4 +829,39 @@ func (s Space) PageCategoryList() []Arrangecategories {
 
 	return FinalCategoryList
 
+}
+
+// Check Name is already exits or not
+func (s Space) CheckSpaceName(id int, name string) (bool, error) {
+
+	_, _, checkerr := auth.VerifyToken(s.Authority.Token, s.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, err := s.Authority.IsGranted("Spaces", authcore.CRUD)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+
+		var space TblSpacesAliases
+
+		err := SP.CheckSpaceName(&space, id, name, s.Authority.DB)
+
+		if err != nil {
+			return false, err
+		}
+		if space.Id == 0 {
+
+			return false, err
+		}
+
+	}
+	return true, nil
 }

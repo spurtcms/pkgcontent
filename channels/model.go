@@ -7,8 +7,30 @@ import (
 	"gorm.io/gorm"
 )
 
+type ChannelCreate struct {
+	ChannelName        string
+	ChannelDescription string
+	Sections           []Section
+	FieldValues        []Fiedlvalue
+	CategoryIds        []string
+}
+
+type ChannelUpdate struct {
+	ChannelName        string
+	ChannelDescription string
+	Sections           []Section
+	FieldValues        []Fiedlvalue
+	Deletesections     []Section
+	DeleteFields       []Fiedlvalue
+	DeleteOptionsvalue []OptionValues
+	CategoryIds        []string
+}
+
+type Filter struct {
+	Keyword string
+}
 type TblFieldType struct {
-	Id         int `gorm:"primaryKey;auto_increment"`
+	Id         int
 	TypeName   string
 	TypeSlug   string
 	IsActive   int
@@ -20,7 +42,7 @@ type TblFieldType struct {
 }
 
 type TblFieldGroup struct {
-	Id         int `gorm:"primaryKey;auto_increment"`
+	Id         int
 	GroupName  string
 	CreatedOn  time.Time
 	CreatedBy  int
@@ -32,46 +54,48 @@ type TblFieldGroup struct {
 }
 
 type TblGroupField struct {
-	Id             int `gorm:"primaryKey;auto_increment"`
-	FieldGroupId   int
+	Id             int
+	ChannelId      int
 	FieldId        int
-	FieldName      string `gorm:"-:migration;<-:false"`
-	FieldTypeId    int    `gorm:"-:migration;<-:false"`
-	MandatoryField int    `gorm:"-:migration;<-:false"`
-	OptionExist    int    `gorm:"-:migration;<-:false"`
-	FoptionId      int    `gorm:"-:migration;<-:false"`
-	OptionName     string `gorm:"-:migration;<-:false"`
-	OptionValue    string `gorm:"-:migration;<-:false"`
+	FieldName      string `gorm:"<-:false"`
+	FieldTypeId    int    `gorm:"<-:false"`
+	MandatoryField int    `gorm:"<-:false"`
+	OptionExist    int    `gorm:"<-:false"`
+	FoptionId      int    `gorm:"<-:false"`
+	OptionName     string `gorm:"<-:false"`
+	OptionValue    string `gorm:"<-:false"`
 }
 
 type TblField struct {
-	Id             int `gorm:"primaryKey;auto_increment"`
-	FieldName      string
-	FieldDesc      string
-	FieldTypeId    int
-	MandatoryField int
-	OptionExist    int
-	InitialValue   string
-	Placeholder    string
-	CreatedOn      time.Time
-	CreatedBy      int
-	ModifiedOn     time.Time `gorm:"DEFAULT:NULL"`
-	ModifiedBy     int       `gorm:"DEFAULT:NULL"`
-	IsDeleted      int       `gorm:"DEFAULT:0"`
-	DeletedOn      time.Time `gorm:"DEFAULT:NULL"`
-	DeletedBy      int       `gorm:"DEFAULT:NULL"`
-	OrderIndex     int
-	ImagePath      string
-	TblFieldOption []TblFieldOption `gorm:"-:migration;<-:false; foreignKey:FieldId"`
-	DatetimeFormat string
-	TimeFormat     string
-	Url            string
-	Values         string         `gorm:"-"`
-	CheckBoxValue  []FieldValueId `gorm:"-"`
+	Id               int
+	FieldName        string
+	FieldDesc        string
+	FieldTypeId      int
+	MandatoryField   int
+	OptionExist      int
+	InitialValue     string
+	Placeholder      string
+	CreatedOn        time.Time
+	CreatedBy        int
+	ModifiedOn       time.Time `gorm:"DEFAULT:NULL"`
+	ModifiedBy       int       `gorm:"DEFAULT:NULL"`
+	IsDeleted        int       `gorm:"DEFAULT:0"`
+	DeletedOn        time.Time `gorm:"DEFAULT:NULL"`
+	DeletedBy        int       `gorm:"DEFAULT:NULL"`
+	OrderIndex       int
+	ImagePath        string
+	TblFieldOption   []TblFieldOption `gorm:"<-:false; foreignKey:FieldId"`
+	DatetimeFormat   string
+	TimeFormat       string
+	Url              string
+	Values           string         `gorm:"-"`
+	CheckBoxValue    []FieldValueId `gorm:"-"`
+	SectionParentId  int
+	CharacterAllowed int
 }
 
 type TblFieldOption struct {
-	Id          int `gorm:"primaryKey;auto_increment"`
+	Id          int
 	OptionName  string
 	OptionValue string
 	FieldId     int
@@ -86,7 +110,7 @@ type TblFieldOption struct {
 }
 
 type TblChannel struct {
-	Id                 int `gorm:"primaryKey;auto_increment"`
+	Id                 int
 	ChannelName        string
 	ChannelDescription string
 	SlugName           string
@@ -101,7 +125,7 @@ type TblChannel struct {
 }
 
 type TblChannelCategory struct {
-	Id         int `gorm:"primaryKey;auto_increment"`
+	Id         int
 	ChannelId  int
 	CategoryId string
 	CreatedAt  int
@@ -113,31 +137,35 @@ type FieldValueId struct {
 	CValue int
 }
 
-type ChannelCreate struct {
-	ChannelName        string
-	ChannelDescription string
-	FieldValues        []Fiedlvalue
-	CategoryIds        []string
+type Section struct {
+	SectionId     int    `json:"SectionId"`
+	SectionNewId  int    `json:"SectionNewId"`
+	SectionName   string `json:"SectionName"`
+	MasterFieldId int    `json:"MasterFieldId"`
 }
 
 type Fiedlvalue struct {
-	Id         string   `json:"id"`
-	Fid        string   `json:"fid"`
-	FieldId    int      `json:"FieldId"`
-	Name       string   `json:"name"`
-	Desc       string   `json:"desc"`
-	Mandatory  int      `json:"mandatory"`
-	Initial    string   `json:"initial"`
-	Placehold  string   `json:"placehold"`
-	DateFormat string   `json:"dateformat"`
-	TimeFormat string   `json:"timeformat"`
-	Optionname []string `json:"optioname"`
-	ImgSrc     string   `json:"imgsrc"`
-	Url        string   `json:"url"`
+	MasterFieldId    int            `json:"MasterFieldId"`
+	FieldId          int            `json:"FieldId"`
+	NewFieldId       int            `json:"NewFieldId"`
+	SectionId        int            `json:"SectionId"`
+	SectionNewId     int            `json:"SectionNewId"`
+	FieldName        string         `json:"FieldName"`
+	DateFormat       string         `json:"DateFormat"`
+	TimeFormat       string         `json:"TimeFormat"`
+	OptionValue      []OptionValues `json:"OptionValue"`
+	CharacterAllowed int            `json:"CharacterAllowed"`
+	IconPath         string         `json:"IconPath"`
+	Url              string         `json:"Url"`
+	OrderIndex       int            `json:"OrderIndex"`
 }
 
-type Filter struct {
-	Keyword string
+type OptionValues struct {
+	Id         int    `json:"Id"`
+	NewId      int    `json:"NewId"`
+	FieldId    int    `json:"FieldId"`
+	NewFieldId int    `json:"NewFieldId"`
+	Value      string `json:"Value"`
 }
 
 /*Get all master fields*/
@@ -266,7 +294,7 @@ func (Ch ChannelStruct) DeleteFieldGroupById(tblfieldgrp *TblFieldGroup, id int,
 }
 
 /*Delete Field By Id*/
-func DeleteFieldById(field *TblField, id []int, DB *gorm.DB) error {
+func (Ch ChannelStruct) DeleteFieldById(field *TblField, id []int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_fields").Where("id in(?) ", id).UpdateColumns(map[string]interface{}{"is_deleted": 1, "deleted_by": field.DeletedBy, "deleted_on": field.DeletedOn}).Error; err != nil {
 
@@ -536,4 +564,26 @@ func (Ch ChannelStruct) CheckChanName(channel *TblChannel, name string, id int, 
 		}
 	}
 	return nil
+}
+
+/*Delete FieldOption By fieldid*/
+func (Ch ChannelStruct) DeleteOptionById(fieldopt *TblFieldOption, id []int, fid []int, DB *gorm.DB) error {
+
+	if len(id) > 0 {
+
+		if err := DB.Table("tbl_field_options").Where("id in (?)", id).UpdateColumns(map[string]interface{}{"is_deleted": 1, "deleted_by": fieldopt.DeletedBy, "deleted_on": fieldopt.DeletedOn}).Error; err != nil {
+
+			return err
+		}
+
+	} else {
+
+		if err := DB.Table("tbl_field_options").Where("field_id in (?)", fid).UpdateColumns(map[string]interface{}{"is_deleted": 1, "deleted_by": fieldopt.DeletedBy, "deleted_on": fieldopt.DeletedOn}).Error; err != nil {
+
+			return err
+		}
+	}
+
+	return nil
+
 }

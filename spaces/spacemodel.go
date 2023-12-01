@@ -578,3 +578,23 @@ func (SP SPM) DeletePageGroup(tblpage *pages.TblPagesGroup, spaceid int, DB *gor
 
 	return nil
 }
+
+// Name already exists
+func (SP SPM) CheckSpaceName(space *TblSpacesAliases, userid int, name string, DB *gorm.DB) error {
+
+	if userid == 0 {
+
+		if err := DB.Model(TblSpacesAliases{}).Where("LOWER(TRIM(spaces_name))=LOWER(TRIM(?)) and is_deleted=0", name).First(&space).Error; err != nil {
+
+			return err
+		}
+	} else {
+
+		if err := DB.Model(TblSpacesAliases{}).Where("LOWER(TRIM(spaces_name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0", name, userid).First(&space).Error; err != nil {
+
+			return err
+		}
+	}
+
+	return nil
+}
