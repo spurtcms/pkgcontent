@@ -142,6 +142,7 @@ type Section struct {
 	SectionNewId  int    `json:"SectionNewId"`
 	SectionName   string `json:"SectionName"`
 	MasterFieldId int    `json:"MasterFieldId"`
+	OrderIndex    int    `json:"OrderIndex"`
 }
 
 type Fiedlvalue struct {

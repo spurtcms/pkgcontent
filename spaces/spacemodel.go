@@ -598,3 +598,52 @@ func (SP SPM) CheckSpaceName(space *TblSpacesAliases, userid int, name string, D
 
 	return nil
 }
+
+func (SP SPM) PublishPageSpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, offset int, filter Filter, cid []int, DB *gorm.DB) (spacecount int64, err error) {
+
+	query := DB.Debug().Table("tbl_spaces_aliases").Select("distinct(tbl_spaces_aliases.id), tbl_spaces_aliases.*,tbl_spaces.page_category_id,tbl_categories.parent_id , tbl_page_aliases.status").
+		Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
+		Joins("inner join tbl_language on tbl_language.id = tbl_spaces_aliases.language_id").
+		Joins("inner join tbl_categories on tbl_categories.id = tbl_spaces.page_category_id").
+		Joins("inner join tbl_page on tbl_page.spaces_id = tbl_spaces_aliases.spaces_id").
+		Joins("inner join tbl_page_aliases on tbl_page_aliases.page_id = tbl_page.id").
+		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = 1 and tbl_page_aliases.status = 'publish' ")
+
+	if filter.Keyword != "" {
+
+		query = query.Where("LOWER(TRIM(tbl_spaces_aliases.spaces_name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%")
+	}
+	if len(cid) > 0 && cid[0] != 0 {
+
+		query = query.Where("tbl_spaces.page_category_id IN (?)", cid)
+	}
+	// if q.DataAccess == 1 {
+
+	// 	query = query.Where("tbl_spaces.created_by = ? and tbl_spaces_aliases.created_by = ? ", q.UserId, q.UserId)
+	// }
+
+	if limit != 0 {
+
+		query.Limit(limit).Offset(offset).Find(&tblspace)
+
+	} else {
+
+		// query.Find(&tblspace).Count(&spacecount)
+
+		query.Raw(`SELECT COUNT(distinct(tbl_spaces_aliases.id))
+		FROM tbl_spaces_aliases
+		INNER JOIN TBL_SPACES ON TBL_SPACES_ALIASES.SPACES_ID = TBL_SPACES.ID
+		INNER JOIN TBL_LANGUAGE ON TBL_LANGUAGE.ID = TBL_SPACES_ALIASES.LANGUAGE_ID
+		INNER JOIN TBL_CATEGORIES ON TBL_CATEGORIES.ID = TBL_SPACES.PAGE_CATEGORY_ID
+		INNER JOIN TBL_PAGE ON TBL_PAGE.SPACES_ID = TBL_SPACES_ALIASES.SPACES_ID
+		INNER JOIN TBL_PAGE_ALIASES ON TBL_PAGE_ALIASES.PAGE_ID = TBL_PAGE.ID
+		WHERE TBL_SPACES.IS_DELETED = 0
+			AND TBL_SPACES_ALIASES.IS_DELETED = 0
+			AND TBL_SPACES_ALIASES.LANGUAGE_ID = 1
+			AND TBL_PAGE_ALIASES.STATUS = 'publish' `).Count(&spacecount)
+
+		return spacecount, nil
+	}
+
+	return 0, nil
+}

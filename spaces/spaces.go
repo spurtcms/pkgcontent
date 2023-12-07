@@ -865,3 +865,100 @@ func (s Space) CheckSpaceName(id int, name string) (bool, error) {
 	}
 	return true, nil
 }
+
+/*Get Published spaces*/
+func (s Space) GetPublishedSpaces(limit int, offset int, filter Filter, languageid int) (spacedetails []TblSpacesAliases, err error) {
+
+	_, _, checkerr := auth.VerifyToken(s.Authority.Token, s.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []TblSpacesAliases{}, checkerr
+	}
+
+	check, err := s.Authority.IsGranted("Spaces", authcore.CRUD)
+
+	if err != nil {
+
+		return []TblSpacesAliases{}, err
+	}
+
+	if check {
+
+		var spacez []TblSpacesAliases
+
+		SP.PublishPageSpaceList(&spacez, languageid, limit, offset, filter, nil, s.Authority.DB)
+
+		var SpaceDetails []TblSpacesAliases
+
+		for _, space := range spacez {
+
+			var child_page_Category categories.TblCategory
+
+			_, child_page := categories.GetChildPageCategoriess(&child_page_Category, space.PageCategoryId, s.Authority.DB)
+
+			var categorynames []categories.TblCategory
+
+			var flg int
+
+			categorynames = append(categorynames, child_page)
+
+			flg = child_page.ParentId
+
+			if flg != 0 {
+
+			CLOOP:
+
+				var count int //for safe
+
+				for {
+
+					count = count + 1 //for safe
+
+					if count == 200 { //for safe
+
+						break
+					}
+
+					var newchildcategory categories.TblCategory
+
+					_, child := categories.GetChildPageCategoriess(&newchildcategory, flg, s.Authority.DB)
+
+					flg = child.ParentId
+
+					if flg != 0 {
+
+						categorynames = append(categorynames, child)
+
+						goto CLOOP
+
+					} else {
+
+						categorynames = append(categorynames, child)
+
+						break
+					}
+
+				}
+
+			}
+
+			var reverseCategoryOrder []categories.TblCategory
+
+			for i := len(categorynames) - 1; i >= 0; i-- {
+
+				reverseCategoryOrder = append(reverseCategoryOrder, categorynames[i])
+
+			}
+
+			space.CategoryNames = reverseCategoryOrder
+
+			SpaceDetails = append(SpaceDetails, space)
+
+		}
+		return SpaceDetails, nil
+
+	}
+
+	return []TblSpacesAliases{}, errors.New("not authorized")
+}

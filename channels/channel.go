@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spurtcms/spurtcms-content/categories"
 	"github.com/spurtcms/spurtcms-core/auth"
 	authcore "github.com/spurtcms/spurtcms-core/auth"
 	"gorm.io/gorm"
@@ -87,20 +88,20 @@ func (Ch Channel) GetChannels(limit, offset int, filter Filter) (channelList []T
 }
 
 /*Get Channels By Id*/
-func (Ch Channel) GetChannelsById(channelid int) (channelList TblChannel, err error) {
+func (Ch Channel) GetChannelsById(channelid int) (channelList TblChannel, section []Section, fields []Fiedlvalue, SelectedCategories []categories.Arrangecategories, err error) {
 
 	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
 
 	if checkerr != nil {
 
-		return TblChannel{}, checkerr
+		return TblChannel{}, []Section{}, []Fiedlvalue{}, []categories.Arrangecategories{}, checkerr
 	}
 
 	check, err := Ch.Authority.IsGranted("Channels", authcore.CRUD)
 
 	if err != nil {
 
-		return TblChannel{}, err
+		return TblChannel{}, []Section{}, []Fiedlvalue{}, []categories.Arrangecategories{}, err
 	}
 
 	if check {
@@ -109,10 +110,140 @@ func (Ch Channel) GetChannelsById(channelid int) (channelList TblChannel, err er
 
 		CH.GetChannelById(&channellist, channelid, Ch.Authority.DB)
 
-		return channellist, nil
+		var groupfield []TblGroupField
+
+		CH.GetFieldIdByGroupId(&groupfield, channellist.Id, Ch.Authority.DB)
+
+		var ids []int
+
+		for _, val := range groupfield {
+
+			ids = append(ids, val.FieldId)
+		}
+
+		var fieldValue []TblField
+
+		CH.GetFieldAndOptionValue(&fieldValue, ids, Ch.Authority.DB)
+
+		var sections []Section
+
+		var Fieldvalue []Fiedlvalue
+
+		for _, val := range fieldValue {
+
+			var section Section
+
+			var fieldvalue Fiedlvalue
+
+			if val.FieldTypeId == 12 {
+
+				section.SectionId = val.Id
+
+				section.SectionNewId = 0
+
+				section.MasterFieldId = val.FieldTypeId
+
+				section.SectionName = val.FieldName
+
+				sections = append(sections, section)
+
+			} else {
+
+				var optionva []OptionValues
+
+				for _, optionval := range val.TblFieldOption {
+
+					var optiovalue OptionValues
+
+					optiovalue.Id = optionval.Id
+
+					optiovalue.FieldId = optionval.FieldId
+
+					optiovalue.Value = optionval.OptionValue
+
+					optionva = append(optionva, optiovalue)
+				}
+
+				fieldvalue.FieldId = val.Id
+
+				fieldvalue.FieldName = val.FieldName
+
+				fieldvalue.CharacterAllowed = val.CharacterAllowed
+
+				fieldvalue.DateFormat = val.DatetimeFormat
+
+				fieldvalue.TimeFormat = val.TimeFormat
+
+				fieldvalue.IconPath = val.ImagePath
+
+				fieldvalue.MasterFieldId = val.FieldTypeId
+
+				fieldvalue.OrderIndex = val.OrderIndex
+
+				fieldvalue.SectionId = val.SectionParentId
+
+				fieldvalue.OptionValue = optionva
+
+				Fieldvalue = append(Fieldvalue, fieldvalue)
+
+			}
+
+		}
+
+		var GetSelectedChannelCateogry []TblChannelCategory
+
+		err := CH.GetSelectedCategoryChannelById(&GetSelectedChannelCateogry, channelid, Ch.Authority.DB)
+
+		if err != nil {
+
+			log.Println(err)
+		}
+
+		var FinalSelectedCategories []categories.Arrangecategories
+
+		for _, val := range GetSelectedChannelCateogry {
+
+			var id []int
+
+			ids := strings.Split(val.CategoryId, ",")
+
+			for _, cid := range ids {
+
+				convid, _ := strconv.Atoi(cid)
+
+				id = append(id, convid)
+			}
+
+			var GetSelectedCategory []categories.TblCategory
+
+			CH.GetCategoriseById(&GetSelectedCategory, id, Ch.Authority.DB)
+
+			var addcat categories.Arrangecategories
+
+			var individualid []categories.CatgoriesOrd
+
+			for _, CategoriesArrange := range GetSelectedCategory {
+
+				var individual categories.CatgoriesOrd
+
+				individual.Id = CategoriesArrange.Id
+
+				individual.Category = CategoriesArrange.CategoryName
+
+				individualid = append(individualid, individual)
+
+			}
+
+			addcat.Categories = individualid
+
+			FinalSelectedCategories = append(FinalSelectedCategories, addcat)
+
+		}
+
+		return channellist, sections, Fieldvalue, FinalSelectedCategories, nil
 	}
 
-	return TblChannel{}, errors.New("not authorized")
+	return TblChannel{}, []Section{}, []Fiedlvalue{}, []categories.Arrangecategories{}, errors.New("not authorized")
 }
 
 /*Create Channel*/
