@@ -1,4 +1,4 @@
-package pages
+package lms
 
 import (
 	"errors"
@@ -13,8 +13,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var IST, _ = time.LoadLocation("Asia/Kolkata")
-
 type Page struct {
 	Authority *authcore.Authorization
 }
@@ -26,19 +24,6 @@ type MemberPage struct {
 type PageStrut struct{}
 
 var PG PageStrut
-
-func MigrateTable(db *gorm.DB) {
-
-	db.AutoMigrate(
-		&TblPage{},
-		&TblPageAliases{},
-		&TblPagesGroup{},
-		&TblPagesGroupAliases{},
-		&TblPageAliasesLog{},
-		&TblMemberNotesHighlight{},
-	)
-
-}
 
 /*Get Page log*/
 func (p Page) PageAliasesLog(spaceid int) (log []PageLog, err error) {
@@ -290,7 +275,6 @@ func (m MemberPage) GetPageContent(pageid int) (TblPageAliases, error) {
 
 	return TblPageAliases{}, err
 }
-
 
 /*Get Page content - PAGE VIEW*/
 func (m MemberPage) GetNotes(pageid int) ([]TblMemberNotesHighlight, error) {

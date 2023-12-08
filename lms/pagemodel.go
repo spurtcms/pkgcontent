@@ -1,4 +1,4 @@
-package pages
+package lms
 
 import (
 	"time"

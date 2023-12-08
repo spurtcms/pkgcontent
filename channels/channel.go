@@ -889,6 +889,46 @@ func (Ch Channel) DeleteChannel(channelid int) error {
 	return errors.New("not authorized")
 }
 
+/*Change Channel status*/
+// status 0 = inactive
+// status 1 = active
+func (Ch Channel) ChangeChannelStatus(channelid int, status int) (bool, error) {
+
+	userid, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, err := Ch.Authority.IsGranted("Channels", authcore.CRUD)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+
+		if channelid <= 0 {
+
+			return false, errors.New("invalid channelid cannot delete")
+		}
+
+		var channelstatus TblChannel
+
+		channelstatus.ModifiedBy = userid
+
+		channelstatus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		CH.ChannelIsActive(&channelstatus, channelid, status, Ch.Authority.DB)
+
+		return true, nil
+	}
+
+	return false, errors.New("not authorized")
+}
+
 /*Get All Master Field type */
 func (Ch Channel) GetAllMasterFieldType() (field []TblFieldType, err error) {
 
@@ -916,4 +956,32 @@ func (Ch Channel) GetAllMasterFieldType() (field []TblFieldType, err error) {
 	}
 
 	return []TblFieldType{}, errors.New("not authorized")
+}
+
+/*Entries List*/
+func (Ch Channel) GetAllChannelEntriesList() (err error) {
+
+	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	// check, err := Ch.Authority.IsGranted("Channels", authcore.CRUD)
+
+	// if err != nil {
+
+	// 	return err
+	// }
+
+	// if check {
+
+	
+
+	return nil
+
+	// }
+
+	// return []TblFieldType{}, errors.New("not authorized")
 }
