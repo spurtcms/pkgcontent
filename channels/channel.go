@@ -36,7 +36,7 @@ type ChannelStruct struct{}
 var CH ChannelStruct
 
 /*Get AllChannels*/
-func (Ch Channel) GetChannels(limit, offset int, filter Filter) (channelList []TblChannel, channelcount int, err error) {
+func (Ch Channel) GetChannels(limit, offset int, filter Filter, activestatus bool) (channelList []TblChannel, channelcount int, err error) {
 
 	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
 
@@ -56,7 +56,7 @@ func (Ch Channel) GetChannels(limit, offset int, filter Filter) (channelList []T
 
 		var channellist []TblChannel
 
-		CH.Channellist(&channellist, limit, offset, filter, Ch.Authority.DB)
+		CH.Channellist(&channellist, limit, offset, filter, activestatus, Ch.Authority.DB)
 
 		var chnallist []TblChannel
 
@@ -78,7 +78,7 @@ func (Ch Channel) GetChannels(limit, offset int, filter Filter) (channelList []T
 
 		var chncount []TblChannel
 
-		chcount, _ := CH.Channellist(&chncount, 0, 0, filter, Ch.Authority.DB)
+		chcount, _ := CH.Channellist(&chncount, 0, 0, filter, activestatus, Ch.Authority.DB)
 
 		return chnallist, int(chcount), nil
 

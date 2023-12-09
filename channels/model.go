@@ -302,13 +302,19 @@ func (Ch ChannelStruct) ChannelIsActive(tblch *TblChannel, id, val int, DB *gorm
 }
 
 /*channel list*/
-func (Ch ChannelStruct) Channellist(chn *[]TblChannel, limit, offset int, filter Filter, DB *gorm.DB) (chcount int64, error error) {
+func (Ch ChannelStruct) Channellist(chn *[]TblChannel, limit, offset int, filter Filter, activestatus bool, DB *gorm.DB) (chcount int64, error error) {
 
 	query := DB.Table("tbl_channels").Where("is_deleted = 0").Order("id desc")
 
 	if filter.Keyword != "" {
 
 		query = query.Where("LOWER(TRIM(channel_name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%")
+	}
+
+	if activestatus {
+
+		query = query.Where("is_active=1")
+
 	}
 
 	if limit != 0 {
