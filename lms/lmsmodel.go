@@ -24,27 +24,28 @@ type TblSpaces struct {
 }
 
 type TblSpacesAliases struct {
-	Id                int
-	SpacesId          int
-	LanguageId        int
-	SpacesName        string
-	SpacesSlug        string
-	SpacesDescription string
-	ImagePath         string
-	CreatedOn         time.Time
-	CreatedBy         int
-	ModifiedOn        time.Time                `gorm:"DEFAULT:NULL"`
-	ModifiedBy        int                      `gorm:"DEFAULT:NULL"`
-	DeletedOn         time.Time                `gorm:"DEFAULT:NULL"`
-	DeletedBy         int                      `gorm:"DEFAULT:NULL"`
-	IsDeleted         int                      `gorm:"DEFAULT:0"`
-	PageCategoryId    int                      `gorm:"column:page_category_id;<-:false"`
-	ParentId          int                      `gorm:"column:parent_id;<-:false"`
-	CreatedDate       string                   `gorm:"-"`
-	ModifiedDate      string                   `gorm:"-"`
-	CategoryNames     []categories.TblCategory `gorm:"-"`
-	CategoryId        int                      `gorm:"column:category_id;<-:false"`
-	FullSpaceAccess   bool                     `gorm:"-"`
+	Id                   int
+	SpacesId             int
+	LanguageId           int
+	SpacesName           string
+	SpacesSlug           string
+	SpacesDescription    string
+	ImagePath            string
+	CreatedOn            time.Time
+	CreatedBy            int
+	ModifiedOn           time.Time                `gorm:"DEFAULT:NULL"`
+	ModifiedBy           int                      `gorm:"DEFAULT:NULL"`
+	DeletedOn            time.Time                `gorm:"DEFAULT:NULL"`
+	DeletedBy            int                      `gorm:"DEFAULT:NULL"`
+	IsDeleted            int                      `gorm:"DEFAULT:0"`
+	PageCategoryId       int                      `gorm:"column:page_category_id;<-:false"`
+	ParentId             int                      `gorm:"column:parent_id;<-:false"`
+	CreatedDate          string                   `gorm:"-"`
+	ModifiedDate         string                   `gorm:"-"`
+	CategoryNames        []categories.TblCategory `gorm:"-"`
+	CategoryId           int                      `gorm:"column:category_id;<-:false"`
+	FullSpaceAccess      bool                     `gorm:"-"`
+	SpaceFullDescription string                   `gorm:"-"`
 }
 
 type TblPagesCategoriesAliases struct {

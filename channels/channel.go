@@ -958,30 +958,57 @@ func (Ch Channel) GetAllMasterFieldType() (field []TblFieldType, err error) {
 	return []TblFieldType{}, errors.New("not authorized")
 }
 
-/*Entries List*/
-func (Ch Channel) GetAllChannelEntriesList() (err error) {
+/*all channel Entries List*/
+func (Ch Channel) GetAllChannelEntriesList(limit, offset int, filter EntriesFilter) (entries []TblChannelEntries, filterentriescount int, totalentriescount int, err error) {
 
 	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
 
 	if checkerr != nil {
 
-		return checkerr
+		return []TblChannelEntries{}, 0, 0, checkerr
 	}
 
-	// check, err := Ch.Authority.IsGranted("Channels", authcore.CRUD)
+	var chnentry []TblChannelEntries
 
-	// if err != nil {
+	CH.ChannelEntryList(&chnentry, limit, offset, 0, filter, Ch.Authority.DB)
 
-	// 	return err
-	// }
+	filtercount, _ := CH.ChannelEntryList(&chnentry, 0, 0, 0, filter, Ch.Authority.DB)
 
-	// if check {
+	var chnentry1 []TblChannelEntries
 
-	
+	entrcount, _ := CH.ChannelEntryList(&chnentry1, 0, 0, 0, EntriesFilter{}, Ch.Authority.DB)
 
-	return nil
+	return chnentry, int(filtercount), int(entrcount), nil
 
-	// }
+}
 
-	// return []TblFieldType{}, errors.New("not authorized")
+// particular channel entrieslist
+func (Ch Channel) GetEntriesListById(channelid int, limit, offset int, filter EntriesFilter) (entries []TblChannelEntries, filterentriescount int, totalentriescount int, err error) {
+
+	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []TblChannelEntries{}, 0, 0, checkerr
+	}
+
+	var chnentry []TblChannelEntries
+
+	CH.ChannelEntryList(&chnentry, limit, offset, 0, filter, Ch.Authority.DB)
+
+	filtercount, _ := CH.ChannelEntryList(&chnentry, 0, 0, channelid, filter, Ch.Authority.DB)
+
+	var chnentry1 []TblChannelEntries
+
+	entrcount, _ := CH.ChannelEntryList(&chnentry1, 0, 0, channelid, EntriesFilter{}, Ch.Authority.DB)
+
+	return chnentry, int(filtercount), int(entrcount), nil
+
+}
+
+// create entry
+func (Ch Channel) CreateEntry(channelId int) (bool, error) {
+
+	return true, nil
+
 }

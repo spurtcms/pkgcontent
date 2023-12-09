@@ -10,7 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var IST, _ = time.LoadLocation("Asia/Kolkata")
 
 type Category struct {
 	Authority *auth.Authorization
@@ -113,7 +112,7 @@ func (c Category) CreateCategoryGroup(req CategoryCreate) error {
 
 		category.ParentId = 0
 
-		category.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		category.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		err := C.CreateCategory(&category, c.Authority.DB)
 
@@ -164,7 +163,7 @@ func (c Category) UpdateCategoryGroup(req CategoryCreate) error {
 
 		category.ModifiedBy = userid
 
-		category.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		category.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		err := C.UpdateCategory(&category, c.Authority.DB)
 
@@ -202,7 +201,7 @@ func (c Category) DeleteCategoryGroup(Categoryid int) error {
 
 		category.DeletedBy = userid
 
-		category.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		category.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		category.IsDeleted = 1
 
@@ -478,7 +477,7 @@ func (c Category) AddCategory(req CategoryCreate) error {
 		// 	category.ParentId, _ = strconv.Atoi(req.FormValue("groupid"))
 		// }
 
-		category.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		category.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		err := C.CreateCategory(&category, c.Authority.DB)
 
@@ -534,7 +533,7 @@ func (c Category) UpdateSubCategory(req CategoryCreate) error {
 
 		category.Id = req.Id
 
-		category.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		category.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		category.ModifiedBy = userid
 
@@ -575,7 +574,7 @@ func (c Category) DeleteSubCategory(categoryid int) error {
 
 		category.DeletedBy = userid
 
-		category.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		category.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		category.IsDeleted = 1
 

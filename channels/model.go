@@ -29,6 +29,14 @@ type ChannelUpdate struct {
 type Filter struct {
 	Keyword string
 }
+
+type EntriesFilter struct {
+	Keyword     string
+	Title       string
+	ChannelName string
+	Status      string
+}
+
 type TblFieldType struct {
 	Id         int
 	TypeName   string
@@ -167,6 +175,51 @@ type OptionValues struct {
 	FieldId    int    `json:"FieldId"`
 	NewFieldId int    `json:"NewFieldId"`
 	Value      string `json:"Value"`
+}
+
+type TblChannelEntries struct {
+	Id                   int
+	Title                string `form:"title" binding:"required"`
+	Slug                 string `form:"slug" binding:"required"`
+	Description          string
+	UserId               int
+	ChannelId            int
+	Status               int //0-draft 1-publish 2-unpublish
+	IsActive             int
+	IsDeleted            int       `gorm:"DEFAULT:0"`
+	DeletedBy            int       `gorm:"DEFAULT:NULL"`
+	DeletedOn            time.Time `gorm:"DEFAULT:NULL"`
+	CreatedOn            time.Time
+	CreatedBy            int
+	ModifiedBy           int       `gorm:"DEFAULT:NULL"`
+	ModifiedOn           time.Time `gorm:"DEFAULT:NULL"`
+	CoverImage           string
+	ThumbnailImage       string
+	MetaTitle            string `form:"metatitle" binding:"required"`
+	MetaDescription      string `form:"metadesc" binding:"required"`
+	Keyword              string `form:"keywords" binding:"required"`
+	CategoriesId         string
+	RelatedArticles      string
+	CreatedDate          string                   `gorm:"-"`
+	ModifiedDate         string                   `gorm:"-"`
+	Username             string                   `gorm:"<-:false"`
+	TblChannelEntryField []TblChannelEntryField   `gorm:"<-:false; foreignKey:ChannelEntryId"`
+	Category             []categories.TblCategory `gorm:"<-:false; foreignKey:Id"`
+	CategoryGroup        string                   `gorm:"<-:false"`
+	ChannelName          string
+}
+
+type TblChannelEntryField struct {
+	Id             int
+	FieldName      string
+	FieldValue     string
+	ChannelEntryId int
+	FieldId        int
+	CreatedOn      time.Time
+	CreatedBy      int
+	ModifiedOn     time.Time `gorm:"DEFAULT:NULL"`
+	ModifiedBy     int       `gorm:"DEFAULT:NULL"`
+	FieldTypeId    int       `gorm:"<-:false"`
 }
 
 /*Get all master fields*/
@@ -587,4 +640,51 @@ func (Ch ChannelStruct) DeleteOptionById(fieldopt *TblFieldOption, id []int, fid
 
 	return nil
 
+}
+
+/*List Channel Entry*/
+func (Ch ChannelStruct) ChannelEntryList(chentry *[]TblChannelEntries, limit, offset, chid int, filter EntriesFilter, DB *gorm.DB) (chentcount int64, err error) {
+
+	query := DB.Table("tbl_channel_entries").Select("tbl_channel_entries.*,tbl_users.username,tbl_channels.channel_name").Joins("inner join tbl_users on tbl_users.id = tbl_channel_entries.user_id").Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Where("tbl_channel_entries.is_deleted=0").Order("id desc")
+
+	if chid != 0 {
+
+		query = query.Where("tbl_channel_entries.channel_id=?", chid)
+	}
+
+	if filter.Title != "" {
+
+		query = query.Where("LOWER(TRIM(title)) ILIKE LOWER(TRIM(?)) OR LOWER(TRIM(channel_name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%", "%"+filter.Keyword+"%")
+
+	}
+
+	if filter.Status != "" {
+
+		query = query.Where("tbl_channel_entries.status=?", filter.Status)
+
+	}
+	if filter.Title != "" {
+
+		query = query.Where("LOWER(TRIM(title)) ILIKE LOWER(TRIM(?))", filter.Title)
+
+	}
+
+	if filter.ChannelName != "" {
+
+		query = query.Where("LOWER(TRIM(channel_name)) ILIKE LOWER(TRIM(?))", filter.ChannelName)
+
+	}
+
+	if limit != 0 {
+
+		query.Limit(limit).Offset(offset).Order("id asc").Find(&chentry)
+
+	} else {
+
+		query.Find(&chentry).Count(&chentcount)
+
+		return chentcount, nil
+	}
+
+	return 0, nil
 }

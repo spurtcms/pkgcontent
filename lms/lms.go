@@ -179,6 +179,12 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 			}
 
+			space.SpaceFullDescription = space.SpacesDescription
+
+			Spiltdescription := truncateDescription(space.SpacesDescription, 130)
+
+			space.SpacesDescription = Spiltdescription
+
 			space.CategoryNames = reverseCategoryOrder
 
 			space.CreatedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
@@ -966,4 +972,14 @@ func (s Space) GetPublishedSpaces(limit int, offset int, filter Filter, language
 	}
 
 	return []TblSpacesAliases{}, errors.New("not authorized")
+}
+
+//if description is too big show specific lines and after show ...
+func truncateDescription(description string, limit int) string {
+	if len(description) <= limit {
+		return description
+	}
+
+	truncated := description[:limit] + "..."
+	return truncated
 }
