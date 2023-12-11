@@ -411,7 +411,7 @@ func (Ch ChannelStruct) GetFieldGroupById(groupfield *[]TblGroupField, id int, D
 /*Getfieldid using fieldgroupid*/
 func (Ch ChannelStruct) GetFieldIdByGroupId(grpfield *[]TblGroupField, id int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_group_fields").Where("field_group_id=?", id).Find(&grpfield).Error; err != nil {
+	if err := DB.Table("tbl_group_fields").Where("channel_id=?", id).Find(&grpfield).Error; err != nil {
 
 		return err
 	}
