@@ -181,7 +181,7 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 			space.SpaceFullDescription = space.SpacesDescription
 
-			Spiltdescription := truncateDescription(space.SpacesDescription, 130)
+			Spiltdescription := truncateDescription(space.SpacesDescription, 110)
 
 			space.SpacesDescription = Spiltdescription
 
