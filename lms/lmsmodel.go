@@ -103,7 +103,7 @@ type SpaceCreation struct {
 
 type Filter struct {
 	Keyword    string
-	CategoryId []int
+	CategoryId int
 }
 
 type Arrangecategories struct {
@@ -133,7 +133,7 @@ func (SP SPM) SpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, off
 
 		query = query.Where("LOWER(TRIM(tbl_spaces_aliases.spaces_name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%")
 	}
-	if len(filter.CategoryId) > 0 && filter.CategoryId[0] != 0 {
+	if filter.CategoryId > 0 && filter.CategoryId != 0 {
 		query = query.Where("tbl_spaces.page_category_id IN (?)", filter.CategoryId)
 	}
 
@@ -151,6 +151,7 @@ func (SP SPM) SpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, off
 	return 0, nil
 }
 
+
 /*spaceList*/
 func (SP SPM) MemberSpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, offset int, filter Filter, DB *gorm.DB) (spacecount int64, err error) {
 
@@ -165,10 +166,12 @@ func (SP SPM) MemberSpaceList(tblspace *[]TblSpacesAliases, langId int, limit in
 
 		query = query.Where("LOWER(TRIM(tbl_spaces_aliases.spaces_name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%")
 	}
-	if len(filter.CategoryId) > 0 && filter.CategoryId[0] != 0 {
+	
+	if filter.CategoryId > 0 && filter.CategoryId != 0 {
 
 		query = query.Where("tbl_spaces.page_category_id IN (?)", filter.CategoryId)
 	}
+
 
 	if limit != 0 {
 
