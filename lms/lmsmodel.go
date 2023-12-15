@@ -122,7 +122,7 @@ func (SP SPM) SpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, off
 		Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
 		Joins("inner join tbl_language on tbl_language.id = tbl_spaces_aliases.language_id").
 		Joins("inner join tbl_categories on tbl_categories.id = tbl_spaces.page_category_id").
-		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = 1")
+		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = 1").Order("tbl_spaces.id desc")
 
 	if len(spaceid) != 0 {
 

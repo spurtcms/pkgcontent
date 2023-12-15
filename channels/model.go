@@ -334,6 +334,11 @@ func (Ch ChannelStruct) Channellist(chn *[]TblChannel, limit, offset int, filter
 /*Delete Channel*/
 func (Ch ChannelStruct) DeleteChannelById(id int, DB *gorm.DB) error {
 
+	if err := DB.Table("tbl_channel_entries").Where("channel_id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": 1}).Error; err != nil {
+
+		return err
+	}
+
 	if err := DB.Table("tbl_channels").Where("id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": 1}).Error; err != nil {
 
 		return err
