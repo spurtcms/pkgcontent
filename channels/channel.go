@@ -62,6 +62,10 @@ func (Ch Channel) GetChannels(limit, offset int, filter Filter, activestatus boo
 
 		for _, val := range channellist {
 
+			val.SlugName = val.ChannelDescription
+
+			val.ChannelDescription = TruncateDescription(val.ChannelDescription, 130)
+
 			if !val.ModifiedOn.IsZero() {
 
 				val.DateString = val.ModifiedOn.Format("02 Jan 2006 03:04 PM")
@@ -177,6 +181,8 @@ func (Ch Channel) GetChannelsById(channelid int) (channelList TblChannel, sectio
 				fieldvalue.IconPath = val.ImagePath
 
 				fieldvalue.MasterFieldId = val.FieldTypeId
+
+				fieldvalue.Mandatory = val.MandatoryField
 
 				fieldvalue.OrderIndex = val.OrderIndex
 
@@ -677,6 +683,8 @@ func (Ch Channel) EditChannel(channelupt ChannelUpdate, channelid int) error {
 
 			cfld.ImagePath = val.IconPath
 
+			cfld.MandatoryField = val.Mandatory
+
 			cfld.Url = val.Url
 
 			if val.MasterFieldId == 4 {
@@ -1011,4 +1019,14 @@ func (Ch Channel) CreateEntry(channelId int) (bool, error) {
 
 	return true, nil
 
+}
+
+// if description is too big show specific lines and after show ...
+func TruncateDescription(description string, limit int) string {
+	if len(description) <= limit {
+		return description
+	}
+
+	truncated := description[:limit] + "..."
+	return truncated
 }

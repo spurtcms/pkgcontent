@@ -167,6 +167,7 @@ type Fiedlvalue struct {
 	IconPath         string         `json:"IconPath"`
 	Url              string         `json:"Url"`
 	OrderIndex       int            `json:"OrderIndex"`
+	Mandatory        int            `json:"Mandatory"`
 }
 
 type OptionValues struct {
@@ -334,11 +335,6 @@ func (Ch ChannelStruct) Channellist(chn *[]TblChannel, limit, offset int, filter
 /*Delete Channel*/
 func (Ch ChannelStruct) DeleteChannelById(id int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_channel_entries").Where("channel_id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": 1}).Error; err != nil {
-
-		return err
-	}
-
 	if err := DB.Table("tbl_channels").Where("id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": 1}).Error; err != nil {
 
 		return err
@@ -462,7 +458,7 @@ func (Ch ChannelStruct) UpdateChannelDetails(chn *TblChannel, id int, DB *gorm.D
 /*Update Field Details*/
 func (Ch ChannelStruct) UpdateFieldDetails(fds *TblField, id int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_fields").Where("id=?", id).UpdateColumns(map[string]interface{}{"field_name": fds.FieldName, "field_desc": fds.FieldDesc, "mandatory_field": fds.MandatoryField, "datetime_format": fds.DatetimeFormat, "time_format": fds.TimeFormat, "initial_value": fds.InitialValue, "placeholder": fds.Placeholder, "modified_on": fds.ModifiedOn, "modified_by": fds.ModifiedBy, "order_index": fds.OrderIndex, "url": fds.Url}).Error; err != nil {
+	if err := DB.Debug().Table("tbl_fields").Where("id=?", id).UpdateColumns(map[string]interface{}{"field_name": fds.FieldName, "field_desc": fds.FieldDesc, "mandatory_field": fds.MandatoryField, "datetime_format": fds.DatetimeFormat, "time_format": fds.TimeFormat, "initial_value": fds.InitialValue, "placeholder": fds.Placeholder, "modified_on": fds.ModifiedOn, "modified_by": fds.ModifiedBy, "order_index": fds.OrderIndex, "url": fds.Url, "character_allowed": fds.CharacterAllowed}).Error; err != nil {
 
 		return err
 	}
