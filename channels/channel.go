@@ -45,7 +45,7 @@ func (Ch Channel) GetChannels(limit, offset int, filter Filter, activestatus boo
 		return []TblChannel{}, 0, checkerr
 	}
 
-	check, err := Ch.Authority.IsGranted("Channels", authcore.CRUD)
+	check, err := Ch.Authority.IsGranted("Channel", authcore.CRUD)
 
 	if err != nil {
 
@@ -101,7 +101,7 @@ func (Ch Channel) GetChannelsById(channelid int) (channelList TblChannel, sectio
 		return TblChannel{}, []Section{}, []Fiedlvalue{}, []categories.Arrangecategories{}, checkerr
 	}
 
-	check, err := Ch.Authority.IsGranted("Channels", authcore.CRUD)
+	check, err := Ch.Authority.IsGranted("Channel", authcore.CRUD)
 
 	if err != nil {
 
@@ -262,7 +262,7 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 		return checkerr
 	}
 
-	check, err := Ch.Authority.IsGranted("Channels", authcore.CRUD)
+	check, err := Ch.Authority.IsGranted("Channel", authcore.CRUD)
 
 	if err != nil {
 
@@ -521,7 +521,7 @@ func (Ch Channel) EditChannel(channelupt ChannelUpdate, channelid int) error {
 		return checkerr
 	}
 
-	check, err := Ch.Authority.IsGranted("Channels", authcore.CRUD)
+	check, err := Ch.Authority.IsGranted("Channel", authcore.CRUD)
 
 	if err != nil {
 
@@ -847,7 +847,7 @@ func (Ch Channel) DeleteChannel(channelid int) error {
 		return checkerr
 	}
 
-	check, err := Ch.Authority.IsGranted("Channels", authcore.CRUD)
+	check, err := Ch.Authority.IsGranted("Channel", authcore.CRUD)
 
 	if err != nil {
 
@@ -909,7 +909,7 @@ func (Ch Channel) ChangeChannelStatus(channelid int, status int) (bool, error) {
 		return false, checkerr
 	}
 
-	check, err := Ch.Authority.IsGranted("Channels", authcore.CRUD)
+	check, err := Ch.Authority.IsGranted("Channel", authcore.CRUD)
 
 	if err != nil {
 
@@ -947,7 +947,7 @@ func (Ch Channel) GetAllMasterFieldType() (field []TblFieldType, err error) {
 		return []TblFieldType{}, checkerr
 	}
 
-	check, err := Ch.Authority.IsGranted("Channels", authcore.CRUD)
+	check, err := Ch.Authority.IsGranted("Channel", authcore.CRUD)
 
 	if err != nil {
 

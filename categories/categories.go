@@ -898,11 +898,9 @@ func (c Category) CheckCategroyGroupName(id int, name string) (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		if category.Id == 0 {
-			return false, err
-		}
 
 	}
+	
 	return true, nil
 }
 
