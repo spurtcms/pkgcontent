@@ -3,6 +3,7 @@ package lms
 import (
 	"time"
 
+	"github.com/spurtcms/spurtcms-core/auth"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -542,4 +543,16 @@ func (P PageStrut) RemoveHighlights(high *TblMemberNotesHighlight, DB *gorm.DB) 
 	}
 
 	return nil
+}
+
+func (P PageStrut) MemberRestrictActive(Mod *auth.TblModule, DB *gorm.DB) error {
+
+	if err := DB.Model(auth.TblModule{}).Where("(LOWER(TRIM(module_name)) ILIKE LOWER(TRIM(Member Restrict)))").First(&Mod).Error; err != nil {
+
+		return err
+
+	}
+
+	return nil
+
 }

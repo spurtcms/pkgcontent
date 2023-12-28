@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spurtcms/spurtcms-core/auth"
 	authcore "github.com/spurtcms/spurtcms-core/auth"
 	"github.com/spurtcms/spurtcms-core/member"
 	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
@@ -165,11 +166,45 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 /*list page*/
 func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 
+	var mem memberaccore.AccessAuth
+
+	mem.Authority = *p.MemAuth
+
+	var memberrest auth.TblModule
+
+	merr := PG.MemberRestrictActive(&memberrest, p.MemAuth.DB)
+
+	var PageIds []int
+
+	var GroupIds []int
+
+	if gorm.ErrRecordNotFound != merr || memberrest.IsActive == 1 {
+
+		pageid, err := mem.GetPage()
+
+		if err != nil {
+
+			log.Println(err)
+		}
+
+		grpid, err1 := mem.GetGroup()
+
+		if err1 != nil {
+
+			log.Println(err1)
+		}
+
+		PageIds = pageid
+
+		GroupIds = grpid
+
+	}
+
 	var group []TblPagesGroup
 
 	var pagegroups []PageGroups
 
-	PG.SelectGroup(&group, spaceid, []int{}, p.MemAuth.DB)
+	PG.SelectGroup(&group, spaceid, GroupIds, p.MemAuth.DB)
 
 	for _, group := range group {
 
@@ -194,7 +229,7 @@ func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPag
 
 	var subpages []SubPages
 
-	PG.SelectPage(&page, spaceid, []int{}, p.MemAuth.DB)
+	PG.SelectPage(&page, spaceid, PageIds, p.MemAuth.DB)
 
 	for _, page := range page {
 
