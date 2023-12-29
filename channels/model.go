@@ -303,9 +303,15 @@ func (Ch ChannelStruct) ChannelIsActive(tblch *TblChannel, id, val int, DB *gorm
 }
 
 /*channel list*/
-func (Ch ChannelStruct) Channellist(chn *[]TblChannel, limit, offset int, filter Filter, activestatus bool,roleid int, flg bool , DB *gorm.DB) (chcount int64, error error) {
+func (Ch ChannelStruct) Channellist(chn *[]TblChannel, limit, offset int, filter Filter, activestatus bool, roleid int, flg bool, DB *gorm.DB) (chcount int64, error error) {
 
-	query := DB.Table("tbl_channels").Where("is_deleted = 0").Order("id desc")
+	query := DB.Debug().Table("tbl_channels").Where("is_deleted = 0").Order("id desc")
+
+	if roleid != 1 && flg {
+
+		query = query.Where("channel_name in (select display_name from tbl_module_permissions inner join tbl_modules on tbl_modules.id = tbl_module_permissions.module_id inner join tbl_role_permissions on tbl_role_permissions.permission_id = tbl_module_permissions.id where role_id =(?) and tbl_modules.module_name='Entries' )", roleid)
+
+	}
 
 	if filter.Keyword != "" {
 
@@ -331,7 +337,6 @@ func (Ch ChannelStruct) Channellist(chn *[]TblChannel, limit, offset int, filter
 
 	return 0, nil
 }
-
 /*Delete Channel*/
 func (Ch ChannelStruct) DeleteChannelById(id int, DB *gorm.DB) error {
 
