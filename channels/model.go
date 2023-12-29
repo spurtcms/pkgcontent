@@ -303,7 +303,7 @@ func (Ch ChannelStruct) ChannelIsActive(tblch *TblChannel, id, val int, DB *gorm
 }
 
 /*channel list*/
-func (Ch ChannelStruct) Channellist(chn *[]TblChannel, limit, offset int, filter Filter, activestatus bool, DB *gorm.DB) (chcount int64, error error) {
+func (Ch ChannelStruct) Channellist(chn *[]TblChannel, limit, offset int, filter Filter, activestatus bool,roleid int, flg bool , DB *gorm.DB) (chcount int64, error error) {
 
 	query := DB.Table("tbl_channels").Where("is_deleted = 0").Order("id desc")
 
@@ -650,9 +650,15 @@ func (Ch ChannelStruct) DeleteOptionById(fieldopt *TblFieldOption, id []int, fid
 }
 
 /*List Channel Entry*/
-func (Ch ChannelStruct) ChannelEntryList(chentry *[]TblChannelEntries, limit, offset, chid int, filter EntriesFilter, DB *gorm.DB) (chentcount int64, err error) {
+func (Ch ChannelStruct) ChannelEntryList(chentry *[]TblChannelEntries, limit, offset, chid int, filter EntriesFilter,publishedflg bool, DB *gorm.DB) (chentcount int64, err error) {
 
 	query := DB.Table("tbl_channel_entries").Select("tbl_channel_entries.*,tbl_users.username,tbl_channels.channel_name").Joins("inner join tbl_users on tbl_users.id = tbl_channel_entries.user_id").Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Where("tbl_channel_entries.is_deleted=0").Order("id desc")
+
+	if publishedflg{
+
+		query = query.Where("tbl_channel_entries.status=1")
+
+	}
 
 	if chid != 0 {
 
