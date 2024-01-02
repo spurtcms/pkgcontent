@@ -1073,11 +1073,271 @@ func (Ch Channel) GetPublishedChannelEntriesList(limit, offset int, filter Entri
 }
 
 // create entry
-func (Ch Channel) CreateEntry(channelId int) (bool, error) {
+func (Ch Channel) CreateEntry(entriesrequired EntriesRequired) (bool, error) {
 
-	
+	userid, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
 
-	return true, nil
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, err := Ch.Authority.IsGranted(entriesrequired.ChannelName, authcore.CRUD)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+
+		var Entries TblChannelEntries
+
+		Entries.Title = entriesrequired.Title
+
+		Entries.Description = entriesrequired.Content
+
+		Entries.CoverImage = entriesrequired.CoverImage
+
+		Entries.MetaTitle = entriesrequired.SEODetails.MetaTitle
+
+		Entries.MetaDescription = entriesrequired.SEODetails.MetaDescription
+
+		Entries.Keyword = entriesrequired.SEODetails.MetaKeywords
+
+		Entries.Slug = entriesrequired.SEODetails.MetaSlug
+
+		Entries.Status = entriesrequired.Status
+
+		Entries.ChannelId = entriesrequired.ChannelId
+
+		Entries.CategoriesId = entriesrequired.CategoryIds
+
+		Entries.CreatedBy = userid
+
+		Entries.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		Entriess, err := CH.CreateChannelEntry(&Entries, Ch.Authority.DB)
+
+		if err != nil {
+
+			log.Println(err)
+		}
+
+		var EntriesField []TblChannelEntryField
+
+		for _, val := range entriesrequired.AdditionalFields {
+
+			var Entrfield TblChannelEntryField
+
+			Entrfield.ChannelEntryId = Entriess.Id
+
+			Entrfield.FieldName = val.FieldName
+
+			Entrfield.FieldValue = val.FieldValue
+
+			Entrfield.FieldId = val.FieldId
+
+			Entrfield.CreatedBy = userid
+
+			Entrfield.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			EntriesField = append(EntriesField, Entrfield)
+
+		}
+
+		ferr := CH.CreateEntrychannelFields(&EntriesField, Ch.Authority.DB)
+
+		if ferr != nil {
+
+			log.Println(ferr)
+		}
+
+		return true, nil
+
+	}
+
+	return false, errors.New("not authorized")
+}
+
+/**/
+func (Ch Channel) DeleteEntry(ChannelName string, Entryid int) (bool, error) {
+
+	userid, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, err := Ch.Authority.IsGranted(ChannelName, authcore.CRUD)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+
+		var entries TblChannelEntries
+
+		entries.Id = Entryid
+
+		entries.IsDeleted = 1
+
+		entries.DeletedBy = userid
+
+		entries.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		err := CH.DeleteChannelEntryId(&entries, Entryid, Ch.Authority.DB)
+
+		var field TblChannelEntryField
+
+		field.DeletedBy = userid
+
+		field.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		err1 := CH.DeleteChannelEntryFieldId(&field, Entryid, Ch.Authority.DB)
+
+		if err != nil {
+
+			log.Println(err)
+		}
+
+		if err1 != nil {
+
+			log.Println(err)
+		}
+
+	}
+
+	return false, errors.New("not authorized")
+}
+
+/**/
+func (Ch Channel) GetAdditionalFieldDataBychannelId(ChannelName string, EntryId int) ([]TblChannelEntryField, error) {
+
+	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []TblChannelEntryField{}, checkerr
+	}
+
+	check, err := Ch.Authority.IsGranted(ChannelName, authcore.CRUD)
+
+	if err != nil {
+
+		return []TblChannelEntryField{}, err
+	}
+
+	if check {
+
+		var EntriesField []TblChannelEntryField
+
+		err := CH.GetChannelEntryDetailsById(&EntriesField, EntryId, Ch.Authority.DB)
+
+		if err != nil {
+
+			log.Println(err)
+		}
+
+		return EntriesField, nil
+	}
+
+	return []TblChannelEntryField{}, errors.New("not authorized")
+}
+
+// get entry details
+func (Ch Channel) GetEntryDetailsById(ChannelName string, EntryId int) (TblChannelEntries, error) {
+
+	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return TblChannelEntries{}, checkerr
+	}
+
+	check, err := Ch.Authority.IsGranted(ChannelName, authcore.CRUD)
+
+	if err != nil {
+
+		return TblChannelEntries{}, err
+	}
+
+	if check {
+
+		var Entry TblChannelEntries
+
+		err := CH.GetChannelEntryById(&Entry, EntryId, Ch.Authority.DB)
+
+		if err != nil {
+
+			log.Println(err)
+		}
+
+		return Entry, nil
+	}
+	return TblChannelEntries{}, errors.New("not authorized")
+}
+
+func (Ch Channel) UpdateEntryDetailsById(entriesrequired EntriesRequired, ChannelName string, EntryId int) (bool, error) {
+
+	userid, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, err := Ch.Authority.IsGranted(ChannelName, authcore.CRUD)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+
+		var Entries TblChannelEntries
+
+		Entries.Title = entriesrequired.Title
+
+		Entries.Description = entriesrequired.Content
+
+		Entries.CoverImage = entriesrequired.CoverImage
+
+		Entries.MetaTitle = entriesrequired.SEODetails.MetaTitle
+
+		Entries.MetaDescription = entriesrequired.SEODetails.MetaDescription
+
+		Entries.Keyword = entriesrequired.SEODetails.MetaKeywords
+
+		Entries.Slug = entriesrequired.SEODetails.MetaSlug
+
+		Entries.Status = entriesrequired.Status
+
+		Entries.ChannelId = entriesrequired.ChannelId
+
+		Entries.CategoriesId = entriesrequired.CategoryIds
+
+		Entries.ModifiedBy = userid
+
+		Entries.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		err := CH.UpdateChannelEntryDetails(&Entries, EntryId, Ch.Authority.DB)
+
+		if err != nil {
+
+			log.Println(err)
+		}
+
+
+		
+
+	}
+
+	return false, errors.New("not authorized")
 
 }
 
