@@ -1124,33 +1124,36 @@ func (Ch Channel) CreateEntry(entriesrequired EntriesRequired) (bool, error) {
 			log.Println(err)
 		}
 
-		var EntriesField []TblChannelEntryField
+		if len(entriesrequired.AdditionalFields) > 0 {
 
-		for _, val := range entriesrequired.AdditionalFields {
+			var EntriesField []TblChannelEntryField
 
-			var Entrfield TblChannelEntryField
+			for _, val := range entriesrequired.AdditionalFields {
 
-			Entrfield.ChannelEntryId = Entriess.Id
+				var Entrfield TblChannelEntryField
 
-			Entrfield.FieldName = val.FieldName
+				Entrfield.ChannelEntryId = Entriess.Id
 
-			Entrfield.FieldValue = val.FieldValue
+				Entrfield.FieldName = val.FieldName
 
-			Entrfield.FieldId = val.FieldId
+				Entrfield.FieldValue = val.FieldValue
 
-			Entrfield.CreatedBy = userid
+				Entrfield.FieldId = val.FieldId
 
-			Entrfield.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+				Entrfield.CreatedBy = userid
 
-			EntriesField = append(EntriesField, Entrfield)
+				Entrfield.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-		}
+				EntriesField = append(EntriesField, Entrfield)
 
-		ferr := CH.CreateEntrychannelFields(&EntriesField, Ch.Authority.DB)
+			}
 
-		if ferr != nil {
+			ferr := CH.CreateEntrychannelFields(&EntriesField, Ch.Authority.DB)
 
-			log.Println(ferr)
+			if ferr != nil {
+
+				log.Println(ferr)
+			}
 		}
 
 		return true, nil
@@ -1332,8 +1335,47 @@ func (Ch Channel) UpdateEntryDetailsById(entriesrequired EntriesRequired, Channe
 			log.Println(err)
 		}
 
+		for _, val := range entriesrequired.AdditionalFields {
 
-		
+			var Entrfield TblChannelEntryField
+
+			if val.Id == 0 {
+
+				Entrfield.ChannelEntryId = EntryId
+
+				Entrfield.FieldName = val.FieldName
+
+				Entrfield.FieldValue = val.FieldValue
+
+				Entrfield.FieldId = val.FieldId
+
+				Entrfield.CreatedBy = userid
+
+				Entrfield.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+				CH.CreateSingleEntrychannelFields(&Entrfield, Ch.Authority.DB)
+
+			} else {
+
+				Entrfield.Id = val.Id
+
+				Entrfield.ChannelEntryId = EntryId
+
+				Entrfield.FieldName = val.FieldName
+
+				Entrfield.FieldValue = val.FieldValue
+
+				Entrfield.FieldId = val.FieldId
+
+				Entrfield.ModifiedBy = userid
+
+				Entrfield.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+				CH.UpdateChannelEntryAdditionalDetails(Entrfield, *Ch.Authority.DB)
+
+			}
+
+		}
 
 	}
 

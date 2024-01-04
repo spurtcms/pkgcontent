@@ -233,6 +233,7 @@ type SEODetails struct {
 }
 
 type AdditionalFields struct {
+	Id            int
 	FieldName     string
 	FieldValue    string
 	FieldId       int
@@ -761,6 +762,18 @@ func (Ch ChannelStruct) CreateEntrychannelFields(entryfield *[]TblChannelEntryFi
 
 }
 
+/*create channel entry field*/
+func (Ch ChannelStruct) CreateSingleEntrychannelFields(entryfield *TblChannelEntryField, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_channel_entry_fields").Create(&entryfield).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+
+}
+
 /*Delete Channel Entry Field*/
 func (Ch ChannelStruct) DeleteChannelEntryId(chentry *TblChannelEntries, id int, DB *gorm.DB) error {
 
@@ -817,4 +830,15 @@ func (Ch ChannelStruct) UpdateChannelEntryDetails(entry *TblChannelEntries, entr
 
 	return nil
 
+}
+
+/*Update Channel Entry Details*/
+func(Ch ChannelStruct) UpdateChannelEntryAdditionalDetails(entry TblChannelEntryField,DB gorm.DB) error {
+
+	if err := DB.Table("tbl_channel_entry_fields").Where("id=?",entry.Id ).UpdateColumns(map[string]interface{}{"field_name": entry.FieldName, "field_value": entry.FieldValue, "modified_by": entry.ModifiedBy, "modified_on": entry.ModifiedOn}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
 }
