@@ -208,6 +208,7 @@ type TblChannelEntries struct {
 	Category             []categories.TblCategory `gorm:"<-:false; foreignKey:Id"`
 	CategoryGroup        string                   `gorm:"-:migration;<-:false"`
 	ChannelName          string                   `gorm:"-:migration;<-:false"`
+	Cno                  string                   `gorm:"<-:false"`
 }
 
 type TblChannelEntryField struct {
@@ -833,11 +834,22 @@ func (Ch ChannelStruct) UpdateChannelEntryDetails(entry *TblChannelEntries, entr
 }
 
 /*Update Channel Entry Details*/
-func(Ch ChannelStruct) UpdateChannelEntryAdditionalDetails(entry TblChannelEntryField,DB gorm.DB) error {
+func (Ch ChannelStruct) UpdateChannelEntryAdditionalDetails(entry TblChannelEntryField, DB gorm.DB) error {
 
-	if err := DB.Table("tbl_channel_entry_fields").Where("id=?",entry.Id ).UpdateColumns(map[string]interface{}{"field_name": entry.FieldName, "field_value": entry.FieldValue, "modified_by": entry.ModifiedBy, "modified_on": entry.ModifiedOn}).Error; err != nil {
+	if err := DB.Table("tbl_channel_entry_fields").Where("id=?", entry.Id).UpdateColumns(map[string]interface{}{"field_name": entry.FieldName, "field_value": entry.FieldValue, "modified_by": entry.ModifiedBy, "modified_on": entry.ModifiedOn}).Error; err != nil {
 
 		return err
+	}
+
+	return nil
+}
+
+func (Ch ChannelStruct) PublishQuery(chl *TblChannelEntries, id int, DB gorm.DB) error {
+
+	if err := DB.Table("tbl_channel_entries").Where("id =?", id).UpdateColumns(map[string]interface{}{"status": chl.Status, "modified_on": chl.ModifiedOn, "modified_by": chl.ModifiedBy}).Error; err != nil {
+
+		return err
+
 	}
 
 	return nil

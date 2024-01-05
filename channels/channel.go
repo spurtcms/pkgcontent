@@ -1382,6 +1382,51 @@ func (Ch Channel) UpdateEntryDetailsById(entriesrequired EntriesRequired, Channe
 	return false, errors.New("not authorized")
 
 }
+//change entries status
+func (Ch Channel) EntryStatus(ChannelName string, EntryId int, status string) (bool, error) {
+
+	userid, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, err := Ch.Authority.IsGranted(ChannelName, authcore.CRUD)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+
+		var Entries TblChannelEntries
+
+		if status == "Draft" {
+
+			Entries.Status = 0
+
+		} else if status == "Published" {
+
+			Entries.Status = 1
+
+		} else if status == "Unpublished" {
+
+			Entries.Status = 2
+		}
+
+		Entries.ModifiedBy = userid
+
+		Entries.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		CH.PublishQuery(&Entries, EntryId, *Ch.Authority.DB)
+
+	}
+
+	return false, errors.New("not authorized")
+
+}
 
 // if description is too big show specific lines and after show ...
 func TruncateDescription(description string, limit int) string {
