@@ -1027,22 +1027,34 @@ func (Ch Channel) GetAllMasterFieldType() (field []TblFieldType, err error) {
 // if channelid not eq 0 to get particular entries of the channel
 func (Ch Channel) GetAllChannelEntriesList(channelid int, limit, offset int, filter EntriesFilter) (entries []TblChannelEntries, filterentriescount int, totalentriescount int, err error) {
 
-	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+	_, roleid, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
 
 	if checkerr != nil {
 
 		return []TblChannelEntries{}, 0, 0, checkerr
 	}
 
+	if filter.Status == "Draft" {
+
+		filter.Status = "0"
+
+	} else if filter.Status == "Published" {
+
+		filter.Status = "1"
+
+	} else if filter.Status == "Unpublished" {
+
+		filter.Status = "2"
+	}
 	var chnentry []TblChannelEntries
 
-	CH.ChannelEntryList(&chnentry, limit, offset, 0, filter, false, Ch.Authority.DB)
-
-	filtercount, _ := CH.ChannelEntryList(&chnentry, 0, 0, channelid, filter, false, Ch.Authority.DB)
+	CH.ChannelEntryList(&chnentry, limit, offset, channelid, filter, false, roleid, Ch.Authority.DB)
 
 	var chnentry1 []TblChannelEntries
 
-	entrcount, _ := CH.ChannelEntryList(&chnentry1, 0, 0, channelid, EntriesFilter{}, false, Ch.Authority.DB)
+	filtercount, _ := CH.ChannelEntryList(&chnentry1, 0, 0, channelid, filter, false, roleid, Ch.Authority.DB)
+
+	entrcount, _ := CH.ChannelEntryList(&chnentry1, 0, 0, channelid, EntriesFilter{}, false, roleid, Ch.Authority.DB)
 
 	return chnentry, int(filtercount), int(entrcount), nil
 
@@ -1051,7 +1063,7 @@ func (Ch Channel) GetAllChannelEntriesList(channelid int, limit, offset int, fil
 // Get published entries
 func (Ch Channel) GetPublishedChannelEntriesList(limit, offset int, filter EntriesFilter) (entries []TblChannelEntries, filterentriescount int, totalentriescount int, err error) {
 
-	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+	_, roleid, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -1060,13 +1072,13 @@ func (Ch Channel) GetPublishedChannelEntriesList(limit, offset int, filter Entri
 
 	var chnentry []TblChannelEntries
 
-	CH.ChannelEntryList(&chnentry, limit, offset, 0, filter, true, Ch.Authority.DB)
+	CH.ChannelEntryList(&chnentry, limit, offset, 0, filter, true, roleid, Ch.Authority.DB)
 
-	filtercount, _ := CH.ChannelEntryList(&chnentry, 0, 0, 0, filter, true, Ch.Authority.DB)
+	filtercount, _ := CH.ChannelEntryList(&chnentry, 0, 0, 0, filter, true, roleid, Ch.Authority.DB)
 
 	var chnentry1 []TblChannelEntries
 
-	entrcount, _ := CH.ChannelEntryList(&chnentry1, 0, 0, 0, EntriesFilter{}, true, Ch.Authority.DB)
+	entrcount, _ := CH.ChannelEntryList(&chnentry1, 0, 0, 0, EntriesFilter{}, true, roleid, Ch.Authority.DB)
 
 	return chnentry, int(filtercount), int(entrcount), nil
 
@@ -1212,6 +1224,7 @@ func (Ch Channel) DeleteEntry(ChannelName string, Entryid int) (bool, error) {
 			log.Println(err)
 		}
 
+		return true, nil
 	}
 
 	return false, errors.New("not authorized")
@@ -1382,7 +1395,8 @@ func (Ch Channel) UpdateEntryDetailsById(entriesrequired EntriesRequired, Channe
 	return false, errors.New("not authorized")
 
 }
-//change entries status
+
+// change entries status
 func (Ch Channel) EntryStatus(ChannelName string, EntryId int, status string) (bool, error) {
 
 	userid, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)

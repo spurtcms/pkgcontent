@@ -686,9 +686,15 @@ func (Ch ChannelStruct) DeleteOptionById(fieldopt *TblFieldOption, id []int, fid
 }
 
 /*List Channel Entry*/
-func (Ch ChannelStruct) ChannelEntryList(chentry *[]TblChannelEntries, limit, offset, chid int, filter EntriesFilter, publishedflg bool, DB *gorm.DB) (chentcount int64, err error) {
+func (Ch ChannelStruct) ChannelEntryList(chentry *[]TblChannelEntries, limit, offset, chid int, filter EntriesFilter, publishedflg bool, RoleId int, DB *gorm.DB) (chentcount int64, err error) {
 
-	query := DB.Table("tbl_channel_entries").Select("tbl_channel_entries.*,tbl_users.username,tbl_channels.channel_name").Joins("inner join tbl_users on tbl_users.id = tbl_channel_entries.user_id").Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Where("tbl_channel_entries.is_deleted=0").Order("id desc")
+	query := DB.Table("tbl_channel_entries").Select("tbl_channel_entries.*,tbl_users.username,tbl_channels.channel_name").Joins("inner join tbl_users on tbl_users.id = tbl_channel_entries.user_id").Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Where("tbl_channel_entries.is_deleted=0 and tbl_channels.is_active =1").Order("id desc")
+
+	if RoleId != 1 {
+
+		query = query.Where("channel_id in (select id from tbl_channels where channel_name in (select display_name from tbl_module_permissions inner join tbl_modules on tbl_modules.id = tbl_module_permissions.module_id inner join tbl_role_permissions on tbl_role_permissions.permission_id = tbl_module_permissions.id where role_id =(?) and tbl_modules.module_name='Entries' )) ", RoleId)
+
+	}
 
 	if publishedflg {
 
@@ -701,7 +707,7 @@ func (Ch ChannelStruct) ChannelEntryList(chentry *[]TblChannelEntries, limit, of
 		query = query.Where("tbl_channel_entries.channel_id=?", chid)
 	}
 
-	if filter.Title != "" {
+	if filter.Keyword != "" {
 
 		query = query.Where("LOWER(TRIM(title)) ILIKE LOWER(TRIM(?)) OR LOWER(TRIM(channel_name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%", "%"+filter.Keyword+"%")
 
