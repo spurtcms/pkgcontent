@@ -688,7 +688,7 @@ func (Ch ChannelStruct) DeleteOptionById(fieldopt *TblFieldOption, id []int, fid
 /*List Channel Entry*/
 func (Ch ChannelStruct) ChannelEntryList(chentry *[]TblChannelEntries, limit, offset, chid int, filter EntriesFilter, publishedflg bool, RoleId int, DB *gorm.DB) (chentcount int64, err error) {
 
-	query := DB.Table("tbl_channel_entries").Select("tbl_channel_entries.*,tbl_users.username,tbl_channels.channel_name").Joins("inner join tbl_users on tbl_users.id = tbl_channel_entries.user_id").Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Where("tbl_channel_entries.is_deleted=0 and tbl_channels.is_active =1").Order("id desc")
+	query := DB.Table("tbl_channel_entries").Select("tbl_channel_entries.*,tbl_users.username,tbl_channels.channel_name").Joins("inner join tbl_users on tbl_users.id = tbl_channel_entries.created_by").Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Where("tbl_channel_entries.is_deleted=0 and tbl_channels.is_active =1").Order("id desc")
 
 	if RoleId != 1 {
 

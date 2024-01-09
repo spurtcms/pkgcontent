@@ -1085,20 +1085,20 @@ func (Ch Channel) GetPublishedChannelEntriesList(limit, offset int, filter Entri
 }
 
 // create entry
-func (Ch Channel) CreateEntry(entriesrequired EntriesRequired) (bool, error) {
+func (Ch Channel) CreateEntry(entriesrequired EntriesRequired) (entry TblChannelEntries, flg bool, err error) {
 
 	userid, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
 
 	if checkerr != nil {
 
-		return false, checkerr
+		return TblChannelEntries{}, false, checkerr
 	}
 
 	check, err := Ch.Authority.IsGranted(entriesrequired.ChannelName, authcore.CRUD)
 
 	if err != nil {
 
-		return false, err
+		return TblChannelEntries{}, false, err
 	}
 
 	if check {
@@ -1168,11 +1168,11 @@ func (Ch Channel) CreateEntry(entriesrequired EntriesRequired) (bool, error) {
 			}
 		}
 
-		return true, nil
+		return entry, true, nil
 
 	}
 
-	return false, errors.New("not authorized")
+	return TblChannelEntries{}, false, errors.New("not authorized")
 }
 
 /**/
@@ -1350,9 +1350,9 @@ func (Ch Channel) UpdateEntryDetailsById(entriesrequired EntriesRequired, Channe
 
 		for _, val := range entriesrequired.AdditionalFields {
 
-			var Entrfield TblChannelEntryField
-
 			if val.Id == 0 {
+
+				var Entrfield TblChannelEntryField
 
 				Entrfield.ChannelEntryId = EntryId
 
@@ -1369,6 +1369,8 @@ func (Ch Channel) UpdateEntryDetailsById(entriesrequired EntriesRequired, Channe
 				CH.CreateSingleEntrychannelFields(&Entrfield, Ch.Authority.DB)
 
 			} else {
+
+				var Entrfield TblChannelEntryField
 
 				Entrfield.Id = val.Id
 
@@ -1390,6 +1392,8 @@ func (Ch Channel) UpdateEntryDetailsById(entriesrequired EntriesRequired, Channe
 
 		}
 
+		return true, nil
+
 	}
 
 	return false, errors.New("not authorized")
@@ -1397,7 +1401,7 @@ func (Ch Channel) UpdateEntryDetailsById(entriesrequired EntriesRequired, Channe
 }
 
 // change entries status
-func (Ch Channel) EntryStatus(ChannelName string, EntryId int, status string) (bool, error) {
+func (Ch Channel) EntryStatus(ChannelName string, EntryId int, status int) (bool, error) {
 
 	userid, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
 
@@ -1417,24 +1421,15 @@ func (Ch Channel) EntryStatus(ChannelName string, EntryId int, status string) (b
 
 		var Entries TblChannelEntries
 
-		if status == "Draft" {
-
-			Entries.Status = 0
-
-		} else if status == "Published" {
-
-			Entries.Status = 1
-
-		} else if status == "Unpublished" {
-
-			Entries.Status = 2
-		}
+		Entries.Status = status
 
 		Entries.ModifiedBy = userid
 
 		Entries.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		CH.PublishQuery(&Entries, EntryId, *Ch.Authority.DB)
+
+		return true, nil
 
 	}
 
