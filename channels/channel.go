@@ -132,6 +132,10 @@ func (Ch Channel) GetPermissionChannels(limit, offset int, filter Filter, active
 
 		}
 
+		entrcount, _ := CH.ChannelEntryList(&[]TblChannelEntries{}, 0, 0, val.Id, EntriesFilter{}, false, roleid, Ch.Authority.DB)
+
+		val.EntriesCount = int(entrcount)
+
 		chnallist = append(chnallist, val)
 
 	}
@@ -459,6 +463,8 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 
 			cfld.ImagePath = val.IconPath
 
+			cfld.CharacterAllowed = val.CharacterAllowed
+
 			cfld.Url = val.Url
 
 			if val.MasterFieldId == 4 {
@@ -742,6 +748,8 @@ func (Ch Channel) EditChannel(channelupt ChannelUpdate, channelid int) error {
 			cfld.MandatoryField = val.Mandatory
 
 			cfld.Url = val.Url
+
+			cfld.CharacterAllowed = val.CharacterAllowed
 
 			if val.MasterFieldId == 4 {
 
@@ -1168,7 +1176,7 @@ func (Ch Channel) CreateEntry(entriesrequired EntriesRequired) (entry TblChannel
 			}
 		}
 
-		return entry, true, nil
+		return Entries, true, nil
 
 	}
 

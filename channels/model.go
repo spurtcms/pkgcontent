@@ -130,6 +130,7 @@ type TblChannel struct {
 	ModifiedOn         time.Time `gorm:"DEFAULT:NULL"`
 	ModifiedBy         int       `gorm:"DEFAULT:NULL"`
 	DateString         string    `gorm:"-"`
+	EntriesCount       int       `gorm:"-"`
 }
 
 type TblChannelCategory struct {
@@ -818,7 +819,14 @@ func (Ch ChannelStruct) GetChannelEntryDetailsById(tblchanentry *[]TblChannelEnt
 /*Edit Channel Entry*/
 func (Ch ChannelStruct) GetChannelEntryById(tblchanentry *TblChannelEntries, id int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_channel_entries").Where("id=?", id).First(&tblchanentry).Error; err != nil {
+	// if err := DB.Table("tbl_channel_entries").Where("id=?", id).First(&tblchanentry).Error; err != nil {
+
+	// 	return err
+
+	// }
+	if err := DB.Table("tbl_channel_entries").Where("is_deleted=0 and id=?", id).Preload("TblChannelEntryField", func(db *gorm.DB) *gorm.DB {
+		return db.Select("tbl_channel_entry_fields.*,tbl_fields.field_type_id").Joins("inner join tbl_fields on tbl_fields.Id = tbl_channel_entry_fields.field_id")
+	}).Find(&tblchanentry).Error; err != nil {
 
 		return err
 
