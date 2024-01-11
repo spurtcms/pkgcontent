@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spurtcms/spurtcms-content/categories"
-	"github.com/spurtcms/spurtcms-core/auth"
-	authcore "github.com/spurtcms/spurtcms-core/auth"
+	"github.com/spurtcms/pkgcontent/categories"
+	"github.com/spurtcms/pkgcore/auth"
+	authcore "github.com/spurtcms/pkgcore/auth"
 	"gorm.io/gorm"
 )
 
@@ -927,6 +927,8 @@ func (Ch Channel) DeleteChannel(channelid int) error {
 
 		chid := strconv.Itoa(channelid)
 
+		CH.DeleteEntryByChannelId(channelid, Ch.Authority.DB)
+
 		CH.DeleteChannelById(channelid, Ch.Authority.DB)
 
 		var chdel TblChannel
@@ -1453,4 +1455,31 @@ func TruncateDescription(description string, limit int) string {
 
 	truncated := description[:limit] + "..."
 	return truncated
+}
+
+// DashboardEntry count function
+func (Ch Channel) DashboardEntriesCount() (totalcount int, lasttendayscount int, err error) {
+
+	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return 0, 0, checkerr
+	}
+
+	allentrycount, err := CH.AllentryCount(Ch.Authority.DB)
+
+	if err != nil {
+
+		return 0, 0, err
+	}
+
+	entrycount, err := CH.NewentryCount(Ch.Authority.DB)
+
+	if err != nil {
+
+		return 0, 0, err
+	}
+
+	return int(allentrycount), int(entrycount), nil
 }

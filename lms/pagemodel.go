@@ -3,7 +3,7 @@ package lms
 import (
 	"time"
 
-	"github.com/spurtcms/spurtcms-core/auth"
+	"github.com/spurtcms/pkgcore/auth"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )

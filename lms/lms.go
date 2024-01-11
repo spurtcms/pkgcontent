@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spurtcms/spurtcms-content/categories"
-	"github.com/spurtcms/spurtcms-core/auth"
-	authcore "github.com/spurtcms/spurtcms-core/auth"
-	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
+	"github.com/spurtcms/pkgcontent/categories"
+	"github.com/spurtcms/pkgcore/auth"
+	authcore "github.com/spurtcms/pkgcore/auth"
+	memberaccore "github.com/spurtcms/pkgcore/memberaccess"
 	"gorm.io/gorm"
 )
 
@@ -974,7 +974,7 @@ func (s Space) GetPublishedSpaces(limit int, offset int, filter Filter, language
 	return []TblSpacesAliases{}, errors.New("not authorized")
 }
 
-//if description is too big show specific lines and after show ...
+// if description is too big show specific lines and after show ...
 func truncateDescription(description string, limit int) string {
 	if len(description) <= limit {
 		return description
@@ -982,4 +982,32 @@ func truncateDescription(description string, limit int) string {
 
 	truncated := description[:limit] + "..."
 	return truncated
+}
+
+// Dashboard pagescount function
+func (s Space) DashboardPagesCount() (totalcount int, lasttendayscount int, err error) {
+
+	_, _, checkerr := auth.VerifyToken(s.Authority.Token, s.Authority.Secret)
+
+	if checkerr != nil {
+
+		return 0, 0, checkerr
+	}
+
+	allpagecount, err := SP.PageCount(s.Authority.DB)
+
+	if err != nil {
+
+		return 0, 0, err
+	}
+
+	Newpagecount, err := SP.NewpageCount(s.Authority.DB)
+
+	if err != nil {
+
+		return 0, 0, err
+	}
+
+	return int(allpagecount), int(Newpagecount), nil
+
 }

@@ -3,7 +3,7 @@ package lms
 import (
 	"time"
 
-	"github.com/spurtcms/spurtcms-content/categories"
+	"github.com/spurtcms/pkgcontent/categories"
 	"gorm.io/gorm"
 )
 
@@ -151,7 +151,6 @@ func (SP SPM) SpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, off
 	return 0, nil
 }
 
-
 /*spaceList*/
 func (SP SPM) MemberSpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, offset int, filter Filter, DB *gorm.DB) (spacecount int64, err error) {
 
@@ -166,12 +165,11 @@ func (SP SPM) MemberSpaceList(tblspace *[]TblSpacesAliases, langId int, limit in
 
 		query = query.Where("LOWER(TRIM(tbl_spaces_aliases.spaces_name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%")
 	}
-	
+
 	if filter.CategoryId > 0 && filter.CategoryId != 0 {
 
 		query = query.Where("tbl_spaces.page_category_id IN (?)", filter.CategoryId)
 	}
-
 
 	if limit != 0 {
 
@@ -649,4 +647,23 @@ func (SP SPM) PublishPageSpaceList(tblspace *[]TblSpacesAliases, langId int, lim
 	}
 
 	return 0, nil
+}
+
+func (SP SPM) PageCount(DB *gorm.DB) (count int64, err error) {
+	if err := DB.Table("tbl_page_aliases").Where("is_deleted = 0").Count(&count).Error; err != nil {
+
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (SP SPM) NewpageCount(DB *gorm.DB) (count int64, err error) {
+
+	if err := DB.Table("tbl_page_aliases").Where("is_deleted = 0 AND created_on >=?", time.Now().AddDate(0, 0, -10)).Count(&count).Error; err != nil {
+
+		return 0, err
+	}
+
+	return count, nil
 }

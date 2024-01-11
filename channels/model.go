@@ -3,7 +3,7 @@ package channels
 import (
 	"time"
 
-	"github.com/spurtcms/spurtcms-content/categories"
+	"github.com/spurtcms/pkgcontent/categories"
 	"gorm.io/gorm"
 )
 
@@ -127,10 +127,11 @@ type TblChannel struct {
 	IsDeleted          int
 	CreatedOn          time.Time
 	CreatedBy          int
-	ModifiedOn         time.Time `gorm:"DEFAULT:NULL"`
-	ModifiedBy         int       `gorm:"DEFAULT:NULL"`
-	DateString         string    `gorm:"-"`
-	EntriesCount       int       `gorm:"-"`
+	ModifiedOn         time.Time           `gorm:"DEFAULT:NULL"`
+	ModifiedBy         int                 `gorm:"DEFAULT:NULL"`
+	DateString         string              `gorm:"-"`
+	EntriesCount       int                 `gorm:"-"`
+	ChannelEntries     []TblChannelEntries `gorm:"-"`
 }
 
 type TblChannelCategory struct {
@@ -721,13 +722,13 @@ func (Ch ChannelStruct) ChannelEntryList(chentry *[]TblChannelEntries, limit, of
 	}
 	if filter.Title != "" {
 
-		query = query.Where("LOWER(TRIM(title)) ILIKE LOWER(TRIM(?))", filter.Title)
+		query = query.Where("LOWER(TRIM(title)) ILIKE LOWER(TRIM(?))", "%"+filter.Title+"%")
 
 	}
 
 	if filter.ChannelName != "" {
 
-		query = query.Where("LOWER(TRIM(channel_name)) ILIKE LOWER(TRIM(?))", filter.ChannelName)
+		query = query.Where("LOWER(TRIM(channel_name)) ILIKE LOWER(TRIM(?))", "%"+filter.ChannelName+"%")
 
 	}
 
@@ -867,4 +868,35 @@ func (Ch ChannelStruct) PublishQuery(chl *TblChannelEntries, id int, DB gorm.DB)
 	}
 
 	return nil
+}
+
+func (Ch ChannelStruct) AllentryCount(DB *gorm.DB) (count int64, err error) {
+
+	if err := DB.Table("tbl_channel_entries").Where("is_deleted = 0 ").Count(&count).Error; err != nil {
+
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (Ch ChannelStruct) NewentryCount(DB *gorm.DB) (count int64, err error) {
+
+	if err := DB.Table("tbl_channel_entries").Where("is_deleted = 0 AND created_on >=?", time.Now().AddDate(0, 0, -10)).Count(&count).Error; err != nil {
+
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (Ch ChannelStruct) DeleteEntryByChannelId(id int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_channel_entries").Where("channel_id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": 1}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+
 }

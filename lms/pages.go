@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spurtcms/spurtcms-core/auth"
-	authcore "github.com/spurtcms/spurtcms-core/auth"
-	"github.com/spurtcms/spurtcms-core/member"
-	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
+	"github.com/spurtcms/pkgcore/auth"
+	authcore "github.com/spurtcms/pkgcore/auth"
+	"github.com/spurtcms/pkgcore/member"
+	memberaccore "github.com/spurtcms/pkgcore/memberaccess"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )

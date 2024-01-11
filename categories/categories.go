@@ -6,10 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spurtcms/spurtcms-core/auth"
+	"github.com/spurtcms/pkgcore/auth"
 	"gorm.io/gorm"
 )
-
 
 type Category struct {
 	Authority *auth.Authorization
@@ -900,7 +899,7 @@ func (c Category) CheckCategroyGroupName(id int, name string) (bool, error) {
 		}
 
 	}
-	
+
 	return true, nil
 }
 
