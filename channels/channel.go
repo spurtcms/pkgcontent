@@ -76,6 +76,10 @@ func (Ch Channel) GetChannels(limit, offset int, filter Filter, activestatus boo
 
 			}
 
+			entrcount, _ := CH.ChannelEntryList(&[]TblChannelEntries{}, 0, 0, val.Id, EntriesFilter{}, false, roleid, Ch.Authority.DB)
+
+			val.EntriesCount = int(entrcount)
+
 			chnallist = append(chnallist, val)
 
 		}
@@ -1482,4 +1486,46 @@ func (Ch Channel) DashboardEntriesCount() (totalcount int, lasttendayscount int,
 	}
 
 	return int(allentrycount), int(entrycount), nil
+}
+
+func (Ch Channel) DashboardChannellist() (channelList []TblChannel, err error) {
+
+	_,_ , checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []TblChannel{}, checkerr
+	}
+
+	Newchannels, _ := CH.Newchannels(Ch.Authority.DB)
+
+	if err != nil {
+
+		return []TblChannel{}, checkerr
+
+	}
+
+	return *Newchannels, nil
+
+}
+
+func (Ch Channel) DashboardEntrieslist() (entries []TblChannelEntries, err error) {
+
+	_,_ , checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []TblChannelEntries{}, checkerr
+	}
+
+	Newentries, _ := CH.Newentries(Ch.Authority.DB)
+
+	if err != nil {
+
+		return []TblChannelEntries{}, checkerr
+
+	}
+
+	return *Newentries, nil
+
 }
