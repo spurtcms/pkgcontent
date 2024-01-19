@@ -547,7 +547,7 @@ func (P PageStrut) RemoveHighlights(high *TblMemberNotesHighlight, DB *gorm.DB) 
 
 func (P PageStrut) MemberRestrictActive(Mod *auth.TblModule, DB *gorm.DB) error {
 
-	if err := DB.Model(auth.TblModule{}).Where("(LOWER(TRIM(module_name)) ILIKE LOWER(TRIM(Member Restrict)))").First(&Mod).Error; err != nil {
+	if err := DB.Model(auth.TblModule{}).Where("(LOWER(TRIM(module_name)) ILIKE LOWER(TRIM('Member Restrict')))").First(&Mod).Error; err != nil {
 
 		return err
 

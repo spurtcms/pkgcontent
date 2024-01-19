@@ -572,7 +572,7 @@ func (SP SPM) GetSpaceDetails(tblspace *TblSpaces, id int, DB *gorm.DB) error {
 
 func (SP SPM) DeletePageGroup(tblpage *TblPagesGroup, spaceid int, DB *gorm.DB) error {
 
-	if err := DB.Model(TblPagesGroup{}).Where("spaces_id=?", spaceid).Joins("inner join tbl_pages_group on tbl_pages_group.id = tbl_pages_group_aliases.page_group_id").UpdateColumns(map[string]interface{}{"tbl_pages_group.is_deleted": 1, "tbl_pages_group.deleted_on": tblpage.DeletedOn, "tbl_pages_group.deleted_by": tblpage.DeletedBy, "tbl_pages_group_aliases.is_deleted": 1, "tbl_pages_group_aliases.deleted_on": tblpage.DeletedOn, "tbl_pages_group_aliases.deleted_by": tblpage.DeletedBy}).Error; err != nil {
+	if err := DB.Table("tbl_pages_group").Where("spaces_id=?", spaceid).Joins("inner join tbl_pages_group on tbl_pages_group.id = tbl_pages_group_aliases.page_group_id").UpdateColumns(map[string]interface{}{"tbl_pages_group.is_deleted": 1, "tbl_pages_group.deleted_on": tblpage.DeletedOn, "tbl_pages_group.deleted_by": tblpage.DeletedBy, "tbl_pages_group_aliases.is_deleted": 1, "tbl_pages_group_aliases.deleted_on": tblpage.DeletedOn, "tbl_pages_group_aliases.deleted_by": tblpage.DeletedBy}).Error; err != nil {
 
 		return err
 	}
@@ -585,13 +585,13 @@ func (SP SPM) CheckSpaceName(space *TblSpacesAliases, userid int, name string, D
 
 	if userid == 0 {
 
-		if err := DB.Model(TblSpacesAliases{}).Where("LOWER(TRIM(spaces_name))=LOWER(TRIM(?)) and is_deleted=0", name).First(&space).Error; err != nil {
+		if err := DB.Table("tbl_spaces_aliases").Where("LOWER(TRIM(spaces_name))=LOWER(TRIM(?)) and is_deleted=0", name).First(&space).Error; err != nil {
 
 			return err
 		}
 	} else {
 
-		if err := DB.Model(TblSpacesAliases{}).Where("LOWER(TRIM(spaces_name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0", name, userid).First(&space).Error; err != nil {
+		if err := DB.Table("tbl_spaces_aliases").Where("LOWER(TRIM(spaces_name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0", name, userid).First(&space).Error; err != nil {
 
 			return err
 		}
