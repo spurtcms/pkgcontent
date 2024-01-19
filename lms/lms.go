@@ -509,6 +509,68 @@ func (s Space) DeleteSpace(spaceid int) error {
 
 		var pid []int
 
+		if len(page) != 0 {
+
+			for _, v := range page {
+
+				pid = append(pid, v.Id)
+
+			}
+
+			var pg TblPage
+
+			pg.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+			pg.DeletedBy = userid
+
+			pg.IsDeleted = 1
+
+			SP.DeletePageInSpace(&pg, pid, s.Authority.DB)
+
+			var pgali TblPageAliases
+
+			pgali.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+			pgali.DeletedBy = userid
+
+			pgali.IsDeleted = 1
+
+			SP.DeletePageAliInSpace(&pgali, pid, s.Authority.DB)
+
+			var pagegroup []TblPagesGroup
+
+			SP.GetPageGroupDetailsBySpaceId(&pagegroup, spaceid, s.Authority.DB)
+
+			var pagegroupid int
+
+			for _, v := range page {
+
+				v.Id = pagegroupid
+
+			}
+
+			var pggroupdel TblPagesGroup
+
+			pggroupdel.DeletedBy = userid
+
+			pggroupdel.IsDeleted = 1
+
+			pggroupdel.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+			SP.SpaceDeletePageGroup(&pggroupdel, pagegroupid, s.Authority.DB)
+
+			var pggroupalidel TblPagesGroupAliases
+
+			pggroupalidel.DeletedBy = userid
+
+			pggroupalidel.IsDeleted = 1
+
+			pggroupalidel.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+			SP.DeletePageGroupAliases(&pggroupalidel, pagegroupid, s.Authority.DB)
+
+		}
+
 		for _, v := range page {
 
 			pid = append(pid, v.Id)

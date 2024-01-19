@@ -667,3 +667,36 @@ func (SP SPM) NewpageCount(DB *gorm.DB) (count int64, err error) {
 
 	return count, nil
 }
+
+// get pagegroup data by pass spaceid
+func (SP SPM) GetPageGroupDetailsBySpaceId(getpagegrp *[]TblPagesGroup, id int, DB *gorm.DB) (*[]TblPagesGroup, error) {
+
+	if err := DB.Table("tbl_pages_group").Where("tbl_pages_group.is_deleted = ? and tbl_pages_group.spaces_id = ?", 0, id).Find(&getpagegrp).Error; err != nil {
+
+		return &[]TblPagesGroup{}, err
+	}
+
+	return getpagegrp, nil
+}
+
+// delete page group 
+func (SP SPM) SpaceDeletePageGroup(tblpage *TblPagesGroup, id int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_pages_group").Where("tbl_pages_group.id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": tblpage.IsDeleted, "deleted_on": tblpage.DeletedOn, "deleted_by": tblpage.DeletedBy}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+// delete page group aliases
+func (SP SPM) DeletePageGroupAliases(tblpageali *TblPagesGroupAliases, id int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_pages_group_aliases").Where("tbl_pages_group_aliases.page_group_id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": tblpageali.IsDeleted, "deleted_on": tblpageali.DeletedOn, "deleted_by": tblpageali.DeletedBy}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
