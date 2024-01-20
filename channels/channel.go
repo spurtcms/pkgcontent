@@ -4,6 +4,7 @@ package channels
 import (
 	"errors"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -1490,7 +1491,7 @@ func (Ch Channel) DashboardEntriesCount() (totalcount int, lasttendayscount int,
 
 func (Ch Channel) DashboardChannellist() (channelList []TblChannel, err error) {
 
-	_,_ , checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -1511,7 +1512,7 @@ func (Ch Channel) DashboardChannellist() (channelList []TblChannel, err error) {
 
 func (Ch Channel) DashboardEntrieslist() (entries []TblChannelEntries, err error) {
 
-	_,_ , checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -1528,4 +1529,101 @@ func (Ch Channel) DashboardEntrieslist() (entries []TblChannelEntries, err error
 
 	return *Newentries, nil
 
+}
+
+func (Ch Channel) DashboardRecentActivites() (entries []RecentActivities, err error) {
+
+	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []RecentActivities{}, checkerr
+	}
+
+	var Newentries []TblChannelEntries
+
+	CH.Newentries(Ch.Authority.DB)
+
+	var Newrecords []RecentActivities
+
+	for _, val := range Newentries {
+
+		newrecord := RecentActivities{Contenttype: "entry", Title: val.Title, User: val.Username, Imagepath: val.ProfileImagePath, Createdon: val.CreatedOn, Channelname: val.ChannelName}
+
+		Newrecords = append(Newrecords, newrecord)
+	}
+
+	var Newchannel []TblChannel
+
+	CH.Newchannels(Ch.Authority.DB)
+
+	for _, val := range Newchannel {
+
+		newrecord := RecentActivities{Contenttype: "channel", Title: val.ChannelName, User: val.Username, Imagepath: val.ProfileImagePath, Createdon: val.CreatedOn, Channelname: val.ChannelName}
+
+		Newrecords = append(Newrecords, newrecord)
+	}
+	sort.Slice(Newrecords, func(i, j int) bool {
+
+		return Newrecords[i].Createdon.After(Newrecords[j].Createdon)
+
+	})
+	maxRec := 5
+
+	if len(Newrecords) < maxRec {
+
+		maxRec = len(Newrecords)
+
+	}
+	recentActive := Newrecords[:maxRec]
+
+	var newactive RecentActivities
+
+	var NewActive []RecentActivities
+
+	for _, val := range recentActive {
+
+		difference := time.Now().Sub(val.Createdon)
+
+		hour := int(difference.Hours())
+
+		min := int(difference.Minutes())
+
+		if hour >= 1 {
+
+			newactive.Contenttype = val.Contenttype
+
+			newactive.Title = val.Title
+
+			newactive.User = val.User
+
+			newactive.Imagepath = val.Imagepath
+
+			newactive.Createdon = val.Createdon
+
+			newactive.Channelname = val.Channelname
+
+			newactive.Active = strconv.Itoa(hour) + " " + "hrs"
+		} else {
+			newactive.Contenttype = val.Contenttype
+
+			newactive.Title = val.Title
+
+			newactive.User = val.User
+
+			newactive.Imagepath = val.Imagepath
+
+			newactive.Createdon = val.Createdon
+
+			newactive.Channelname = val.Channelname
+
+			newactive.Active = strconv.Itoa(min) + " " + "mins"
+
+		}
+
+		NewActive = append(NewActive, newactive)
+
+	}
+
+	return NewActive, nil
 }

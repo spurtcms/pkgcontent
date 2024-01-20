@@ -570,41 +570,7 @@ func (s Space) DeleteSpace(spaceid int) error {
 			SP.DeletePageGroupAliases(&pggroupalidel, pagegroupid, s.Authority.DB)
 
 		}
-
-		for _, v := range page {
-
-			pid = append(pid, v.Id)
-
-		}
-
-		var pg TblPage
-
-		pg.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
-
-		pg.DeletedBy = userid
-
-		pg.IsDeleted = 1
-
-		SP.DeletePageInSpace(&pg, pid, s.Authority.DB)
-
-		var pgali TblPageAliases
-
-		pgali.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
-
-		pgali.DeletedBy = userid
-
-		pgali.IsDeleted = 1
-
-		SP.DeletePageAliInSpace(&pgali, pid, s.Authority.DB)
-
-		var pggroupdel TblPagesGroup
-
-		pggroupdel.DeletedBy = userid
-
-		pggroupdel.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
-
-		SP.DeletePageGroup(&pggroupdel, spaceid, s.Authority.DB)
-
+		
 		return nil
 
 	}
