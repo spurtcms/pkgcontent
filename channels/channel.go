@@ -175,143 +175,143 @@ func (Ch Channel) GetChannelsById(channelid int) (channelList TblChannel, sectio
 
 	// if check {
 
-		var channellist TblChannel
+	var channellist TblChannel
 
-		CH.GetChannelById(&channellist, channelid, Ch.Authority.DB)
+	CH.GetChannelById(&channellist, channelid, Ch.Authority.DB)
 
-		var groupfield []TblGroupField
+	var groupfield []TblGroupField
 
-		CH.GetFieldIdByGroupId(&groupfield, channellist.Id, Ch.Authority.DB)
+	CH.GetFieldIdByGroupId(&groupfield, channellist.Id, Ch.Authority.DB)
 
-		var ids []int
+	var ids []int
 
-		for _, val := range groupfield {
+	for _, val := range groupfield {
 
-			ids = append(ids, val.FieldId)
-		}
+		ids = append(ids, val.FieldId)
+	}
 
-		var fieldValue []TblField
+	var fieldValue []TblField
 
-		CH.GetFieldAndOptionValue(&fieldValue, ids, Ch.Authority.DB)
+	CH.GetFieldAndOptionValue(&fieldValue, ids, Ch.Authority.DB)
 
-		var sections []Section
+	var sections []Section
 
-		var Fieldvalue []Fiedlvalue
+	var Fieldvalue []Fiedlvalue
 
-		for _, val := range fieldValue {
+	for _, val := range fieldValue {
 
-			var section Section
+		var section Section
 
-			var fieldvalue Fiedlvalue
+		var fieldvalue Fiedlvalue
 
-			if val.FieldTypeId == 12 {
+		if val.FieldTypeId == 12 {
 
-				section.SectionId = val.Id
+			section.SectionId = val.Id
 
-				section.SectionNewId = 0
+			section.SectionNewId = 0
 
-				section.MasterFieldId = val.FieldTypeId
+			section.MasterFieldId = val.FieldTypeId
 
-				section.SectionName = val.FieldName
+			section.SectionName = val.FieldName
 
-				sections = append(sections, section)
+			sections = append(sections, section)
 
-			} else {
+		} else {
 
-				var optionva []OptionValues
+			var optionva []OptionValues
 
-				for _, optionval := range val.TblFieldOption {
+			for _, optionval := range val.TblFieldOption {
 
-					var optiovalue OptionValues
+				var optiovalue OptionValues
 
-					optiovalue.Id = optionval.Id
+				optiovalue.Id = optionval.Id
 
-					optiovalue.FieldId = optionval.FieldId
+				optiovalue.FieldId = optionval.FieldId
 
-					optiovalue.Value = optionval.OptionValue
+				optiovalue.Value = optionval.OptionValue
 
-					optionva = append(optionva, optiovalue)
-				}
-
-				fieldvalue.FieldId = val.Id
-
-				fieldvalue.FieldName = val.FieldName
-
-				fieldvalue.CharacterAllowed = val.CharacterAllowed
-
-				fieldvalue.DateFormat = val.DatetimeFormat
-
-				fieldvalue.TimeFormat = val.TimeFormat
-
-				fieldvalue.IconPath = val.ImagePath
-
-				fieldvalue.MasterFieldId = val.FieldTypeId
-
-				fieldvalue.Mandatory = val.MandatoryField
-
-				fieldvalue.OrderIndex = val.OrderIndex
-
-				fieldvalue.SectionId = val.SectionParentId
-
-				fieldvalue.OptionValue = optionva
-
-				Fieldvalue = append(Fieldvalue, fieldvalue)
-
+				optionva = append(optionva, optiovalue)
 			}
 
-		}
+			fieldvalue.FieldId = val.Id
 
-		var GetSelectedChannelCateogry []TblChannelCategory
+			fieldvalue.FieldName = val.FieldName
 
-		err1 := CH.GetSelectedCategoryChannelById(&GetSelectedChannelCateogry, channelid, Ch.Authority.DB)
+			fieldvalue.CharacterAllowed = val.CharacterAllowed
 
-		if err1 != nil {
+			fieldvalue.DateFormat = val.DatetimeFormat
 
-			log.Println(err)
-		}
+			fieldvalue.TimeFormat = val.TimeFormat
 
-		var FinalSelectedCategories []categories.Arrangecategories
+			fieldvalue.IconPath = val.ImagePath
 
-		for _, val := range GetSelectedChannelCateogry {
+			fieldvalue.MasterFieldId = val.FieldTypeId
 
-			var id []int
+			fieldvalue.Mandatory = val.MandatoryField
 
-			ids := strings.Split(val.CategoryId, ",")
+			fieldvalue.OrderIndex = val.OrderIndex
 
-			for _, cid := range ids {
+			fieldvalue.SectionId = val.SectionParentId
 
-				convid, _ := strconv.Atoi(cid)
+			fieldvalue.OptionValue = optionva
 
-				id = append(id, convid)
-			}
-
-			var GetSelectedCategory []categories.TblCategory
-
-			CH.GetCategoriseById(&GetSelectedCategory, id, Ch.Authority.DB)
-
-			var addcat categories.Arrangecategories
-
-			var individualid []categories.CatgoriesOrd
-
-			for _, CategoriesArrange := range GetSelectedCategory {
-
-				var individual categories.CatgoriesOrd
-
-				individual.Id = CategoriesArrange.Id
-
-				individual.Category = CategoriesArrange.CategoryName
-
-				individualid = append(individualid, individual)
-
-			}
-
-			addcat.Categories = individualid
-
-			FinalSelectedCategories = append(FinalSelectedCategories, addcat)
+			Fieldvalue = append(Fieldvalue, fieldvalue)
 
 		}
 
-		return channellist, sections, Fieldvalue, FinalSelectedCategories, nil
+	}
+
+	var GetSelectedChannelCateogry []TblChannelCategory
+
+	err1 := CH.GetSelectedCategoryChannelById(&GetSelectedChannelCateogry, channelid, Ch.Authority.DB)
+
+	if err1 != nil {
+
+		log.Println(err)
+	}
+
+	var FinalSelectedCategories []categories.Arrangecategories
+
+	for _, val := range GetSelectedChannelCateogry {
+
+		var id []int
+
+		ids := strings.Split(val.CategoryId, ",")
+
+		for _, cid := range ids {
+
+			convid, _ := strconv.Atoi(cid)
+
+			id = append(id, convid)
+		}
+
+		var GetSelectedCategory []categories.TblCategory
+
+		CH.GetCategoriseById(&GetSelectedCategory, id, Ch.Authority.DB)
+
+		var addcat categories.Arrangecategories
+
+		var individualid []categories.CatgoriesOrd
+
+		for _, CategoriesArrange := range GetSelectedCategory {
+
+			var individual categories.CatgoriesOrd
+
+			individual.Id = CategoriesArrange.Id
+
+			individual.Category = CategoriesArrange.CategoryName
+
+			individualid = append(individualid, individual)
+
+		}
+
+		addcat.Categories = individualid
+
+		FinalSelectedCategories = append(FinalSelectedCategories, addcat)
+
+	}
+
+	return channellist, sections, Fieldvalue, FinalSelectedCategories, nil
 	// }
 
 	// return TblChannel{}, []Section{}, []Fiedlvalue{}, []categories.Arrangecategories{}, errors.New("not authorized")
@@ -1506,7 +1506,7 @@ func (Ch Channel) DashboardChannellist() (channelList []TblChannel, err error) {
 
 	}
 
-	return *Newchannels, nil
+	return Newchannels, nil
 
 }
 
@@ -1527,7 +1527,7 @@ func (Ch Channel) DashboardEntrieslist() (entries []TblChannelEntries, err error
 
 	}
 
-	return *Newentries, nil
+	return Newentries, nil
 
 }
 
@@ -1540,9 +1540,9 @@ func (Ch Channel) DashboardRecentActivites() (entries []RecentActivities, err er
 		return []RecentActivities{}, checkerr
 	}
 
-	var Newentries []TblChannelEntries
+	// var Newentries []TblChannelEntries
 
-	CH.Newentries(Ch.Authority.DB)
+	Newentries, _ := CH.Newentries(Ch.Authority.DB)
 
 	var Newrecords []RecentActivities
 
@@ -1553,9 +1553,9 @@ func (Ch Channel) DashboardRecentActivites() (entries []RecentActivities, err er
 		Newrecords = append(Newrecords, newrecord)
 	}
 
-	var Newchannel []TblChannel
+	// var Newchannel []TblChannel
 
-	CH.Newchannels(Ch.Authority.DB)
+	Newchannel, _ := CH.Newchannels(Ch.Authority.DB)
 
 	for _, val := range Newchannel {
 

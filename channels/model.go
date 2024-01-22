@@ -914,27 +914,27 @@ func (Ch ChannelStruct) DeleteEntryByChannelId(id int, DB *gorm.DB) error {
 
 }
 
-func (Ch ChannelStruct) Newchannels(DB *gorm.DB) (chn *[]TblChannel, err error) {
+func (Ch ChannelStruct) Newchannels(DB *gorm.DB) (chn []TblChannel, err error) {
 
 	if err := DB.Table("tbl_channels").Select("tbl_channels.*,tbl_users.username,tbl_users.profile_image_path").
 		Joins("inner join tbl_users on tbl_users.id = tbl_channels.created_by").
 		Where("tbl_channels.is_deleted=0 and tbl_channels.is_active=1 and tbl_channels.created_on >= ?", time.Now().Add(-24*time.Hour).Format("2006-01-02 15:04:05")).
 		Order("created_on desc").Limit(6).Find(&chn).Error; err != nil {
 
-		return &[]TblChannel{}, err
+		return []TblChannel{}, err
 	}
 
 	return chn, nil
 
 }
 
-func (Ch ChannelStruct) Newentries(DB *gorm.DB) (entries *[]TblChannelEntries, err error) {
+func (Ch ChannelStruct) Newentries(DB *gorm.DB) (entries []TblChannelEntries, err error) {
 
 	if err := DB.Debug().Table("tbl_channel_entries").Select("tbl_channel_entries.*,tbl_users.username,tbl_users.profile_image_path").
 		Joins("inner join tbl_users on tbl_users.id = tbl_channel_entries.created_by").Where("tbl_channel_entries.is_deleted=0 and tbl_channel_entries.created_on >=?", time.Now().Add(-24*time.Hour).Format("2006-01-02 15:04:05")).
 		Order("created_on desc").Limit(6).Find(&entries).Error; err != nil {
 
-		return &[]TblChannelEntries{}, err
+		return []TblChannelEntries{}, err
 	}
 
 	return entries, nil
