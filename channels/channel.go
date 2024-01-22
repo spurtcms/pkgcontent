@@ -166,14 +166,14 @@ func (Ch Channel) GetChannelsById(channelid int) (channelList TblChannel, sectio
 		return TblChannel{}, []Section{}, []Fiedlvalue{}, []categories.Arrangecategories{}, checkerr
 	}
 
-	check, err := Ch.Authority.IsGranted("Channel", authcore.CRUD)
+	// check, err := Ch.Authority.IsGranted("Channel", authcore.CRUD)
 
-	if err != nil {
+	// if err != nil {
 
-		return TblChannel{}, []Section{}, []Fiedlvalue{}, []categories.Arrangecategories{}, err
-	}
+	// 	return TblChannel{}, []Section{}, []Fiedlvalue{}, []categories.Arrangecategories{}, err
+	// }
 
-	if check {
+	// if check {
 
 		var channellist TblChannel
 
@@ -263,9 +263,9 @@ func (Ch Channel) GetChannelsById(channelid int) (channelList TblChannel, sectio
 
 		var GetSelectedChannelCateogry []TblChannelCategory
 
-		err := CH.GetSelectedCategoryChannelById(&GetSelectedChannelCateogry, channelid, Ch.Authority.DB)
+		err1 := CH.GetSelectedCategoryChannelById(&GetSelectedChannelCateogry, channelid, Ch.Authority.DB)
 
-		if err != nil {
+		if err1 != nil {
 
 			log.Println(err)
 		}
@@ -312,9 +312,9 @@ func (Ch Channel) GetChannelsById(channelid int) (channelList TblChannel, sectio
 		}
 
 		return channellist, sections, Fieldvalue, FinalSelectedCategories, nil
-	}
+	// }
 
-	return TblChannel{}, []Section{}, []Fiedlvalue{}, []categories.Arrangecategories{}, errors.New("not authorized")
+	// return TblChannel{}, []Section{}, []Fiedlvalue{}, []categories.Arrangecategories{}, errors.New("not authorized")
 }
 
 /*Create Channel*/
