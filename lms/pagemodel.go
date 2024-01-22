@@ -158,7 +158,10 @@ type PageCreate struct {
 	SpaceId       int          //spaceid
 	NewPages      []Pages      //pages only
 	NewGroup      []PageGroups //groups only
-	SubPage       []SubPages   //subpages only
+	NewSubPage    []SubPages   //subpages only
+	UpdatePages   []Pages      //pages only
+	UpdateGroup   []PageGroups //groups only
+	UpdateSubPage []SubPages   //subpages only
 	DeletePages   []Pages      //delete pages only
 	DeleteGroup   []PageGroups //delete groups only
 	DeleteSubPage []SubPages   //delete subpages only
