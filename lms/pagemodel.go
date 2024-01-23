@@ -39,7 +39,7 @@ type TblPagesGroupAliases struct {
 type PageLog struct {
 	Username string
 	Status   string
-	Date     string
+	Date     time.Time
 }
 
 type PageGroups struct {

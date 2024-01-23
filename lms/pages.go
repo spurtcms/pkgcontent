@@ -59,7 +59,7 @@ func (p Page) PageAliasesLog(spaceid int) (log []PageLog, err error) {
 			log.Status = val.Status
 		}
 
-		log.Date = val.CreatedOn.Format("02-01-2006 15:04 PM")
+		log.Date = val.CreatedOn
 
 		finallog = append(finallog, log)
 
@@ -1482,18 +1482,25 @@ func (p Page) InsertPage1(Pagec PageCreate) error {
 
 		var newgrpid int
 
-		for _, grp := range Pagec.NewGroup {
+		newgrpid = val.Pgroupid
 
-			if val.Pgroupid == grp.GroupId && val.NewGrpId == grp.NewGroupId {
+		if val.NewGrpId != 0 {
 
-				var getgid TblPagesGroupAliases
+			for _, grp := range Pagec.NewGroup {
 
-				PG.GetPageGroupByName(&getgid, spaceId, grp.Name, p.Authority.DB)
+				log.Println(val.Pgroupid, grp.GroupId, val.NewGrpId, grp.NewGroupId)
 
-				newgrpid = getgid.PageGroupId
+				if val.Pgroupid == grp.GroupId && val.NewGrpId == grp.NewGroupId {
 
-				break
+					var getgid TblPagesGroupAliases
 
+					PG.GetPageGroupByName(&getgid, spaceId, grp.Name, p.Authority.DB)
+
+					newgrpid = getgid.PageGroupId
+
+					break
+
+				}
 			}
 		}
 
@@ -1670,213 +1677,113 @@ func (p Page) InsertPage1(Pagec PageCreate) error {
 	/*createsub*/
 	for _, val := range Pagec.NewSubPage {
 
-		for _, pg := range Pagec.NewPages {
+		var newgrpid int
 
-			var newgrpid int
+		var pgid int
 
-			var pgid int
+		newgrpid = val.PgroupId
 
-			newgrpid = val.PgroupId
+		pgid = val.ParentId
 
-			if val.NewPgroupId != 0 {
+		if val.NewParentId != 0 {
 
-				for _, grp := range Pagec.NewGroup {
+			for _, pg := range Pagec.NewPages {
 
-					if val.NewPgroupId == grp.NewGroupId {
+				var getpage TblPageAliases
 
-						var getgid TblPagesGroupAliases
+				PG.GetPageDataByName(&getpage, spaceId, pg.Name, p.Authority.DB)
 
-						PG.GetPageGroupByName(&getgid, spaceId, grp.Name, p.Authority.DB)
+				pgid = getpage.PageId
 
-						newgrpid = getgid.PageGroupId
-
-						break
-
-					}
-				}
-
+				break
 			}
+		}
 
-			for _, pgd := range Pagec.NewPages {
+		if val.NewPgroupId != 0 {
 
-				if val.NewParentId == pgd.NewPgId && val.NewParentId == pgd.ParentId && val.ParentId == pgd.PgId {
+			for _, grp := range Pagec.NewGroup {
 
-					if val.SpgId == 0 {
+				if val.NewPgroupId == grp.NewGroupId {
 
-						var getpage TblPageAliases
+					var getgid TblPagesGroupAliases
 
-						PG.GetPageDataByName(&getpage, spaceId, pgd.Name, p.Authority.DB)
+					PG.GetPageGroupByName(&getgid, spaceId, grp.Name, p.Authority.DB)
 
-						pgid = getpage.PageId
-
-						break
-					}
-				}
-
-			}
-
-			for _, newpgid := range Temparr {
-
-				if newpgid.FrontId == 0 && newpgid.NewFrontId == val.NewSpId || newpgid.FrontId == 0 && newpgid.NewFrontId == val.SpgId || newpgid.FrontId == val.SpgId && newpgid.NewFrontId == 0 || newpgid.FrontId == val.NewSpId && newpgid.NewFrontId == 0 {
-
-					pgid = newpgid.DBid
+					newgrpid = getgid.PageGroupId
 
 					break
-				}
-
-			}
-
-			if val.NewParentId == pg.NewPgId || val.ParentId == pg.PgId {
-
-				/*page creation tbl_page*/
-				var page TblPage
-
-				page.PageGroupId = newgrpid
-
-				page.SpacesId = spaceId
-
-				page.ParentId = pgid
-
-				page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-				page.CreatedBy = userid
-
-				pageret, _ := PG.CreatePage(&page, p.Authority.DB)
-
-				/*page creation tbl_page_aliases*/
-				var pageali TblPageAliases
-
-				pageali.LanguageId = 1
-
-				pageali.PageId = pageret.Id
-
-				pageali.PageTitle = val.Name
-
-				pageali.PageDescription = val.Content
-
-				pageali.PageSlug = strings.ToLower(strings.ReplaceAll(val.Name, " ", "_"))
-
-				pageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-				pageali.CreatedBy = userid
-
-				pageali.PageSuborder = val.OrderIndex
-
-				pageali.Status = status
-
-				pageali.Access = "public"
-
-				pageali.LastRevisionDate, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-				pageali.LastRevisionNo = 1
-
-				err = PG.CreatepageAliases(&pageali, p.Authority.DB)
-
-				/*This is for log*/
-				var pagelog TblPageAliasesLog
-
-				pagelog.LanguageId = 1
-
-				pagelog.PageId = pageret.Id
-
-				pagelog.PageTitle = val.Name
-
-				pagelog.PageSlug = strings.ToLower(strings.ReplaceAll(val.Name, " ", "_"))
-
-				pagelog.PageDescription = val.Content
-
-				pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-				pagelog.CreatedBy = userid
-
-				pagelog.Status = status
-
-				pagelog.Access = "public"
-
-				PG.PageAliasesLog(&pagelog, p.Authority.DB)
-
-				break
-			}
-
-			if val.ParentId == pg.PgId {
-
-				if val.SpgId == 0 {
-
-					/*page creation tbl_page*/
-					var page TblPage
-
-					page.PageGroupId = newgrpid
-
-					page.SpacesId = spaceId
-
-					page.ParentId = pgid
-
-					page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-					page.CreatedBy = userid
-
-					pageret, _ := PG.CreatePage(&page, p.Authority.DB)
-
-					/*page creation tbl_page_aliases*/
-					var pageali TblPageAliases
-
-					pageali.LanguageId = 1
-
-					pageali.PageId = pageret.Id
-
-					pageali.PageTitle = val.Name
-
-					pageali.PageDescription = val.Content
-
-					pageali.PageSlug = strings.ToLower(strings.ReplaceAll(val.Name, " ", "_"))
-
-					pageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-					pageali.CreatedBy = userid
-
-					pageali.PageSuborder = val.OrderIndex
-
-					pageali.Status = status
-
-					pageali.Access = "public"
-
-					pageali.LastRevisionNo = 1
-
-					pageali.LastRevisionDate, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-					err = PG.CreatepageAliases(&pageali, p.Authority.DB)
-
-					/*This is for log*/
-					var pagelog TblPageAliasesLog
-
-					pagelog.PageTitle = val.Name
-
-					pagelog.LanguageId = 1
-
-					pagelog.PageId = val.SpgId
-
-					pagelog.PageSlug = strings.ToLower(strings.ReplaceAll(val.Name, " ", "_"))
-
-					pagelog.PageDescription = val.Content
-
-					pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-					pagelog.CreatedBy = userid
-
-					pagelog.Status = status
-
-					pagelog.Access = "public"
-
-					pageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-					PG.PageAliasesLog(&pagelog, p.Authority.DB)
 
 				}
-
-				break
 			}
 
 		}
+
+		/*page creation tbl_page*/
+		var page TblPage
+
+		page.PageGroupId = newgrpid
+
+		page.SpacesId = spaceId
+
+		page.ParentId = pgid
+
+		page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		page.CreatedBy = userid
+
+		pageret, _ := PG.CreatePage(&page, p.Authority.DB)
+
+		/*page creation tbl_page_aliases*/
+		var pageali TblPageAliases
+
+		pageali.LanguageId = 1
+
+		pageali.PageId = pageret.Id
+
+		pageali.PageTitle = val.Name
+
+		pageali.PageDescription = val.Content
+
+		pageali.PageSlug = strings.ToLower(strings.ReplaceAll(val.Name, " ", "_"))
+
+		pageali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		pageali.CreatedBy = userid
+
+		pageali.PageSuborder = val.OrderIndex
+
+		pageali.Status = status
+
+		pageali.Access = "public"
+
+		pageali.LastRevisionDate, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		pageali.LastRevisionNo = 1
+
+		err = PG.CreatepageAliases(&pageali, p.Authority.DB)
+
+		/*This is for log*/
+		var pagelog TblPageAliasesLog
+
+		pagelog.LanguageId = 1
+
+		pagelog.PageId = pageret.Id
+
+		pagelog.PageTitle = val.Name
+
+		pagelog.PageSlug = strings.ToLower(strings.ReplaceAll(val.Name, " ", "_"))
+
+		pagelog.PageDescription = val.Content
+
+		pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		pagelog.CreatedBy = userid
+
+		pagelog.Status = status
+
+		pagelog.Access = "public"
+
+		PG.PageAliasesLog(&pagelog, p.Authority.DB)
 
 	}
 
