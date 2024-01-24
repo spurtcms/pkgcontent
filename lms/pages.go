@@ -132,6 +132,10 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 
 			subpage.OrderIndex = page_aliases.PageSuborder
 
+			subpage.LastUpdate = page_aliases.ModifiedOn
+
+			subpage.Username = page_aliases.Username
+
 			subpages = append(subpages, subpage)
 
 		} else {
@@ -153,6 +157,10 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 			one_page.Pgroupid = page.PageGroupId
 
 			one_page.ParentId = page.ParentId
+
+			one_page.LastUpdate = page_aliases.ModifiedOn
+
+			one_page.Username = page_aliases.Username
 
 			pages = append(pages, one_page)
 

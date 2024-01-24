@@ -58,6 +58,9 @@ type Pages struct {
 	NewGrpId   int
 	OrderIndex int `json:"OrderIndex"`
 	ParentId   int
+	LastUpdate time.Time
+	Date       string
+	Username   string
 }
 
 type SubPages struct {
@@ -70,6 +73,9 @@ type SubPages struct {
 	PgroupId    int
 	NewPgroupId int
 	OrderIndex  int `json:"OrderIndex"`
+	LastUpdate time.Time
+	Date       string
+	Username   string
 }
 
 type TblPage struct {
