@@ -234,69 +234,72 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 
 	for _, space := range spaces {
 
-		var child_page_Category categories.TblCategory
+		if space.Id != 0 {
 
-		_, child_page := categories.GetChildPageCategoriess(&child_page_Category, space.PageCategoryId, s.MemAuth.DB)
+			var child_page_Category categories.TblCategory
 
-		var categorynames []categories.TblCategory
+			_, child_page := categories.GetChildPageCategoriess(&child_page_Category, space.PageCategoryId, s.MemAuth.DB)
 
-		var flg int
+			var categorynames []categories.TblCategory
 
-		categorynames = append(categorynames, child_page)
+			var flg int
 
-		flg = child_page.ParentId
+			categorynames = append(categorynames, child_page)
 
-		if flg != 0 {
+			flg = child_page.ParentId
 
-		CLOOP:
+			if flg != 0 {
 
-			for {
+			CLOOP:
 
-				var newchildcategory categories.TblCategory
+				for {
 
-				_, child := categories.GetChildPageCategoriess(&newchildcategory, flg, s.MemAuth.DB)
+					var newchildcategory categories.TblCategory
 
-				flg = child.ParentId
+					_, child := categories.GetChildPageCategoriess(&newchildcategory, flg, s.MemAuth.DB)
 
-				if flg != 0 {
+					flg = child.ParentId
 
-					categorynames = append(categorynames, child)
+					if flg != 0 {
 
-					goto CLOOP
+						categorynames = append(categorynames, child)
 
-				} else {
+						goto CLOOP
 
-					categorynames = append(categorynames, child)
+					} else {
 
-					break
+						categorynames = append(categorynames, child)
+
+						break
+					}
+
 				}
 
 			}
 
+			var reverseCategoryOrder []categories.TblCategory
+
+			for i := len(categorynames) - 1; i >= 0; i-- {
+
+				reverseCategoryOrder = append(reverseCategoryOrder, categorynames[i])
+
+			}
+
+			space.CategoryNames = reverseCategoryOrder
+
+			space.CreatedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+			if !space.ModifiedOn.IsZero() {
+
+				space.ModifiedDate = space.ModifiedOn.Format("02 Jan 2006 03:04 PM")
+
+			} else {
+
+				space.ModifiedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+			}
+			SpaceDetails = append(SpaceDetails, space)
 		}
-
-		var reverseCategoryOrder []categories.TblCategory
-
-		for i := len(categorynames) - 1; i >= 0; i-- {
-
-			reverseCategoryOrder = append(reverseCategoryOrder, categorynames[i])
-
-		}
-
-		space.CategoryNames = reverseCategoryOrder
-
-		space.CreatedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
-
-		if !space.ModifiedOn.IsZero() {
-
-			space.ModifiedDate = space.ModifiedOn.Format("02 Jan 2006 03:04 PM")
-
-		} else {
-
-			space.ModifiedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
-
-		}
-		SpaceDetails = append(SpaceDetails, space)
 
 	}
 
@@ -570,7 +573,7 @@ func (s Space) DeleteSpace(spaceid int) error {
 			SP.DeletePageGroupAliases(&pggroupalidel, pagegroupid, s.Authority.DB)
 
 		}
-		
+
 		return nil
 
 	}

@@ -132,6 +132,8 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 
 			subpage.OrderIndex = page_aliases.PageSuborder
 
+			subpage.CreatedDate = page_aliases.CreatedOn
+
 			subpage.LastUpdate = page_aliases.ModifiedOn
 
 			subpage.Username = page_aliases.Username
@@ -157,6 +159,8 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 			one_page.Pgroupid = page.PageGroupId
 
 			one_page.ParentId = page.ParentId
+
+			one_page.CreatedDate = page_aliases.CreatedOn
 
 			one_page.LastUpdate = page_aliases.ModifiedOn
 

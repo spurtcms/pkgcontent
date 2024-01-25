@@ -679,7 +679,7 @@ func (SP SPM) GetPageGroupDetailsBySpaceId(getpagegrp *[]TblPagesGroup, id int, 
 	return getpagegrp, nil
 }
 
-// delete page group 
+// delete page group
 func (SP SPM) SpaceDeletePageGroup(tblpage *TblPagesGroup, id int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_pages_group").Where("tbl_pages_group.id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": tblpage.IsDeleted, "deleted_on": tblpage.DeletedOn, "deleted_by": tblpage.DeletedBy}).Error; err != nil {

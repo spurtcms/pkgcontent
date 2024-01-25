@@ -50,17 +50,18 @@ type PageGroups struct {
 }
 
 type Pages struct {
-	PgId       int
-	NewPgId    int
-	Name       string
-	Content    string `json:"Content"`
-	Pgroupid   int
-	NewGrpId   int
-	OrderIndex int `json:"OrderIndex"`
-	ParentId   int
-	LastUpdate time.Time
-	Date       string
-	Username   string
+	PgId        int
+	NewPgId     int
+	Name        string
+	Content     string `json:"Content"`
+	Pgroupid    int
+	NewGrpId    int
+	OrderIndex  int `json:"OrderIndex"`
+	ParentId    int
+	CreatedDate time.Time
+	LastUpdate  time.Time
+	Date        string
+	Username    string
 }
 
 type SubPages struct {
@@ -73,9 +74,10 @@ type SubPages struct {
 	PgroupId    int
 	NewPgroupId int
 	OrderIndex  int `json:"OrderIndex"`
-	LastUpdate time.Time
-	Date       string
-	Username   string
+	CreatedDate time.Time
+	LastUpdate  time.Time
+	Date        string
+	Username    string
 }
 
 type TblPage struct {
@@ -125,7 +127,7 @@ type TblPageAliases struct {
 	PageSuborder     int
 	CreatedDate      string `gorm:"-"`
 	ModifiedDate     string `gorm:"-"`
-	Username         string `gorm:"-"`
+	Username         string `gorm:"<-:false"`
 	PageGroupId      int    `gorm:"-:migration;<-:false"`
 	ParentId         int    `gorm:"-:migration;<-:false"`
 	LastRevisionDate time.Time
@@ -281,7 +283,7 @@ func (P PageStrut) UpdatePage(tblpage *TblPage, pageid int, DB *gorm.DB) error {
 /*update pagealiases*/
 func (P PageStrut) UpdatePageAliase(tblpageali *TblPageAliases, pageid int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_page_aliases").Where("page_id=?", pageid).UpdateColumns(map[string]interface{}{
+	if err := DB.Debug().Table("tbl_page_aliases").Where("page_id=?", pageid).UpdateColumns(map[string]interface{}{
 		"page_title": tblpageali.PageTitle, "page_slug": tblpageali.PageSlug, "modified_on": tblpageali.ModifiedOn,
 		"modified_by": tblpageali.ModifiedBy, "page_description": tblpageali.PageDescription, "order_index": tblpageali.OrderIndex, "status": tblpageali.Status}).Error; err != nil {
 		return err
@@ -344,7 +346,7 @@ func (P PageStrut) PageGroup(tblpagegroup *TblPagesGroupAliases, id int, DB *gor
 
 func (P PageStrut) PageAliases(tblpagegroup *TblPageAliases, id int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_page_aliases").Select("tbl_page_aliases.*,tbl_page.page_group_id").Joins("inner join tbl_page on tbl_page.id = tbl_page_aliases.page_id").Where("page_id = ? and tbl_page.is_deleted=0 and tbl_page_aliases.is_deleted=0", id).Find(&tblpagegroup).Error; err != nil {
+	if err := DB.Table("tbl_page_aliases").Select("tbl_page_aliases.*,tbl_page.page_group_id,tbl_users.username").Joins("inner join tbl_page on tbl_page.id = tbl_page_aliases.page_id").Joins("inner join tbl_users on tbl_users.id = tbl_page_aliases.created_by").Where("page_id = ? and tbl_page.is_deleted=0 and tbl_page_aliases.is_deleted=0", id).Find(&tblpagegroup).Error; err != nil {
 
 		return err
 
