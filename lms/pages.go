@@ -1697,17 +1697,23 @@ func (p Page) InsertPage1(Pagec PageCreate) error {
 
 		pgid = val.ParentId
 
+		newpgid := val.NewParentId
+
 		if val.NewParentId != 0 {
 
 			for _, pg := range Pagec.NewPages {
 
-				var getpage TblPageAliases
+				if pg.PgId == pgid && pg.NewPgId == newpgid {
 
-				PG.GetPageDataByName(&getpage, spaceId, pg.Name, p.Authority.DB)
+					var getpage TblPageAliases
 
-				pgid = getpage.PageId
+					PG.GetPageDataByName(&getpage, spaceId, pg.Name, p.Authority.DB)
 
-				break
+					pgid = getpage.PageId
+
+					break
+				}
+
 			}
 		}
 
