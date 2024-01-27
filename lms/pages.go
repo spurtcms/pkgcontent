@@ -112,6 +112,35 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 
 	for _, page := range page {
 
+		var pagelog []TblPageAliasesLog
+
+		PG.GetPageLogDetailsByPageId(&pagelog, spaceid, page.Id, p.Authority.DB)
+
+		var finallog []PageLog
+
+		for _, val := range pagelog {
+
+			var log PageLog
+
+			log.Username = val.Username
+
+			if val.ModifiedOn.IsZero() {
+
+				log.Status = "draft"
+			} else {
+				log.Status = "Updated"
+			}
+
+			if val.Status == "publish" {
+				log.Status = val.Status
+			}
+
+			log.Date = val.CreatedOn
+
+			finallog = append(finallog, log)
+
+		}
+
 		var page_aliases TblPageAliases
 
 		if page.ParentId != 0 {
@@ -137,6 +166,8 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 			subpage.LastUpdate = page_aliases.ModifiedOn
 
 			subpage.Username = page_aliases.Username
+
+			subpage.Log = finallog
 
 			subpages = append(subpages, subpage)
 
@@ -165,6 +196,8 @@ func (p Page) PageList(spaceid int) ([]PageGroups, []Pages, []SubPages, error) {
 			one_page.LastUpdate = page_aliases.ModifiedOn
 
 			one_page.Username = page_aliases.Username
+
+			one_page.Log = finallog
 
 			pages = append(pages, one_page)
 
@@ -2017,6 +2050,59 @@ func (p Page) InsertPage1(Pagec PageCreate) error {
 		pagelog.Access = "public"
 
 		PG.PageAliasesLog(&pagelog, p.Authority.DB)
+
+	}
+
+	if status == "publish" && len(Pagec.NewPages) == 0 && len(Pagec.NewSubPage) == 0 && len(Pagec.UpdatePages) == 0 && len(Pagec.UpdateSubPage) == 0 {
+
+		var page []TblPage
+
+		PG.SelectPage(&page, spaceId, []int{}, p.Authority.DB)
+
+		var id []int
+
+		for _, val := range page {
+
+			id = append(id, val.Id)
+
+			var page TblPageAliases
+
+			PG.PageAliases(&page, val.Id, p.Authority.DB)
+
+			/*This is for log*/
+			var pagelog TblPageAliasesLog
+
+			pagelog.PageId = val.Id
+
+			pagelog.PageTitle = page.PageTitle
+
+			pagelog.LanguageId = 1
+
+			pagelog.PageSlug = strings.ToLower(strings.ReplaceAll(page.PageTitle, " ", "_"))
+
+			pagelog.PageDescription = page.PageDescription
+
+			pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			pagelog.CreatedBy = userid
+
+			pagelog.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			pagelog.ModifiedBy = userid
+
+			pagelog.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			pagelog.DeletedBy = userid
+
+			pagelog.Status = "publish"
+
+			pagelog.Access = "public"
+
+			PG.PageAliasesLog(&pagelog, p.Authority.DB)
+
+		}
+
+		PG.UpdatePageAliasePublishStatus(id, userid, p.Authority.DB)
 
 	}
 

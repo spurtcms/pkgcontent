@@ -700,3 +700,13 @@ func (SP SPM) DeletePageGroupAliases(tblpageali *TblPagesGroupAliases, id int, D
 
 	return nil
 }
+
+// get last update
+func (SP SPM) GetLastUpdatePageAliases(tblpageali *TblPageAliases, spaceid int, DB *gorm.DB) error {
+
+	if err := DB.Debug().Table("tbl_page_aliases").Select("max(tbl_page_aliases.modified_on) as modified_on").Joins("inner join tbl_page on tbl_page.Id = tbl_page_aliases.page_id").Where("tbl_page.spaces_Id=?", spaceid).Group("tbl_page_aliases.id").First(tblpageali).Error; err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -62,6 +62,7 @@ type Pages struct {
 	LastUpdate  time.Time
 	Date        string
 	Username    string
+	Log         []PageLog
 }
 
 type SubPages struct {
@@ -78,6 +79,7 @@ type SubPages struct {
 	LastUpdate  time.Time
 	Date        string
 	Username    string
+	Log         []PageLog
 }
 
 type TblPage struct {
@@ -292,6 +294,18 @@ func (P PageStrut) UpdatePageAliase(tblpageali *TblPageAliases, pageid int, DB *
 	return nil
 }
 
+/*update pagealiases*/
+func (P PageStrut) UpdatePageAliasePublishStatus(pageid []int, userid int, DB *gorm.DB) error {
+
+	Formatdate, _ := time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+	if err := DB.Debug().Table("tbl_page_aliases").Where("page_id in (?)", pageid).UpdateColumns(map[string]interface{}{"status": "publish", "modified_on": Formatdate, "modified_by": userid}).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (P PageStrut) SelectGroup(tblgroup *[]TblPagesGroup, id int, grpid []int, DB *gorm.DB) error {
 
 	query := DB.Table("tbl_pages_group").Where("spaces_id = ? and is_deleted=0", id)
@@ -470,7 +484,7 @@ func (P PageStrut) CreatePage(tblpage *TblPage, DB *gorm.DB) (*TblPage, error) {
 /*Create page log*/
 func (P PageStrut) PageAliasesLog(tblpagelog *TblPageAliasesLog, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_page_aliases_log").Create(&tblpagelog).Error; err != nil {
+	if err := DB.Debug().Table("tbl_page_aliases_log").Create(&tblpagelog).Error; err != nil {
 
 		return err
 	}
@@ -482,6 +496,17 @@ func (P PageStrut) PageAliasesLog(tblpagelog *TblPageAliasesLog, DB *gorm.DB) er
 func (P PageStrut) GetPageLogDetails(tblpagelog *[]TblPageAliasesLog, spaceid int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_page_aliases_log").Select("tbl_page_aliases_log.created_by,tbl_page_aliases_log.created_on,tbl_page_aliases_log.status,tbl_users.username,max(TBL_PAGE_ALIASES_LOG.modified_by) as modified_by,max(TBL_PAGE_ALIASES_LOG.modified_on) as modified_on").Joins("inner join tbl_page on tbl_page.id = tbl_page_aliases_log.page_id").Joins("inner join tbl_users on tbl_users.id = tbl_page_aliases_log.created_by").Where("tbl_page.spaces_id=?", spaceid).Group("tbl_page_aliases_log.created_by,tbl_page_aliases_log.created_on,tbl_page_aliases_log.status,tbl_users.username").Order("tbl_page_aliases_log.created_on desc").Find(&tblpagelog).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+/*Get page log*/
+func (P PageStrut) GetPageLogDetailsByPageId(tblpagelog *[]TblPageAliasesLog, spaceid int, pageid int, DB *gorm.DB) error {
+
+	if err := DB.Debug().Table("tbl_page_aliases_log").Select("tbl_page_aliases_log.created_by,tbl_page_aliases_log.created_on,tbl_page_aliases_log.status,tbl_users.username,max(TBL_PAGE_ALIASES_LOG.modified_by) as modified_by,max(TBL_PAGE_ALIASES_LOG.modified_on) as modified_on").Joins("inner join tbl_page on tbl_page.id = tbl_page_aliases_log.page_id").Joins("inner join tbl_users on tbl_users.id = tbl_page_aliases_log.created_by").Where("tbl_page.spaces_id=? and page_id = ? ", spaceid, pageid).Group("tbl_page_aliases_log.created_by,tbl_page_aliases_log.created_on,tbl_page_aliases_log.status,tbl_users.username").Order("tbl_page_aliases_log.created_on desc").Find(&tblpagelog).Error; err != nil {
 
 		return err
 	}

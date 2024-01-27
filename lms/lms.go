@@ -179,6 +179,10 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 			}
 
+			var pageupd TblPageAliases
+
+			SP.GetLastUpdatePageAliases(&pageupd, space.Id, s.Authority.DB)
+
 			space.SpaceFullDescription = space.SpacesDescription
 
 			Spiltdescription := truncateDescription(space.SpacesDescription, 110)
@@ -189,15 +193,23 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 			space.CreatedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
 
-			if !space.ModifiedOn.IsZero() {
+			if !pageupd.ModifiedOn.IsZero() {
 
-				space.ModifiedDate = space.ModifiedOn.Format("02 Jan 2006 03:04 PM")
+				space.ModifiedDate = pageupd.ModifiedOn.Format("02 Jan 2006 03:04 PM")
 
 			} else {
 
-				space.ModifiedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
+				if !space.ModifiedOn.IsZero() {
 
+					space.ModifiedDate = space.ModifiedOn.Format("02 Jan 2006 03:04 PM")
+
+				} else {
+
+					space.ModifiedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+				}
 			}
+
 			SpaceDetails = append(SpaceDetails, space)
 
 		}
