@@ -310,11 +310,11 @@ func (P PageStrut) SelectGroup(tblgroup *[]TblPagesGroup, id int, grpid []int, D
 
 	query := DB.Table("tbl_pages_group").Where("spaces_id = ? and is_deleted=0", id)
 
-	if len(grpid) != 0 {
+	// if len(grpid) != 0 {
 
-		query = query.Where("id in (?)", grpid)
+	// 	query = query.Where("id in (?)", grpid)
 
-	}
+	// }
 
 	query.Find(&tblgroup)
 
@@ -331,11 +331,11 @@ func (P PageStrut) SelectPage(tblpage *[]TblPage, id int, pgid []int, DB *gorm.D
 
 	query := DB.Table("tbl_page").Where("spaces_id = ? and is_deleted =0 ", id)
 
-	if len(pgid) != 0 {
+	// if len(pgid) != 0 {
 
-		query = query.Where("id in (?)", pgid)
+	// 	query = query.Where("id in (?)", pgid)
 
-	}
+	// }
 
 	query.Find(&tblpage)
 
