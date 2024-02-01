@@ -104,11 +104,11 @@ func (c Authstruct) GetSubCategoryList(categories *[]TblCategory, offset int, li
 	if filter.Keyword != "" {
 
 		if limit == 0 {
-			query = query.Raw(` `+res+` select count(*) from cat_tree where LOWER(TRIM(category_name)) ILIKE LOWER(TRIM(?)) group by cat_tree.id `, parent_id, "%"+filter.Keyword+"%").Count(&categorycount)
+			query.Raw(` `+res+` select count(*) from cat_tree where is_deleted = 0 and LOWER(TRIM(category_name)) ILIKE LOWER(TRIM(?)) group by cat_tree.id `, parent_id, "%"+filter.Keyword+"%").Count(&categorycount)
 
 			return categories, categorycount
 		}
-		query = query.Raw(` `+res+` select * from cat_tree where LOWER(TRIM(category_name)) ILIKE LOWER(TRIM(?)) limit(?) offset(?) `, parent_id, "%"+filter.Keyword+"%", limit, offset)
+		query = query.Raw(` `+res+` select * from cat_tree where is_deleted = 0 and LOWER(TRIM(category_name)) ILIKE LOWER(TRIM(?)) limit(?) offset(?) `, parent_id, "%"+filter.Keyword+"%", limit, offset)
 	} else if flag == 0 {
 		query = query.Raw(``+res+` SELECT * FROM cat_tree where is_deleted = 0 and id not in (?) order by id desc limit(?) offset(?) `, parent_id, parent_id, limit, offset)
 	} else if flag == 1 {

@@ -267,13 +267,13 @@ func (SP SPM) ClonePagesGroup(pagegroup *TblPagesGroupAliases, DB *gorm.DB) erro
 /*Update Space*/
 func (SP SPM) EditSpace(tblspace *TblSpacesAliases, id int, DB *gorm.DB) error {
 
-	if tblspace.ImagePath != "" {
+	// if tblspace.ImagePath != "" {
 		DB.Table("tbl_spaces_aliases").Where("spaces_id = ?", tblspace.Id).UpdateColumns(map[string]interface{}{"spaces_name": tblspace.SpacesName, "spaces_description": tblspace.SpacesDescription, "spaces_slug": tblspace.SpacesSlug, "image_path": tblspace.ImagePath, "modified_by": tblspace.ModifiedBy, "modified_on": tblspace.ModifiedOn})
 
-	} else {
-		DB.Table("tbl_spaces_aliases").Where("spaces_id = ?", tblspace.Id).UpdateColumns(map[string]interface{}{"spaces_name": tblspace.SpacesName, "spaces_description": tblspace.SpacesDescription, "spaces_slug": tblspace.SpacesSlug, "modified_by": tblspace.ModifiedBy, "modified_on": tblspace.ModifiedOn})
+	// } else {
+	// 	DB.Table("tbl_spaces_aliases").Where("spaces_id = ?", tblspace.Id).UpdateColumns(map[string]interface{}{"spaces_name": tblspace.SpacesName, "spaces_description": tblspace.SpacesDescription, "spaces_slug": tblspace.SpacesSlug, "modified_by": tblspace.ModifiedBy, "modified_on": tblspace.ModifiedOn})
 
-	}
+	// }
 	return nil
 }
 
@@ -591,7 +591,7 @@ func (SP SPM) CheckSpaceName(space *TblSpacesAliases, userid int, name string, D
 		}
 	} else {
 
-		if err := DB.Table("tbl_spaces_aliases").Where("LOWER(TRIM(spaces_name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0", name, userid).First(&space).Error; err != nil {
+		if err := DB.Table("tbl_spaces_aliases").Where("LOWER(TRIM(spaces_name))=LOWER(TRIM(?)) and spaces_id not in (?) and is_deleted=0", name, userid).First(&space).Error; err != nil {
 
 			return err
 		}

@@ -44,8 +44,6 @@ func MigrateTable(db *gorm.DB) {
 	db.Exec(`INSERT INTO PUBLIC.TBL_LANGUAGE(ID,LANGUAGE_NAME,LANGUAGE_CODE,JSON_PATH,IS_STATUS,IS_DEFAULT,	CREATED_BY,CREATED_ON,IS_DELETED) VALUES (1,'English', 'en', 'locales/en.json', 1, 1,1, '2023-09-11 11:27:44',0)`)
 }
 
-var IST, _ = time.LoadLocation("Asia/Kolkata")
-
 /*SpaceDetail*/
 func (s Space) SpaceDetail(spaceid int) (space TblSpaces, err error) {
 
@@ -77,16 +75,16 @@ func (s Space) SpaceDetail(spaceid int) (space TblSpaces, err error) {
 
 		tblspace.SpaceName = spacename.SpacesName
 
-		tblspace.CreatedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
+		// tblspace.CreatedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
 
-		if tblspace.ModifiedOn.IsZero() {
+		// if tblspace.ModifiedOn.IsZero() {
 
-			tblspace.ModifiedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
+		// 	tblspace.ModifiedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
 
-		} else {
+		// } else {
 
-			tblspace.ModifiedDate = tblspace.ModifiedOn.Format("02 Jan 2006 3:04 PM")
-		}
+		// 	tblspace.ModifiedDate = tblspace.ModifiedOn.Format("02 Jan 2006 3:04 PM")
+		// }
 
 		return tblspace, err1
 
@@ -190,25 +188,6 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 			space.SpacesDescription = Spiltdescription
 
 			space.CategoryNames = reverseCategoryOrder
-
-			space.CreatedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
-
-			if !pageupd.ModifiedOn.IsZero() {
-
-				space.ModifiedDate = pageupd.ModifiedOn.Format("02 Jan 2006 03:04 PM")
-
-			} else {
-
-				if !space.ModifiedOn.IsZero() {
-
-					space.ModifiedDate = space.ModifiedOn.Format("02 Jan 2006 03:04 PM")
-
-				} else {
-
-					space.ModifiedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
-
-				}
-			}
 
 			SpaceDetails = append(SpaceDetails, space)
 
@@ -349,7 +328,7 @@ func (s Space) SpaceCreation(SPC SpaceCreation) error {
 
 		spaces.PageCategoryId = SPC.CategoryId
 
-		spaces.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		spaces.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		spaces.CreatedBy = userid
 
@@ -368,7 +347,7 @@ func (s Space) SpaceCreation(SPC SpaceCreation) error {
 
 		space.LanguageId = SPC.LanguageId
 
-		space.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		space.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		space.CreatedBy = userid
 
@@ -429,11 +408,11 @@ func (s Space) SpaceUpdate(SPC SpaceCreation, spaceid int) error {
 
 		spaces.ImagePath = SPC.ImagePath
 
-		spaces.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		spaces.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		spaces.ModifiedBy = userid
 
-		space.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		space.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		space.ModifiedBy = userid
 
@@ -482,19 +461,19 @@ func (s Space) DeleteSpace(spaceid int) error {
 
 		var pageali TblPageAliases
 
-		spaces.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		spaces.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		spaces.DeletedBy = userid
 
 		spaces.IsDeleted = 1
 
-		space.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		space.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		space.DeletedBy = userid
 
 		space.IsDeleted = 1
 
-		var deletedon, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		var deletedon, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		var deletedby = userid
 
@@ -534,7 +513,7 @@ func (s Space) DeleteSpace(spaceid int) error {
 
 			var pg TblPage
 
-			pg.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+			pg.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 			pg.DeletedBy = userid
 
@@ -544,7 +523,7 @@ func (s Space) DeleteSpace(spaceid int) error {
 
 			var pgali TblPageAliases
 
-			pgali.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+			pgali.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 			pgali.DeletedBy = userid
 
@@ -570,7 +549,7 @@ func (s Space) DeleteSpace(spaceid int) error {
 
 			pggroupdel.IsDeleted = 1
 
-			pggroupdel.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+			pggroupdel.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 			SP.SpaceDeletePageGroup(&pggroupdel, pagegroupid, s.Authority.DB)
 
@@ -580,7 +559,7 @@ func (s Space) DeleteSpace(spaceid int) error {
 
 			pggroupalidel.IsDeleted = 1
 
-			pggroupalidel.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+			pggroupalidel.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 			SP.DeletePageGroupAliases(&pggroupalidel, pagegroupid, s.Authority.DB)
 
@@ -626,11 +605,11 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 	spaceid := clonespaceid
 
-	spaces.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+	spaces.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	spaces.CreatedBy = userid
 
-	space.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+	space.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	space.CreatedBy = userid
 
@@ -655,6 +634,8 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		group.SpacesId = tblspaces.Id
 
+		group.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
 		groups, _ := SP.CloneSpaceInPagesGroup(&group, s.Authority.DB)
 
 		// var pagegroup TblPagesGroupAliases
@@ -662,6 +643,8 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 		pagegroup := value
 
 		pagegroup.PageGroupId = groups.Id
+
+		pagegroup.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		SP.ClonePagesGroup(&pagegroup, s.Authority.DB)
 	}
@@ -680,6 +663,8 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		page.ParentId = 0
 
+		page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
 		pageid, _ := SP.ClonePage(&page, s.Authority.DB)
 
 		// var pagesali TblPageAliases
@@ -687,6 +672,8 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 		pagesali := val
 
 		pagesali.PageId = pageid.Id
+
+		pagesali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05")) 
 
 		SP.ClonePages(&pagesali, s.Authority.DB)
 
@@ -718,6 +705,8 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		page.ParentId = 0
 
+		page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05")) 
+
 		pagess, _ := SP.ClonePage(&page, s.Authority.DB)
 
 		// var pagesali TblPageAliases
@@ -725,6 +714,8 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 		pagesali := value
 
 		pagesali.PageId = pagess.Id
+
+		pagesali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05")) 
 
 		SP.ClonePages(&pagesali, s.Authority.DB)
 
@@ -767,6 +758,8 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 		page.PageGroupId = newgroupid
 
 		page.ParentId = pageali.PageId
+
+		page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05")) 
 
 		pagealiid, _ := SP.ClonePage(&page, s.Authority.DB)
 
@@ -909,9 +902,6 @@ func (s Space) CheckSpaceName(id int, name string) (bool, error) {
 		err := SP.CheckSpaceName(&space, id, name, s.Authority.DB)
 
 		if err != nil {
-			return false, err
-		}
-		if space.Id == 0 {
 
 			return false, err
 		}
