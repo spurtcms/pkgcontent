@@ -288,3 +288,23 @@ func (c Authstruct) CheckCategoryGroupName(category TblCategory, userid int, nam
 
 	return nil
 }
+
+// Check sub category name already exists
+func (c Authstruct) CheckSubCategoryName(category TblCategory, categoryid int, name string, DB *gorm.DB) error {
+
+	if categoryid == 0 {
+
+		if err := DB.Debug().Model(TblCategory{}).Where("LOWER(TRIM(category_name))=LOWER(TRIM(?)) and is_deleted=0", name).First(&category).Error; err != nil {
+
+			return err
+		}
+	} else {
+
+		if err := DB.Debug().Model(TblCategory{}).Where("LOWER(TRIM(category_name))=LOWER(TRIM(?)) and parent_id not in (?) and is_deleted=0", name, categoryid).First(&category).Error; err != nil {
+
+			return err
+		}
+	}
+
+	return nil
+}

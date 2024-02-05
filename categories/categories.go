@@ -1025,3 +1025,36 @@ func (c Category) AllCategoriesWithSubList() (arrangecategories []Arrangecategor
 	return FinalCategoryList, Categorynames
 
 }
+
+// Check Sub category name already exists
+
+func (c Category) CheckSubCategroyName(id int, name string) (bool, error) {
+
+	_, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, err := c.Authority.IsGranted("Categories", auth.Create)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+
+		var category TblCategory
+
+		err := C.CheckSubCategoryName(category, id, name, c.Authority.DB)
+
+		if err != nil {
+			return false, err
+		}
+
+	}
+
+	return true, nil
+}
