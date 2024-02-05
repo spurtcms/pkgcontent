@@ -1027,8 +1027,7 @@ func (c Category) AllCategoriesWithSubList() (arrangecategories []Arrangecategor
 }
 
 // Check Sub category name already exists
-
-func (c Category) CheckSubCategroyName(id int, name string) (bool, error) {
+func (c Category) CheckSubCategroyName(id []int, name string) (bool, error) {
 
 	_, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
 
