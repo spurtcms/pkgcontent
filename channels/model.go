@@ -350,7 +350,7 @@ func (Ch ChannelStruct) ChannelIsActive(tblch *TblChannel, id, val int, DB *gorm
 /*channel list*/
 func (Ch ChannelStruct) Channellist(chn *[]TblChannel, limit, offset int, filter Filter, activestatus bool, roleid int, flg bool, DB *gorm.DB) (chcount int64, error error) {
 
-	query := DB.Debug().Table("tbl_channels").Where("is_deleted = 0").Order("id desc")
+	query := DB.Table("tbl_channels").Where("is_deleted = 0").Order("id desc")
 
 	if roleid != 1 && flg {
 
@@ -509,7 +509,7 @@ func (Ch ChannelStruct) UpdateChannelDetails(chn *TblChannel, id int, DB *gorm.D
 /*Update Field Details*/
 func (Ch ChannelStruct) UpdateFieldDetails(fds *TblField, id int, DB *gorm.DB) error {
 
-	if err := DB.Debug().Table("tbl_fields").Where("id=?", id).UpdateColumns(map[string]interface{}{"field_name": fds.FieldName, "field_desc": fds.FieldDesc, "mandatory_field": fds.MandatoryField, "datetime_format": fds.DatetimeFormat, "time_format": fds.TimeFormat, "initial_value": fds.InitialValue, "placeholder": fds.Placeholder, "modified_on": fds.ModifiedOn, "modified_by": fds.ModifiedBy, "order_index": fds.OrderIndex, "url": fds.Url, "character_allowed": fds.CharacterAllowed}).Error; err != nil {
+	if err := DB.Table("tbl_fields").Where("id=?", id).UpdateColumns(map[string]interface{}{"field_name": fds.FieldName, "field_desc": fds.FieldDesc, "mandatory_field": fds.MandatoryField, "datetime_format": fds.DatetimeFormat, "time_format": fds.TimeFormat, "initial_value": fds.InitialValue, "placeholder": fds.Placeholder, "modified_on": fds.ModifiedOn, "modified_by": fds.ModifiedBy, "order_index": fds.OrderIndex, "url": fds.Url, "character_allowed": fds.CharacterAllowed}).Error; err != nil {
 
 		return err
 	}
@@ -930,7 +930,7 @@ func (Ch ChannelStruct) Newchannels(DB *gorm.DB) (chn []TblChannel, err error) {
 
 func (Ch ChannelStruct) Newentries(DB *gorm.DB) (entries []TblChannelEntries, err error) {
 
-	if err := DB.Debug().Table("tbl_channel_entries").Select("tbl_channel_entries.*,tbl_users.username,tbl_users.profile_image_path").
+	if err := DB.Table("tbl_channel_entries").Select("tbl_channel_entries.*,tbl_users.username,tbl_users.profile_image_path").
 		Joins("inner join tbl_users on tbl_users.id = tbl_channel_entries.created_by").Where("tbl_channel_entries.is_deleted=0 and tbl_channel_entries.created_on >=?", time.Now().Add(-24*time.Hour).Format("2006-01-02 15:04:05")).
 		Order("created_on desc").Limit(6).Find(&entries).Error; err != nil {
 

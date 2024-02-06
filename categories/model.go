@@ -144,12 +144,12 @@ func (c Authstruct) UpdateCategory(category *TblCategory, DB *gorm.DB) error {
 
 	if category.ParentId == 0 && category.ImagePath == "" {
 
-		if err := DB.Debug().Table("tbl_categories").Where("id = ?", category.Id).UpdateColumns(map[string]interface{}{"category_name": category.CategoryName, "category_slug": category.CategorySlug, "description": category.Description, "modified_by": category.ModifiedBy, "modified_on": category.ModifiedOn}).Error; err != nil {
+		if err := DB.Table("tbl_categories").Where("id = ?", category.Id).UpdateColumns(map[string]interface{}{"category_name": category.CategoryName, "category_slug": category.CategorySlug, "description": category.Description, "modified_by": category.ModifiedBy, "modified_on": category.ModifiedOn}).Error; err != nil {
 
 			return err
 		}
 	} else {
-		if err := DB.Debug().Table("tbl_categories").Where("id = ?", category.Id).UpdateColumns(map[string]interface{}{"category_name": category.CategoryName, "parent_id": category.ParentId, "category_slug": category.CategorySlug, "description": category.Description, "image_path": category.ImagePath, "modified_by": category.ModifiedBy, "modified_on": category.ModifiedOn}).Error; err != nil {
+		if err := DB.Table("tbl_categories").Where("id = ?", category.Id).UpdateColumns(map[string]interface{}{"category_name": category.CategoryName, "parent_id": category.ParentId, "category_slug": category.CategorySlug, "description": category.Description, "image_path": category.ImagePath, "modified_by": category.ModifiedBy, "modified_on": category.ModifiedOn}).Error; err != nil {
 
 			return err
 		}
@@ -290,17 +290,17 @@ func (c Authstruct) CheckCategoryGroupName(category TblCategory, userid int, nam
 }
 
 // Check sub category name already exists
-func (c Authstruct) CheckSubCategoryName(category TblCategory, categoryid []int, name string, DB *gorm.DB) error {
+func (c Authstruct) CheckSubCategoryName(category TblCategory, categoryid []int, currentid int, name string, DB *gorm.DB) error {
 
 	if len(categoryid) == 0 {
 
-		if err := DB.Debug().Model(TblCategory{}).Where("LOWER(TRIM(category_name))=LOWER(TRIM(?)) and is_deleted=0", name).First(&category).Error; err != nil {
+		if err := DB.Model(TblCategory{}).Where("LOWER(TRIM(category_name))=LOWER(TRIM(?)) and is_deleted=0", name).First(&category).Error; err != nil {
 
 			return err
 		}
 	} else {
 
-		if err := DB.Debug().Model(TblCategory{}).Where("LOWER(TRIM(category_name))=LOWER(TRIM(?)) and id in (?) and is_deleted=0", name, categoryid).First(&category).Error; err != nil {
+		if err := DB.Model(TblCategory{}).Where("LOWER(TRIM(category_name))=LOWER(TRIM(?)) and id in (?) and id not in (?) and is_deleted=0", name, categoryid, currentid).First(&category).Error; err != nil {
 
 			return err
 		}

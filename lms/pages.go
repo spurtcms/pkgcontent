@@ -1903,9 +1903,9 @@ func (p Page) InsertPage1(Pagec PageCreate) error {
 
 		pagelog.PageDescription = val.Content
 
-		// pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+		pagelog.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-		// pagelog.CreatedBy = userid
+		pagelog.CreatedBy = userid
 
 		pagelog.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 

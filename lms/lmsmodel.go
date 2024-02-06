@@ -602,7 +602,7 @@ func (SP SPM) CheckSpaceName(space *TblSpacesAliases, userid int, name string, D
 
 func (SP SPM) PublishPageSpaceList(tblspace *[]TblSpacesAliases, langId int, limit int, offset int, filter Filter, cid []int, DB *gorm.DB) (spacecount int64, err error) {
 
-	query := DB.Debug().Table("tbl_spaces_aliases").Select("distinct(tbl_spaces_aliases.id), tbl_spaces_aliases.*,tbl_spaces.page_category_id,tbl_categories.parent_id , tbl_page_aliases.status").
+	query := DB.Table("tbl_spaces_aliases").Select("distinct(tbl_spaces_aliases.id), tbl_spaces_aliases.*,tbl_spaces.page_category_id,tbl_categories.parent_id , tbl_page_aliases.status").
 		Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
 		Joins("inner join tbl_language on tbl_language.id = tbl_spaces_aliases.language_id").
 		Joins("inner join tbl_categories on tbl_categories.id = tbl_spaces.page_category_id").
@@ -704,7 +704,7 @@ func (SP SPM) DeletePageGroupAliases(tblpageali *TblPagesGroupAliases, id int, D
 // get last update
 func (SP SPM) GetLastUpdatePageAliases(tblpageali *TblPageAliases, spaceid int, DB *gorm.DB) error {
 
-	if err := DB.Debug().Table("tbl_page_aliases").Select("max(tbl_page_aliases.modified_on) as modified_on").Joins("inner join tbl_page on tbl_page.Id = tbl_page_aliases.page_id").Where("tbl_page.spaces_Id=?", spaceid).Group("tbl_page_aliases.id").First(tblpageali).Error; err != nil {
+	if err := DB.Table("tbl_page_aliases").Select("max(tbl_page_aliases.modified_on) as modified_on").Joins("inner join tbl_page on tbl_page.Id = tbl_page_aliases.page_id").Where("tbl_page.spaces_Id=?", spaceid).Group("tbl_page_aliases.id").First(tblpageali).Error; err != nil {
 		return err
 	}
 

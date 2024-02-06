@@ -1027,7 +1027,7 @@ func (c Category) AllCategoriesWithSubList() (arrangecategories []Arrangecategor
 }
 
 // Check Sub category name already exists
-func (c Category) CheckSubCategroyName(id []int, name string) (bool, error) {
+func (c Category) CheckSubCategroyName(id []int, Currentcategoryid int, name string) (bool, error) {
 
 	_, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
 
@@ -1047,7 +1047,7 @@ func (c Category) CheckSubCategroyName(id []int, name string) (bool, error) {
 
 		var category TblCategory
 
-		err := C.CheckSubCategoryName(category, id, name, c.Authority.DB)
+		err := C.CheckSubCategoryName(category, id, Currentcategoryid, name, c.Authority.DB)
 
 		if err != nil {
 			return false, err
