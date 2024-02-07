@@ -77,7 +77,7 @@ func (Ch Channel) GetChannels(limit, offset int, filter Filter, activestatus boo
 
 			}
 
-			entrcount, _ := CH.ChannelEntryList(&[]TblChannelEntries{}, 0, 0, val.Id, EntriesFilter{}, false, roleid, Ch.Authority.DB)
+			entrcount, _ := CH.ChannelEntryList(&[]TblChannelEntries{}, 0, 0, val.Id, EntriesFilter{}, false, roleid, false, Ch.Authority.DB)
 
 			val.EntriesCount = int(entrcount)
 
@@ -137,7 +137,7 @@ func (Ch Channel) GetPermissionChannels(limit, offset int, filter Filter, active
 
 		}
 
-		entrcount, _ := CH.ChannelEntryList(&[]TblChannelEntries{}, 0, 0, val.Id, EntriesFilter{}, false, roleid, Ch.Authority.DB)
+		entrcount, _ := CH.ChannelEntryList(&[]TblChannelEntries{}, 0, 0, val.Id, EntriesFilter{}, false, roleid, false, Ch.Authority.DB)
 
 		val.EntriesCount = int(entrcount)
 
@@ -1063,13 +1063,13 @@ func (Ch Channel) GetAllChannelEntriesList(channelid int, limit, offset int, fil
 	}
 	var chnentry []TblChannelEntries
 
-	CH.ChannelEntryList(&chnentry, limit, offset, channelid, filter, false, roleid, Ch.Authority.DB)
+	CH.ChannelEntryList(&chnentry, limit, offset, channelid, filter, false, roleid, true, Ch.Authority.DB)
 
 	var chnentry1 []TblChannelEntries
 
-	filtercount, _ := CH.ChannelEntryList(&chnentry1, 0, 0, channelid, filter, false, roleid, Ch.Authority.DB)
+	filtercount, _ := CH.ChannelEntryList(&chnentry1, 0, 0, channelid, filter, false, roleid, true, Ch.Authority.DB)
 
-	entrcount, _ := CH.ChannelEntryList(&chnentry1, 0, 0, channelid, EntriesFilter{}, false, roleid, Ch.Authority.DB)
+	entrcount, _ := CH.ChannelEntryList(&chnentry1, 0, 0, channelid, EntriesFilter{}, false, roleid, true, Ch.Authority.DB)
 
 	return chnentry, int(filtercount), int(entrcount), nil
 
@@ -1087,13 +1087,13 @@ func (Ch Channel) GetPublishedChannelEntriesList(limit, offset int, filter Entri
 
 	var chnentry []TblChannelEntries
 
-	CH.ChannelEntryList(&chnentry, limit, offset, 0, filter, true, roleid, Ch.Authority.DB)
+	CH.ChannelEntryList(&chnentry, limit, offset, 0, filter, true, roleid, true, Ch.Authority.DB)
 
-	filtercount, _ := CH.ChannelEntryList(&chnentry, 0, 0, 0, filter, true, roleid, Ch.Authority.DB)
+	filtercount, _ := CH.ChannelEntryList(&chnentry, 0, 0, 0, filter, true, roleid, true, Ch.Authority.DB)
 
 	var chnentry1 []TblChannelEntries
 
-	entrcount, _ := CH.ChannelEntryList(&chnentry1, 0, 0, 0, EntriesFilter{}, true, roleid, Ch.Authority.DB)
+	entrcount, _ := CH.ChannelEntryList(&chnentry1, 0, 0, 0, EntriesFilter{}, true, roleid, true, Ch.Authority.DB)
 
 	return chnentry, int(filtercount), int(entrcount), nil
 

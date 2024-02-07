@@ -142,9 +142,16 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 			if flg != 0 {
 
+				var count int
+
 			CLOOP:
 
 				for {
+
+					if count >= 50 {
+
+						break
+					}
 
 					var newchildcategory categories.TblCategory
 
@@ -241,9 +248,16 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 
 			if flg != 0 {
 
+				var count int
+
 			CLOOP:
 
 				for {
+
+					if count >= 50 {
+
+						break
+					}
 
 					var newchildcategory categories.TblCategory
 
@@ -673,7 +687,7 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		pagesali.PageId = pageid.Id
 
-		pagesali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05")) 
+		pagesali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		SP.ClonePages(&pagesali, s.Authority.DB)
 
@@ -705,7 +719,7 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		page.ParentId = 0
 
-		page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05")) 
+		page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		pagess, _ := SP.ClonePage(&page, s.Authority.DB)
 
@@ -715,7 +729,7 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		pagesali.PageId = pagess.Id
 
-		pagesali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05")) 
+		pagesali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		SP.ClonePages(&pagesali, s.Authority.DB)
 
@@ -759,7 +773,7 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		page.ParentId = pageali.PageId
 
-		page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05")) 
+		page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		pagealiid, _ := SP.ClonePage(&page, s.Authority.DB)
 
