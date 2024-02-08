@@ -140,13 +140,15 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 			flg = child_page.ParentId
 
-			if flg != 0 {
+			var count int
 
-				var count int
+			if flg != 0 {
 
 			CLOOP:
 
 				for {
+
+					count++
 
 					if count >= 50 {
 
@@ -246,13 +248,15 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 
 			flg = child_page.ParentId
 
-			if flg != 0 {
+			var count int
 
-				var count int
+			if flg != 0 {
 
 			CLOOP:
 
 				for {
+
+					count++
 
 					if count >= 50 {
 
@@ -963,17 +967,17 @@ func (s Space) GetPublishedSpaces(limit int, offset int, filter Filter, language
 
 			flg = child_page.ParentId
 
+			var count int //for safe
+
 			if flg != 0 {
 
 			CLOOP:
 
-				var count int //for safe
-
 				for {
 
-					count = count + 1 //for safe
+					count++ //for safe
 
-					if count == 200 { //for safe
+					if count == 50 { //for safe
 
 						break
 					}
