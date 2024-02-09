@@ -60,6 +60,7 @@ type Pages struct {
 	ParentId    int
 	CreatedDate time.Time
 	LastUpdate  time.Time
+	Status      string
 	Date        string
 	Username    string
 	Log         []PageLog
@@ -77,6 +78,7 @@ type SubPages struct {
 	OrderIndex  int `json:"OrderIndex"`
 	CreatedDate time.Time
 	LastUpdate  time.Time
+	Status      string
 	Date        string
 	Username    string
 	Log         []PageLog
@@ -517,7 +519,7 @@ func (P PageStrut) GetPageLogDetailsByPageId(tblpagelog *[]TblPageAliasesLog, sp
 /*Get Content*/
 func (P PageStrut) GetContentByPageId(tblpage *TblPageAliases, id int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_page_aliases").Where("page_id=?", id).First(&tblpage).Error; err != nil {
+	if err := DB.Table("tbl_page_aliases").Where("page_id=? and status='publish'", id).First(&tblpage).Error; err != nil {
 
 		return err
 	}

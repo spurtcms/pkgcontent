@@ -294,6 +294,8 @@ func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPag
 
 			// subpage.Content = page_aliases.PageDescription
 
+			subpage.Status = page_aliases.Status
+
 			subpage.ParentId = page.ParentId
 
 			subpage.OrderIndex = page_aliases.PageSuborder
@@ -311,6 +313,8 @@ func (p MemberPage) MemberPageList(spaceid int) ([]PageGroups, []Pages, []SubPag
 			one_page.PgId = page_aliases.PageId
 
 			one_page.Name = page_aliases.PageTitle
+
+			one_page.Status = page_aliases.Status
 
 			// one_page.Content = page_aliases.PageDescription
 

@@ -150,9 +150,9 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 					count++
 
-					if count >= 50 {
+					if count >= 50 { // for safe
 
-						break
+						break	 //for safe
 					}
 
 					var newchildcategory categories.TblCategory
