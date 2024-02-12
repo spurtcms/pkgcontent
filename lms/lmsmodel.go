@@ -173,7 +173,7 @@ func (SP SPM) MemberSpaceList(tblspace *[]TblSpacesAliases, langId int, limit in
 
 	if limit != 0 {
 
-		query.Limit(limit).Offset(offset).Find(&tblspace)
+		query.Limit(limit).Offset(offset).Order("id desc").Find(&tblspace)
 
 	} else {
 
