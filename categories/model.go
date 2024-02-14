@@ -308,3 +308,20 @@ func (c Authstruct) CheckSubCategoryName(category TblCategory, categoryid []int,
 
 	return nil
 }
+
+func (c Authstruct) DeleteallCategoryById(category *TblCategory, categoryId []int, spacecatid int,DB *gorm.DB) error {
+
+	if err := DB.Debug().Table("tbl_spaces").Where("page_category_id", spacecatid).Updates(TblCategory{IsDeleted: category.IsDeleted, DeletedOn: category.DeletedOn, DeletedBy: category.DeletedBy}).Error; err != nil {
+
+		return err
+
+	}
+
+	if err := DB.Debug().Table("tbl_categories").Where("id in(?)", categoryId).Updates(TblCategory{IsDeleted: category.IsDeleted, DeletedOn: category.DeletedOn, DeletedBy: category.DeletedBy}).Error; err != nil {
+
+		return err
+
+	}
+
+	return nil
+}
