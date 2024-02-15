@@ -156,6 +156,29 @@ func (Ch Channel) GetPermissionChannels(limit, offset int, filter Filter, active
 	// return []TblChannel{}, 0, errors.New("not authorized")
 }
 
+/*Get channel by name*/
+func (Ch Channel) GetchannelByName(channelname string) (channel TblChannel, err error) {
+
+	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return TblChannel{}, checkerr
+	}
+
+	var channellist TblChannel
+
+	err1 := CH.GetChannelByChannelName(&channellist, channelname, Ch.Authority.DB)
+
+	if err1 != nil {
+
+		return TblChannel{}, err1
+	}
+
+	return channellist, nil
+
+}
+
 /*Get Channels By Id*/
 func (Ch Channel) GetChannelsById(channelid int) (channelList TblChannel, section []Section, fields []Fiedlvalue, SelectedCategories []categories.Arrangecategories, err error) {
 
@@ -372,6 +395,8 @@ func (Ch Channel) CreateChannel(channelcreate ChannelCreate) (err error) {
 		modperms.DisplayName = ch.ChannelName
 
 		modperms.RouteName = "/channel/entrylist/" + strconv.Itoa(ch.Id)
+
+		modperms.SlugName = strings.ReplaceAll(strings.ToLower(ch.ChannelName), " ", "_")
 
 		modperms.CreatedBy = userid
 
@@ -610,6 +635,8 @@ func (Ch Channel) EditChannel(channelupt ChannelUpdate, channelid int) error {
 		CH.UpdateChannelDetails(&chn, channelid, Ch.Authority.DB)
 
 		var modpermissionupdate auth.TblModulePermission
+
+		modpermissionupdate.SlugName = channelupt.ChannelName
 
 		modpermissionupdate.RouteName = "/channel/entrylist/" + strconv.Itoa(channelid)
 

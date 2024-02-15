@@ -58,6 +58,14 @@ type CategoryCreate struct {
 	ParentId     int
 }
 
+type TblChannelCategory struct {
+	Id           int
+	ChannelId    int
+	CategoriesId string
+	CreatedAt    int
+	CreatedOn    time.Time
+}
+
 // Parent Category List
 func (c Authstruct) GetCategoryList(categories []TblCategory, offset int, limit int, filter Filter, DB *gorm.DB) (category []TblCategory, count int64) {
 
@@ -309,7 +317,7 @@ func (c Authstruct) CheckSubCategoryName(category TblCategory, categoryid []int,
 	return nil
 }
 
-func (c Authstruct) DeleteallCategoryById(category *TblCategory, categoryId []int, spacecatid int,DB *gorm.DB) error {
+func (c Authstruct) DeleteallCategoryById(category *TblCategory, categoryId []int, spacecatid int, DB *gorm.DB) error {
 
 	if err := DB.Debug().Table("tbl_spaces").Where("page_category_id", spacecatid).Updates(TblCategory{IsDeleted: category.IsDeleted, DeletedOn: category.DeletedOn, DeletedBy: category.DeletedBy}).Error; err != nil {
 
@@ -321,6 +329,24 @@ func (c Authstruct) DeleteallCategoryById(category *TblCategory, categoryId []in
 
 		return err
 
+	}
+
+	return nil
+}
+
+func (c Authstruct) DeleteEntriesCategoryids(cid string, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_channel_entries").Where("categories_id LIKE ?", "%"+cid+"%").Update("categories_id", gorm.Expr("REPLACE(categories_id, ?, '')", cid)).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c Authstruct) DeleteChannelCategoryids(channelcategory *TblChannelCategory, cid string, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_channel_category").Where("category_id LIKE ?", "%"+cid+"%").Delete(&channelcategory).Error; err != nil {
+		return err
 	}
 
 	return nil

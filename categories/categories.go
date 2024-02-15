@@ -193,23 +193,39 @@ func (c Category) DeleteCategoryGroup(Categoryid int) error {
 
 		return err
 	}
-	
+
 	if check {
-		
+
 		GetData, _ := C.GetCategoryTree(Categoryid, c.Authority.DB)
-		
+
 		var individualid []int
-	
+
 		for _, GetParent := range GetData {
-	
+
 			indivi := GetParent.Id
-	
+
 			individualid = append(individualid, indivi)
-	
+
 			fmt.Println(individualid, "categoryids")
 		}
 
 		spacecategory := individualid[0]
+
+		spacecategoryStr := fmt.Sprintf("%d", spacecategory)
+
+		err1 := C.DeleteChannelCategoryids(&TblChannelCategory{}, spacecategoryStr, c.Authority.DB)
+
+		if err1 != nil {
+
+			return err
+		}
+
+		err2 := C.DeleteEntriesCategoryids(spacecategoryStr, c.Authority.DB)
+
+		if err2 != nil {
+
+			return err2
+		}
 
 		var category TblCategory
 
@@ -219,7 +235,7 @@ func (c Category) DeleteCategoryGroup(Categoryid int) error {
 
 		category.IsDeleted = 1
 
-		err := C.DeleteallCategoryById(&category, individualid, spacecategory,c.Authority.DB)
+		err := C.DeleteallCategoryById(&category, individualid, spacecategory, c.Authority.DB)
 
 		if err != nil {
 

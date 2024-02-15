@@ -449,6 +449,17 @@ func (Ch ChannelStruct) GetChannelById(ch *TblChannel, id int, DB *gorm.DB) erro
 	return nil
 }
 
+/*Get Channel*/
+func (Ch ChannelStruct) GetChannelByChannelName(ch *TblChannel, name string, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_channels").Where("channel_name=?", name).First(&ch).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
 /*Get FieldGroupById*/
 func (Ch ChannelStruct) GetFieldGroupById(groupfield *[]TblGroupField, id int, DB *gorm.DB) error {
 
@@ -711,9 +722,9 @@ func (Ch ChannelStruct) ChannelEntryList(chentry *[]TblChannelEntries, limit, of
 
 	}
 
-	if activechannel{
+	if activechannel {
 
-		query=query.Where("tbl_channels.is_active =1")
+		query = query.Where("tbl_channels.is_active =1")
 	}
 
 	if publishedflg {

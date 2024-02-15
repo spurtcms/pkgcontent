@@ -152,7 +152,7 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 					if count >= 50 { // for safe
 
-						break	 //for safe
+						break //for safe
 					}
 
 					var newchildcategory categories.TblCategory
@@ -192,7 +192,7 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 			space.SpaceFullDescription = space.SpacesDescription
 
-			Spiltdescription := truncateDescription(space.SpacesDescription, 110)
+			Spiltdescription := truncateDescription(space.SpacesDescription, 85)
 
 			space.SpacesDescription = Spiltdescription
 
