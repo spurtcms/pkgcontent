@@ -37,6 +37,8 @@ github.com/spurtcms/pkgcore v1.0.37 h1:iF83/M/yHzLj1sSmC4OBnnBD2gyeTQLT+O+JRvWCh
 github.com/spurtcms/pkgcore v1.0.37/go.mod h1:Q3vgk/jS9mzbqvb3WHW5YWJYtzIn4Uqr/xFmfrGT4vg=
 github.com/spurtcms/pkgcore v1.0.40 h1:HCgXNmz+hYYhIR8Kwlv09qgO2M5BfP/DfY1m35Es4vg=
 github.com/spurtcms/pkgcore v1.0.40/go.mod h1:Q3vgk/jS9mzbqvb3WHW5YWJYtzIn4Uqr/xFmfrGT4vg=
+github.com/spurtcms/pkgcore v1.0.44 h1:zouAsfHEoV6IU5t/5u3QKNgJ5x4YLZ1lTPgyn3u7+f4=
+github.com/spurtcms/pkgcore v1.0.44/go.mod h1:Q3vgk/jS9mzbqvb3WHW5YWJYtzIn4Uqr/xFmfrGT4vg=
 github.com/spurtcms/spurtcms-content v1.0.34 h1:t1IdIQ1k9JqCEhMio/uAYf0nObmiDgqtUT7O7BZ0ZsE=
 github.com/spurtcms/spurtcms-content v1.0.34/go.mod h1:X/9zrEzsW6UJAsrkrtjpPc5E7FK8kF0XlM9H54Sw1Lc=
 github.com/spurtcms/spurtcms-core v1.0.28 h1:yM9SS8SLyONAX8lXnTwJEPDeuLhIDwYNJfk0Yz1M0U0=
