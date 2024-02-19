@@ -58,6 +58,7 @@ type Pages struct {
 	NewGrpId    int
 	OrderIndex  int `json:"OrderIndex"`
 	ParentId    int
+	ReadTime    int
 	CreatedDate time.Time
 	LastUpdate  time.Time
 	Status      string
@@ -75,6 +76,7 @@ type SubPages struct {
 	NewParentId int
 	PgroupId    int
 	NewPgroupId int
+	ReadTime    int
 	OrderIndex  int `json:"OrderIndex"`
 	CreatedDate time.Time
 	LastUpdate  time.Time
@@ -136,6 +138,7 @@ type TblPageAliases struct {
 	ParentId         int    `gorm:"-:migration;<-:false"`
 	LastRevisionDate time.Time
 	LastRevisionNo   int
+	ReadTime    int
 }
 
 type TblPageAliasesLog struct {
@@ -164,6 +167,7 @@ type TblPageAliasesLog struct {
 	Username        string    `gorm:"-:migration;<-:false"`
 	PageGroupId     int       `gorm:"-:migration;<-:false"`
 	ParentId        int       `gorm:"-:migration;<-:false"`
+	ReadTime    int
 }
 
 type PageCreate struct {
@@ -540,7 +544,7 @@ func (p PageStrut) GetNotes(notes *[]TblMemberNotesHighlight, memberid int, page
 /*GET NOTES*/
 func (p PageStrut) GetHighlights(notes *[]TblMemberNotesHighlight, memberid int, pageid int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_member_notes_highlights").Where("member_id=? and page_id=? and notes_highlights_type='highlights' and is_deleted=0", memberid, pageid).Find(&notes).Error; err != nil {
+	if err := DB.Table("tbl_member_notes_highlights").Where("member_id=? and page_id=? and notes_highlights_type='highlights' and is_deleted=0", memberid, pageid).Order("id desc").Find(&notes).Error; err != nil {
 		return err
 	}
 
