@@ -27,7 +27,7 @@ func MigrateTable(db *gorm.DB) {
 		&TblChannelCategory{},
 	)
 }
-
+/*this struct holds dbconnection ,token*/
 type Channel struct {
 	Authority *authcore.Authorization
 }
@@ -1339,6 +1339,7 @@ func (Ch Channel) GetEntryDetailsById(ChannelName string, EntryId int) (TblChann
 	return TblChannelEntries{}, errors.New("not authorized")
 }
 
+/*update entry details */
 func (Ch Channel) UpdateEntryDetailsById(entriesrequired EntriesRequired, ChannelName string, EntryId int) (bool, error) {
 
 	userid, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
@@ -1537,6 +1538,7 @@ func (Ch Channel) DashboardChannellist() (channelList []TblChannel, err error) {
 
 }
 
+/*DashboardEntries */
 func (Ch Channel) DashboardEntrieslist() (entries []TblChannelEntries, err error) {
 
 	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
@@ -1558,6 +1560,7 @@ func (Ch Channel) DashboardEntrieslist() (entries []TblChannelEntries, err error
 
 }
 
+/*Recent activites for dashboard*/
 func (Ch Channel) DashboardRecentActivites() (entries []RecentActivities, err error) {
 
 	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
@@ -1566,8 +1569,6 @@ func (Ch Channel) DashboardRecentActivites() (entries []RecentActivities, err er
 
 		return []RecentActivities{}, checkerr
 	}
-
-	// var Newentries []TblChannelEntries
 
 	Newentries, _ := CH.Newentries(Ch.Authority.DB)
 
@@ -1579,8 +1580,6 @@ func (Ch Channel) DashboardRecentActivites() (entries []RecentActivities, err er
 
 		Newrecords = append(Newrecords, newrecord)
 	}
-
-	// var Newchannel []TblChannel
 
 	Newchannel, _ := CH.Newchannels(Ch.Authority.DB)
 
@@ -1653,4 +1652,25 @@ func (Ch Channel) DashboardRecentActivites() (entries []RecentActivities, err er
 	}
 
 	return NewActive, nil
+}
+
+/*Remove entries cover image if media image delete*/
+func (Ch Channel) RemoveEntriesCoverImage(ImagePath string) error {
+
+	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	err := CH.UpdateImagePath(ImagePath, Ch.Authority.DB)
+
+	if err != nil {
+
+		return err
+	}
+
+	return nil
+
 }

@@ -138,7 +138,7 @@ type TblPageAliases struct {
 	ParentId         int    `gorm:"-:migration;<-:false"`
 	LastRevisionDate time.Time
 	LastRevisionNo   int
-	ReadTime    int
+	ReadTime         int
 }
 
 type TblPageAliasesLog struct {
@@ -167,7 +167,7 @@ type TblPageAliasesLog struct {
 	Username        string    `gorm:"-:migration;<-:false"`
 	PageGroupId     int       `gorm:"-:migration;<-:false"`
 	ParentId        int       `gorm:"-:migration;<-:false"`
-	ReadTime    int
+	ReadTime        int
 }
 
 type PageCreate struct {

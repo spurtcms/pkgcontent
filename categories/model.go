@@ -351,3 +351,16 @@ func (c Authstruct) DeleteChannelCategoryids(channelcategory *TblChannelCategory
 
 	return nil
 }
+
+// update imagepath
+func (c Authstruct) UpdateImagePath(Imagepath string, DB *gorm.DB) error {
+
+	if err := DB.Model(TblCategory{}).Where("image_path=?", Imagepath).UpdateColumns(map[string]interface{}{
+		"image_path": ""}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+
+}

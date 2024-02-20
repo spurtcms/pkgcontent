@@ -12,7 +12,7 @@ import (
 	memberaccore "github.com/spurtcms/pkgcore/memberaccess"
 	"gorm.io/gorm"
 )
-
+/*this struct holds dbconnection ,token*/
 type Space struct {
 	Authority *authcore.Authorization
 }
@@ -21,6 +21,7 @@ type SPM struct{}
 
 var SP SPM
 
+/*this struct holds dbconnection ,token for weblms*/
 type MemberSpace struct {
 	MemAuth *authcore.Authorization
 }
@@ -74,17 +75,6 @@ func (s Space) SpaceDetail(spaceid int) (space TblSpaces, err error) {
 		SP.GetSpaceDetails(&tblspace, spaceid, s.Authority.DB)
 
 		tblspace.SpaceName = spacename.SpacesName
-
-		// tblspace.CreatedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
-
-		// if tblspace.ModifiedOn.IsZero() {
-
-		// 	tblspace.ModifiedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
-
-		// } else {
-
-		// 	tblspace.ModifiedDate = tblspace.ModifiedOn.Format("02 Jan 2006 3:04 PM")
-		// }
 
 		return tblspace, err1
 
@@ -1061,4 +1051,25 @@ func (s Space) DashboardPagesCount() (totalcount int, lasttendayscount int, err 
 
 	return int(allpagecount), int(Newpagecount), nil
 
+}
+
+
+/*Remove entries cover image if media image delete*/
+func (s Space) RemoveSpaceImage(ImagePath string) (err error) {
+
+	_, _, checkerr := auth.VerifyToken(s.Authority.Token, s.Authority.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	uperr := SP.UpdateImagePath(ImagePath, s.Authority.DB)
+
+	if uperr != nil {
+
+		return err
+	}
+
+	return nil
 }

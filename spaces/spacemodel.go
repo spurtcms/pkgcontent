@@ -268,7 +268,7 @@ func (SP SPM) ClonePagesGroup(pagegroup *TblPagesGroupAliases, DB *gorm.DB) erro
 func (SP SPM) EditSpace(tblspace *TblSpacesAliases, id int, DB *gorm.DB) error {
 
 	// if tblspace.ImagePath != "" {
-		DB.Table("tbl_spaces_aliases").Where("spaces_id = ?", tblspace.Id).UpdateColumns(map[string]interface{}{"spaces_name": tblspace.SpacesName, "spaces_description": tblspace.SpacesDescription, "spaces_slug": tblspace.SpacesSlug, "image_path": tblspace.ImagePath, "modified_by": tblspace.ModifiedBy, "modified_on": tblspace.ModifiedOn})
+	DB.Table("tbl_spaces_aliases").Where("spaces_id = ?", tblspace.Id).UpdateColumns(map[string]interface{}{"spaces_name": tblspace.SpacesName, "spaces_description": tblspace.SpacesDescription, "spaces_slug": tblspace.SpacesSlug, "image_path": tblspace.ImagePath, "modified_by": tblspace.ModifiedBy, "modified_on": tblspace.ModifiedOn})
 
 	// } else {
 	// 	DB.Table("tbl_spaces_aliases").Where("spaces_id = ?", tblspace.Id).UpdateColumns(map[string]interface{}{"spaces_name": tblspace.SpacesName, "spaces_description": tblspace.SpacesDescription, "spaces_slug": tblspace.SpacesSlug, "modified_by": tblspace.ModifiedBy, "modified_on": tblspace.ModifiedOn})
@@ -709,4 +709,17 @@ func (SP SPM) GetLastUpdatePageAliases(tblpageali *TblPageAliases, spaceid int, 
 	}
 
 	return nil
+}
+
+// update imagepath
+func (SP SPM) UpdateImagePath(Imagepath string, DB *gorm.DB) error {
+
+	if err := DB.Model(TblSpacesAliases{}).Where("image_path=?", Imagepath).UpdateColumns(map[string]interface{}{
+		"image_path": ""}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+
 }

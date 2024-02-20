@@ -35,6 +35,7 @@ type EntriesFilter struct {
 	Title       string
 	ChannelName string
 	Status      string
+	UserName    string
 }
 
 type TblFieldType struct {
@@ -868,7 +869,7 @@ func (Ch ChannelStruct) GetChannelEntryById(tblchanentry *TblChannelEntries, id 
 /*Update Channel Entry Details*/
 func (Ch ChannelStruct) UpdateChannelEntryDetails(entry *TblChannelEntries, entryid int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_channel_entries").Where("id=?", entryid).UpdateColumns(map[string]interface{}{"title": entry.Title, "description": entry.Description, "slug": entry.Slug, "cover_image": entry.CoverImage, "thumbnail_image": entry.ThumbnailImage, "meta_title": entry.MetaTitle, "meta_description": entry.MetaDescription, "keyword": entry.Keyword, "categories_id": entry.CategoriesId, "related_articles": entry.RelatedArticles, "status": entry.Status, "modified_on": entry.ModifiedOn, "modified_by": entry.ModifiedBy}).Error; err != nil {
+	if err := DB.Table("tbl_channel_entries").Where("id=?", entryid).UpdateColumns(map[string]interface{}{"title": entry.Title, "description": entry.Description, "slug": entry.Slug, "cover_image": entry.CoverImage, "thumbnail_image": entry.ThumbnailImage, "meta_title": entry.MetaTitle, "meta_description": entry.MetaDescription, "keyword": entry.Keyword, "categories_id": entry.CategoriesId, "related_articles": entry.RelatedArticles, "status": entry.Status, "modified_on": entry.ModifiedOn, "modified_by": entry.ModifiedBy, "user_id": entry.UserId, "channel_id": entry.ChannelId}).Error; err != nil {
 
 		return err
 	}
@@ -954,5 +955,18 @@ func (Ch ChannelStruct) Newentries(DB *gorm.DB) (entries []TblChannelEntries, er
 	}
 
 	return entries, nil
+
+}
+
+// update imagepath
+func (Ch ChannelStruct) UpdateImagePath(Imagepath string, DB *gorm.DB) error {
+
+	if err := DB.Model(TblChannelEntries{}).Where("cover_image=?", Imagepath).UpdateColumns(map[string]interface{}{
+		"cover_image": ""}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
 
 }

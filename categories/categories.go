@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
+/*this struct holds dbconnection ,token*/
 type Category struct {
 	Authority *auth.Authorization
 }
@@ -18,6 +19,7 @@ type Authstruct struct{}
 
 var C Authstruct
 
+/*Categories table migrate*/
 func MigrateTable(DB *gorm.DB) {
 
 	DB.AutoMigrate(
@@ -334,7 +336,7 @@ func (c Category) ListCategory(offset int, limit int, filter Filter, parent_id i
 
 					if pid != 0 {
 
-						goto LOOP
+						goto LOOP  // this loop execute until parentid=0
 
 					}
 				}
@@ -974,7 +976,7 @@ func (c Category) AllCategoriesWithSubList() (arrangecategories []Arrangecategor
 
 					if pid != 0 {
 
-						goto LOOP
+						goto LOOP //this loop get looped until parentid=0
 
 					}
 				}
@@ -1087,4 +1089,25 @@ func (c Category) CheckSubCategroyName(id []int, Currentcategoryid int, name str
 	}
 
 	return true, nil
+}
+
+/*Remove entries cover image if media image delete*/
+func (c Category) UpdateImagePath(ImagePath string) error {
+
+	_, _, checkerr := auth.VerifyToken(c.Authority.Token, c.Authority.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	err := C.UpdateImagePath(ImagePath, c.Authority.DB)
+
+	if err != nil {
+
+		return err
+	}
+
+	return nil
+
 }
