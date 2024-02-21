@@ -46,6 +46,7 @@ type TblSpacesAliases struct {
 	CategoryId           int                      `gorm:"column:category_id;<-:false"`
 	FullSpaceAccess      bool                     `gorm:"-"`
 	SpaceFullDescription string                   `gorm:"-"`
+	ReadTime             string                   `gorm:"-"`
 }
 
 type TblPagesCategoriesAliases struct {
