@@ -12,6 +12,7 @@ import (
 	"github.com/spurtcms/pkgcontent/categories"
 	"github.com/spurtcms/pkgcore/auth"
 	authcore "github.com/spurtcms/pkgcore/auth"
+	"github.com/spurtcms/pkgcore/member"
 	"gorm.io/gorm"
 )
 
@@ -27,6 +28,7 @@ func MigrateTable(db *gorm.DB) {
 		&TblChannelCategory{},
 	)
 }
+
 /*this struct holds dbconnection ,token*/
 type Channel struct {
 	Authority *authcore.Authorization
@@ -1673,4 +1675,19 @@ func (Ch Channel) RemoveEntriesCoverImage(ImagePath string) error {
 
 	return nil
 
+}
+
+// this function provides channel list for accessible members if the channel contains published entries
+func (ch Channel) GetGraphqlChannelList(memberid, limit, offset int) (channelList []TblChannel, count int64, err error) {
+
+	member.VerifyToken("", "")
+
+	channelList, count, err = CH.GetGraphqlChannelList(ch.Authority.DB, memberid, limit, offset)
+
+	if err != nil {
+
+		return []TblChannel{}, 0, err
+	}
+
+	return channelList, count, nil
 }

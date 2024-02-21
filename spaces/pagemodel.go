@@ -293,7 +293,7 @@ func (P PageStrut) UpdatePageAliase(tblpageali *TblPageAliases, pageid int, DB *
 
 	if err := DB.Table("tbl_page_aliases").Where("page_id=?", pageid).UpdateColumns(map[string]interface{}{
 		"page_title": tblpageali.PageTitle, "page_slug": tblpageali.PageSlug, "modified_on": tblpageali.ModifiedOn,
-		"modified_by": tblpageali.ModifiedBy, "page_description": tblpageali.PageDescription, "order_index": tblpageali.OrderIndex, "status": tblpageali.Status}).Error; err != nil {
+		"modified_by": tblpageali.ModifiedBy, "page_description": tblpageali.PageDescription, "order_index": tblpageali.OrderIndex, "status": tblpageali.Status, "read_time": tblpageali.ReadTime}).Error; err != nil {
 		return err
 	}
 

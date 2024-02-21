@@ -970,3 +970,48 @@ func (Ch ChannelStruct) UpdateImagePath(Imagepath string, DB *gorm.DB) error {
 	return nil
 
 }
+
+func (ch ChannelStruct) GetGraphqlChannelList(DB *gorm.DB,memberid,limit,offset int)(channellist []TblChannel,channelCount int64, err error) {
+
+	if memberid!=0{
+
+		query := DB.Table("tbl_channels").Select("distinct on (tbl_channels.id) tbl_channels.*").Joins("inner join tbl_channel_entries on tbl_channel_entries.channel_id = tbl_channels.id").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.entry_id = tbl_channel_entries.id").Joins("inner join tbl_access_control_user_group on tbl_access_control_user_group.id = tbl_access_control_pages.access_control_user_group_id").
+	    Joins("inner join tbl_member_groups on tbl_member_groups.id = tbl_access_control_user_group.member_group_id").Joins("inner join tbl_members on tbl_members.member_group_id = tbl_member_groups.id").
+	    Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.status = 1 and tbl_members.is_deleted = 0 and tbl_member_groups.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0  and tbl_access_control_user_group.is_deleted = 0 and tbl_members.id = ?",memberid)
+
+		if limit!=0{
+
+			if err := query.Limit(limit).Offset(offset).Find(channellist).Error;err!=nil{
+
+				return channellist,0,err
+			}
+
+		}else{
+
+			query.Count(&channelCount)
+
+			return []TblChannel{},channelCount,nil
+		}
+
+	}else{
+
+		query := DB.Table("tbl_channels").Select("distinct on (tbl_channels.id) tbl_channels.*").Joins("inner join tbl_channel_entries on tbl_channel_entries.channel_id = tbl_channels.id").
+		Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.status = 1")
+
+		if limit!=0{
+
+			if err := query.Limit(limit).Offset(offset).Find(channellist).Error;err!=nil{
+
+				return channellist,0,err
+			}
+
+		}else{
+
+			query.Count(&channelCount)
+
+			return []TblChannel{},channelCount,nil
+		}
+	}
+
+	return []TblChannel{},0,nil
+}
