@@ -1,6 +1,7 @@
 package channels
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/spurtcms/pkgcontent/categories"
@@ -206,15 +207,17 @@ type TblChannelEntries struct {
 	Keyword              string `form:"keywords" binding:"required"`
 	CategoriesId         string
 	RelatedArticles      string
-	CreatedDate          string                   `gorm:"-"`
-	ModifiedDate         string                   `gorm:"-"`
-	Username             string                   `gorm:"<-:false"`
-	TblChannelEntryField []TblChannelEntryField   `gorm:"<-:false; foreignKey:ChannelEntryId"`
-	Category             []categories.TblCategory `gorm:"<-:false; foreignKey:Id"`
-	CategoryGroup        string                   `gorm:"-:migration;<-:false"`
-	ChannelName          string                   `gorm:"-:migration;<-:false"`
-	Cno                  string                   `gorm:"<-:false"`
-	ProfileImagePath     string                   `gorm:"<-:false"`
+	CreatedDate          string                     `gorm:"-"`
+	ModifiedDate         string                     `gorm:"-"`
+	Username             string                     `gorm:"<-:false"`
+	TblChannelEntryField []TblChannelEntryField     `gorm:"<-:false; foreignKey:ChannelEntryId"`
+	Category             []categories.TblCategory   `gorm:"<-:false; foreignKey:Id"`
+	CategoryGroup        string                     `gorm:"-:migration;<-:false"`
+	ChannelName          string                     `gorm:"-:migration;<-:false"`
+	Cno                  string                     `gorm:"<-:false"`
+	ProfileImagePath     string                     `gorm:"<-:false"`
+	EntryStatus          string                     `gorm:"-"`
+	Categories           [][]categories.TblCategory `gorm:"<-:false"`
 }
 
 type TblChannelEntryField struct {
@@ -971,47 +974,117 @@ func (Ch ChannelStruct) UpdateImagePath(Imagepath string, DB *gorm.DB) error {
 
 }
 
-func (ch ChannelStruct) GetGraphqlChannelList(DB *gorm.DB,memberid,limit,offset int)(channellist []TblChannel,channelCount int64, err error) {
+func (ch ChannelStruct) GetGraphqlChannelList(DB *gorm.DB, memberid, limit, offset int) (channellist []TblChannel, channelCount int64, err error) {
 
-	if memberid!=0{
+	if memberid > 0 {
 
 		query := DB.Table("tbl_channels").Select("distinct on (tbl_channels.id) tbl_channels.*").Joins("inner join tbl_channel_entries on tbl_channel_entries.channel_id = tbl_channels.id").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.entry_id = tbl_channel_entries.id").Joins("inner join tbl_access_control_user_group on tbl_access_control_user_group.id = tbl_access_control_pages.access_control_user_group_id").
-	    Joins("inner join tbl_member_groups on tbl_member_groups.id = tbl_access_control_user_group.member_group_id").Joins("inner join tbl_members on tbl_members.member_group_id = tbl_member_groups.id").
-	    Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.status = 1 and tbl_members.is_deleted = 0 and tbl_member_groups.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0  and tbl_access_control_user_group.is_deleted = 0 and tbl_members.id = ?",memberid)
+			Joins("inner join tbl_member_groups on tbl_member_groups.id = tbl_access_control_user_group.member_group_id").Joins("inner join tbl_members on tbl_members.member_group_id = tbl_member_groups.id").
+			Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.status = 1 and tbl_members.is_deleted = 0 and tbl_member_groups.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0  and tbl_access_control_user_group.is_deleted = 0 and tbl_members.id = ?", memberid)
 
-		if limit!=0{
+		if err := query.Limit(limit).Offset(offset).Find(&channellist).Error; err != nil {
 
-			if err := query.Limit(limit).Offset(offset).Find(channellist).Error;err!=nil{
-
-				return channellist,0,err
-			}
-
-		}else{
-
-			query.Count(&channelCount)
-
-			return []TblChannel{},channelCount,nil
+			return []TblChannel{}, 0, err
 		}
 
-	}else{
+		if err := query.Count(&channelCount).Error; err != nil {
+
+			return []TblChannel{}, 0, err
+
+		}
+
+	} else {
 
 		query := DB.Table("tbl_channels").Select("distinct on (tbl_channels.id) tbl_channels.*").Joins("inner join tbl_channel_entries on tbl_channel_entries.channel_id = tbl_channels.id").
-		Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.status = 1")
+			Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.status = 1")
 
-		if limit!=0{
+		if err := query.Limit(limit).Offset(offset).Find(&channellist).Error; err != nil {
 
-			if err := query.Limit(limit).Offset(offset).Find(channellist).Error;err!=nil{
+			return []TblChannel{}, 0, err
+		}
 
-				return channellist,0,err
-			}
+		if err := query.Count(&channelCount).Error; err != nil {
 
-		}else{
+			return []TblChannel{}, 0, err
 
-			query.Count(&channelCount)
-
-			return []TblChannel{},channelCount,nil
 		}
 	}
 
-	return []TblChannel{},0,nil
+	return channellist, channelCount, nil
+}
+
+func (ch ChannelStruct) GetGraphqlChannelDetailsById(DB *gorm.DB, memberid, channelid int) (channel TblChannel, err error) {
+
+	if memberid > 0 {
+
+		if err = DB.Table("tbl_channels").Select("distinct on (tbl_channels.id) tbl_channels.*").Joins("inner join tbl_channel_entries on tbl_channel_entries.channel_id = tbl_channels.id").
+			Joins("inner join tbl_access_control_pages on tbl_access_control_pages.entry_id = tbl_channel_entries.id").Joins("inner join tbl_access_control_user_group on tbl_access_control_user_group.id = tbl_access_control_pages.access_control_user_group_id").
+			Joins("inner join tbl_member_groups on tbl_member_groups.id = tbl_access_control_user_group.member_group_id").Joins("inner join tbl_members on tbl_members.member_group_id = tbl_member_groups.id").
+			Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.status = 1 and tbl_members.is_deleted = 0 and tbl_member_groups.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0  and tbl_access_control_user_group.is_deleted = 0 and tbl_members.id = ? and  tbl_channels.id = ?", memberid, channelid).First(&channel).Error; err != nil {
+
+			return TblChannel{}, err
+		}
+
+	} else {
+
+		if err := DB.Table("tbl_channels").Select("distinct on (tbl_channels.id) tbl_channels.*").Joins("inner join tbl_channel_entries on tbl_channel_entries.channel_id = tbl_channels.id").
+			Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.status = 1 and tbl_channels.id = ?", channelid).First(&channel).Error; err != nil {
+
+			return TblChannel{}, err
+		}
+
+	}
+
+	return channel, nil
+}
+
+func (ch ChannelStruct) GetGraphqlChannelEntryDetailsById(DB *gorm.DB, memberid, channelEntryId, channelId, categoryId int) (channelEntry TblChannelEntries, err error) {
+
+	var query *gorm.DB
+
+	if channelId > 0 {
+
+		query = DB.Table("tbl_channel_entries").Where("tbl_channel_entries.status = 1 and tbl_channel_entries.channel_id = ? and tbl_channel_entries.id = ?", channelId, channelEntryId)
+
+		if categoryId > 0 {
+
+			query = query.Where("LOWER(TRIM(tbl_channel_entries.categories_id)) ILIKE LOWER(TRIM(?))", "%"+strconv.Itoa(categoryId)+"%")
+
+		}
+
+		if err = query.First(&channelEntry).Error; err != nil {
+
+			return TblChannelEntries{}, err
+
+		}
+
+	} else {
+
+		query = DB.Table("tbl_channel_entries").Where("tbl_channel_entries.status = 1 and tbl_channel_entries.id = ?", channelEntryId)
+
+		if categoryId > 0 {
+
+			query = query.Where("LOWER(TRIM(tbl_channel_entries.categories_id)) ILIKE LOWER(TRIM(?))", "%"+strconv.Itoa(categoryId)+"%")
+
+		}
+
+		if err = query.First(&channelEntry).Error; err != nil {
+
+			return TblChannelEntries{}, err
+
+		}
+
+	}
+
+	return channelEntry, nil
+}
+
+func (ch ChannelStruct) GetGraphqlEntriesCategoryByParentId(DB *gorm.DB, categoryId int) (category categories.TblCategory, err error) {
+
+	if err = DB.Table("tbl_categories").Where("is_deleted = 0 and id = ?", categoryId).First(&category).Error; err != nil {
+
+		return categories.TblCategory{}, err
+	}
+
+	return category, nil
 }

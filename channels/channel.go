@@ -36,7 +36,11 @@ type Channel struct {
 
 type ChannelStruct struct{}
 
-var CH ChannelStruct
+var (
+	CH ChannelStruct
+
+	SpecialToken = "%$HEID$#PDGH*&MGEAFCC"
+)
 
 /*Get AllChannels*/
 func (Ch Channel) GetChannels(limit, offset int, filter Filter, activestatus bool) (channelList []TblChannel, channelcount int, err error) {
@@ -1678,16 +1682,173 @@ func (Ch Channel) RemoveEntriesCoverImage(ImagePath string) error {
 }
 
 // this function provides channel list for accessible members if the channel contains published entries
-func (ch Channel) GetGraphqlChannelList(memberid, limit, offset int) (channelList []TblChannel, count int64, err error) {
+func (ch Channel) GetGraphqlChannelList(limit, offset int) (channelList []TblChannel, count int64, err error) {
 
-	member.VerifyToken("", "")
+	var memberid int
+
+	if ch.Authority.Token == SpecialToken {
+
+		memberid = 0
+
+	} else {
+
+		memberid, _, err = member.VerifyToken(ch.Authority.Token, ch.Authority.Secret)
+
+		if err != nil {
+
+			return []TblChannel{}, 0, err
+
+		}
+
+	}
 
 	channelList, count, err = CH.GetGraphqlChannelList(ch.Authority.DB, memberid, limit, offset)
 
 	if err != nil {
 
 		return []TblChannel{}, 0, err
+
 	}
 
 	return channelList, count, nil
+}
+
+func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId, channelId, categoryId int, pathUrl string) (channelEntry TblChannelEntries, err error) {
+
+	var memberid int
+
+	if ch.Authority.Token == SpecialToken {
+
+		memberid = 0
+
+	} else {
+
+		memberid, _, err = member.VerifyToken(ch.Authority.Token, ch.Authority.Secret)
+
+		if err != nil {
+
+			return TblChannelEntries{}, err
+
+		}
+
+	}
+
+	channelEntries, err := CH.GetGraphqlChannelEntryDetailsById(ch.Authority.DB, memberid, channelEntryId, channelId, categoryId)
+
+	if err != nil {
+
+		return TblChannelEntries{}, err
+	}
+
+	modified_path := strings.TrimPrefix(channelEntries.CoverImage, "/")
+
+	channelEntries.CoverImage = pathUrl + modified_path
+
+	splittedArr := strings.Split(channelEntries.CategoriesId, ",")
+
+	var parentCatId int
+
+	var indivCategories [][]categories.TblCategory
+
+	for _, catId := range splittedArr {
+
+		var indivCategory []categories.TblCategory
+
+		conv_id, _ := strconv.Atoi(catId)
+
+		category, err := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, conv_id)
+
+		if err != nil {
+
+			return TblChannelEntries{}, err
+
+		}
+
+		indivCategory = append(indivCategory, category)
+
+		parentCatId = category.ParentId
+
+		if parentCatId != 0 {
+
+			var count int
+
+		LOOP:
+
+			for {
+
+				count = count + 1 //count increment used to check how many times the loop gets executed
+
+				parentCategory, err := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, parentCatId)
+
+				if err != nil {
+
+					return TblChannelEntries{}, err
+
+				}
+
+				indivCategory = append(indivCategory, parentCategory)
+
+				parentCatId = parentCategory.ParentId
+
+				if parentCatId != 0 { //mannuall condition to break the loop in overlooping situations
+
+					goto LOOP
+
+				} else if count > 49 {
+
+					break //use to break the loop if infinite loop doesn't break ,So forcing the loop to break at overlooping conditions
+
+				} else {
+
+					break
+				}
+
+			}
+
+		}
+
+		sort.SliceStable(indivCategory, func(i, j int) bool {
+
+			return indivCategory[i].Id < indivCategory[j].Id
+
+		})
+
+		indivCategories = append(indivCategories, indivCategory)
+
+	}
+
+	channelEntries.Categories = indivCategories
+
+	return channelEntries, nil
+}
+
+func (ch Channel) GetGraphqlChannelDetails(channelid int) (channel TblChannel, err error) {
+
+	var memberid int
+
+	if ch.Authority.Token == SpecialToken {
+
+		memberid = 0
+
+	} else {
+
+		memberid, _, err = member.VerifyToken(ch.Authority.Token, ch.Authority.Secret)
+
+		if err != nil {
+
+			return TblChannel{}, err
+
+		}
+
+	}
+
+	channel, err = CH.GetGraphqlChannelDetailsById(ch.Authority.DB, memberid, channelid)
+
+	if err != nil {
+
+		return TblChannel{}, err
+
+	}
+
+	return channel, nil
 }
