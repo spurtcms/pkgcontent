@@ -364,3 +364,35 @@ func (c Authstruct) UpdateImagePath(Imagepath string, DB *gorm.DB) error {
 	return nil
 
 }
+
+func (c Authstruct) GetParentTreeByChild(childID int, DB *gorm.DB) ([]TblCategory, error) {
+	var categories []TblCategory
+	err := DB.Raw(`
+		WITH RECURSIVE cat_tree AS (
+			SELECT id, 	CATEGORY_NAME,
+			CATEGORY_SLUG,
+			PARENT_ID,
+			CREATED_ON,
+			MODIFIED_ON,
+			IS_DELETED
+			FROM tbl_categories
+			WHERE id = ?
+			UNION ALL
+			SELECT cat.id, CAT.CATEGORY_NAME,
+			CAT.CATEGORY_SLUG,
+			CAT.PARENT_ID,
+			CAT.CREATED_ON,
+			CAT.MODIFIED_ON,
+			CAT.IS_DELETED
+			FROM tbl_categories AS cat
+			JOIN cat_tree ON cat.id = cat_tree.parent_id
+		)
+		SELECT *
+		FROM cat_tree WHERE IS_DELETED = 0 order by id desc
+	`, childID).Scan(&categories).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return categories, nil
+}
