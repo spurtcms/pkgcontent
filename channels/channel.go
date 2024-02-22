@@ -1680,6 +1680,20 @@ func (Ch Channel) RemoveEntriesCoverImage(ImagePath string) error {
 	return nil
 
 }
+
+// Get published entries
+func (Ch Channel) GetPublishedChannelEntriesListForTemplate(limit, offset int, filter EntriesFilter) (entries []TblChannelEntries, count int, err error) {
+
+	var chnentry []TblChannelEntries
+
+	CH.ChannelEntryListForTemplates(&chnentry, limit, offset, filter, Ch.Authority.DB)
+
+	filtercount, _ := CH.ChannelEntryListForTemplates(&chnentry, 0, 0, filter, Ch.Authority.DB)
+
+	return chnentry, int(filtercount), nil
+
+}
+
 // this function provides channel list for accessible members if the channel contains published entries
 func (ch Channel) GetGraphqlChannelList(limit, offset int) (channelList []TblChannel, count int64, err error) {
 
@@ -1757,7 +1771,7 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId, channelId, cat
 
 		category, _ := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, conv_id)
 
-		if category.Id!=0{
+		if category.Id != 0 {
 
 			indivCategory = append(indivCategory, category)
 		}
@@ -1776,7 +1790,7 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId, channelId, cat
 
 				parentCategory, _ := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, parentCatId)
 
-				if parentCategory.Id!=0{
+				if parentCategory.Id != 0 {
 
 					indivCategory = append(indivCategory, parentCategory)
 				}
@@ -1800,12 +1814,12 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId, channelId, cat
 
 		}
 
-		if len(indivCategory)>0{
+		if len(indivCategory) > 0 {
 
 			sort.SliceStable(indivCategory, func(i, j int) bool {
 
 				return indivCategory[i].Id < indivCategory[j].Id
-	
+
 			})
 
 			indivCategories = append(indivCategories, indivCategory)
@@ -1818,7 +1832,7 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId, channelId, cat
 	return channelEntries, nil
 }
 
-func (ch Channel) GetGraphqlChannelEntriesByChannelId(channelId, categoryId, limit, offset *int, pathUrl string) (channelEntries []TblChannelEntries,count int64, err error) {
+func (ch Channel) GetGraphqlChannelEntriesByChannelId(channelId, categoryId, limit, offset *int, pathUrl string) (channelEntries []TblChannelEntries, count int64, err error) {
 
 	var memberid int
 
@@ -1832,17 +1846,17 @@ func (ch Channel) GetGraphqlChannelEntriesByChannelId(channelId, categoryId, lim
 
 		if err != nil {
 
-			return []TblChannelEntries{},0,err
+			return []TblChannelEntries{}, 0, err
 
 		}
 
 	}
 
-	channelEntries,count, err = CH.GetGraphqlChannelEntrieslistByChannelId(ch.Authority.DB, memberid, channelId, categoryId, limit, offset)
+	channelEntries, count, err = CH.GetGraphqlChannelEntrieslistByChannelId(ch.Authority.DB, memberid, channelId, categoryId, limit, offset)
 
 	if err != nil {
 
-		return []TblChannelEntries{},0,err
+		return []TblChannelEntries{}, 0, err
 	}
 
 	var final_entries_list []TblChannelEntries
@@ -1852,86 +1866,86 @@ func (ch Channel) GetGraphqlChannelEntriesByChannelId(channelId, categoryId, lim
 		modified_path := strings.TrimPrefix(entry.CoverImage, "/")
 
 		entry.CoverImage = pathUrl + modified_path
-	
+
 		splittedArr := strings.Split(entry.CategoriesId, ",")
-	
+
 		var parentCatId int
-	
+
 		var indivCategories [][]categories.TblCategory
-	
+
 		for _, catId := range splittedArr {
-	
+
 			var indivCategory []categories.TblCategory
-	
+
 			conv_id, _ := strconv.Atoi(catId)
-	
+
 			category, _ := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, conv_id)
 
-			if category.Id!=0{
+			if category.Id != 0 {
 
 				indivCategory = append(indivCategory, category)
 			}
-	
+
 			parentCatId = category.ParentId
-	
+
 			if parentCatId != 0 {
-	
+
 				var count int
-	
+
 			LOOP:
-	
+
 				for {
-	
+
 					count = count + 1 //count increment used to check how many times the loop gets executed
-	
+
 					parentCategory, _ := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, parentCatId)
-	
-					if parentCategory.Id!=0{
+
+					if parentCategory.Id != 0 {
 
 						indivCategory = append(indivCategory, parentCategory)
 					}
-	
+
 					parentCatId = parentCategory.ParentId
-	
+
 					if parentCatId != 0 { //mannuall condition to break the loop in overlooping situations
-	
+
 						goto LOOP
-	
+
 					} else if count > 49 {
-	
+
 						break //use to break the loop if infinite loop doesn't break ,So forcing the loop to break at overlooping conditions
-	
+
 					} else {
-	
+
 						break
 					}
-	
+
 				}
-	
+
 			}
-	
-			if len(indivCategory)>0{
+
+			if len(indivCategory) > 0 {
 
 				sort.SliceStable(indivCategory, func(i, j int) bool {
-	
+
 					return indivCategory[i].Id < indivCategory[j].Id
-		
+
 				})
 
 				indivCategories = append(indivCategories, indivCategory)
 			}
-	
+
 		}
-	
+
 		entry.Categories = indivCategories
 
 		final_entries_list = append(final_entries_list, entry)
 	}
 
-	return final_entries_list,count,nil
+	return final_entries_list, count, nil
 }
 
-func (ch Channel) GetGraphqlAllChannelEntriesList(categoryid, limit, offset *int, pathUrl string)(channelEntries []TblChannelEntries,count int64, err error){
+func (ch Channel) GetGraphqlAllChannelEntriesList(categoryid, limit, offset *int, pathUrl string) (channelEntries []TblChannelEntries, count int64, err error) {
 
 	var memberid int
 
@@ -1945,17 +1959,17 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(categoryid, limit, offset *int
 
 		if err != nil {
 
-			return []TblChannelEntries{},0,err
+			return []TblChannelEntries{}, 0, err
 
 		}
 
 	}
 
-	channelEntries,count, err = CH.GetGraphqlChannelEntriesList(ch.Authority.DB, memberid,categoryid, limit, offset)
+	channelEntries, count, err = CH.GetGraphqlChannelEntriesList(ch.Authority.DB, memberid, categoryid, limit, offset)
 
 	if err != nil {
 
-		return []TblChannelEntries{},0,err
+		return []TblChannelEntries{}, 0, err
 	}
 
 	var final_entries_list []TblChannelEntries
@@ -1965,83 +1979,83 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(categoryid, limit, offset *int
 		modified_path := strings.TrimPrefix(entry.CoverImage, "/")
 
 		entry.CoverImage = pathUrl + modified_path
-	
+
 		splittedArr := strings.Split(entry.CategoriesId, ",")
-	
+
 		var parentCatId int
-	
+
 		var indivCategories [][]categories.TblCategory
-	
+
 		for _, catId := range splittedArr {
-	
+
 			var indivCategory []categories.TblCategory
-	
+
 			conv_id, _ := strconv.Atoi(catId)
-	
+
 			category, _ := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, conv_id)
 
-			if category.Id!=0{
+			if category.Id != 0 {
 
 				indivCategory = append(indivCategory, category)
 			}
-	
+
 			parentCatId = category.ParentId
-	
+
 			if parentCatId != 0 {
-	
+
 				var count int
-	
+
 			LOOP:
-	
+
 				for {
-	
+
 					count = count + 1 //count increment used to check how many times the loop gets executed
-	
+
 					parentCategory, _ := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, parentCatId)
 
-					if parentCategory.Id!=0{
+					if parentCategory.Id != 0 {
 
 						indivCategory = append(indivCategory, parentCategory)
 					}
-	
+
 					parentCatId = parentCategory.ParentId
-	
+
 					if parentCatId != 0 { //mannuall condition to break the loop in overlooping situations
-	
+
 						goto LOOP
-	
+
 					} else if count > 49 {
-	
+
 						break //use to break the loop if infinite loop doesn't break ,So forcing the loop to break at overlooping conditions
-	
+
 					} else {
-	
+
 						break
 					}
-	
+
 				}
-	
+
 			}
 
-			if len(indivCategory)>0{
+			if len(indivCategory) > 0 {
 
 				sort.SliceStable(indivCategory, func(i, j int) bool {
-	
+
 					return indivCategory[i].Id < indivCategory[j].Id
-		
+
 				})
 
 				indivCategories = append(indivCategories, indivCategory)
 			}
-	
+
 		}
-	
+
 		entry.Categories = indivCategories
 
 		final_entries_list = append(final_entries_list, entry)
 	}
 
-	return final_entries_list,count,nil
+	return final_entries_list, count, nil
 }
 
 func (ch Channel) GetGraphqlChannelDetails(channelid int) (channel TblChannel, err error) {
