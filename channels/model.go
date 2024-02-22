@@ -217,7 +217,7 @@ type TblChannelEntries struct {
 	Cno                  string                     `gorm:"<-:false"`
 	ProfileImagePath     string                     `gorm:"<-:false"`
 	EntryStatus          string                     `gorm:"-"`
-	Categories           [][]categories.TblCategory `gorm:"<-:false"`
+	Categories           [][]categories.TblCategory `gorm:"-"`
 }
 
 type TblChannelEntryField struct {
