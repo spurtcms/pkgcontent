@@ -1746,18 +1746,35 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId, channelId, cat
 
 	}
 
-	channelEntries, err := CH.GetGraphqlChannelEntryDetailsById(ch.Authority.DB, memberid, channelEntryId, channelId, categoryId)
+	channelEntry, err = CH.GetGraphqlChannelEntryDetailsById(ch.Authority.DB, memberid, channelEntryId, channelId, categoryId)
 
 	if err != nil {
 
 		return TblChannelEntries{}, err
 	}
 
-	modified_path := strings.TrimPrefix(channelEntries.CoverImage, "/")
+	if categoryId!=nil{
 
-	channelEntries.CoverImage = pathUrl + modified_path
+		var categoryBasedEntry TblChannelEntries
 
-	splittedArr := strings.Split(channelEntries.CategoriesId, ",")
+		splittedArr := strings.Split(channelEntry.CategoriesId, ",")
+
+		for _,catid := range splittedArr{
+
+		  if catid == strconv.Itoa(*categoryId){
+
+			   categoryBasedEntry = channelEntry
+		   }
+		}
+
+		channelEntry = categoryBasedEntry
+	}
+
+	modified_path := strings.TrimPrefix(channelEntry.CoverImage, "/")
+
+	channelEntry.CoverImage = pathUrl + modified_path
+
+	splittedArr := strings.Split(channelEntry.CategoriesId, ",")
 
 	var parentCatId int
 
@@ -1827,9 +1844,9 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId, channelId, cat
 
 	}
 
-	channelEntries.Categories = indivCategories
+	channelEntry.Categories = indivCategories
 
-	return channelEntries, nil
+	return channelEntry, nil
 }
 
 func (ch Channel) GetGraphqlChannelEntriesByChannelId(channelId, categoryId, limit, offset *int, pathUrl string) (channelEntries []TblChannelEntries, count int64, err error) {
@@ -1857,6 +1874,29 @@ func (ch Channel) GetGraphqlChannelEntriesByChannelId(channelId, categoryId, lim
 	if err != nil {
 
 		return []TblChannelEntries{}, 0, err
+	}
+
+	if categoryId!=nil{
+
+		var categoryBasedEntries []TblChannelEntries
+
+		for _, entry := range channelEntries{
+
+			splittedArr := strings.Split(entry.CategoriesId, ",")
+
+			for _,catid := range splittedArr{
+
+				if catid == strconv.Itoa(*categoryId){
+
+					categoryBasedEntries = append(categoryBasedEntries, entry)
+				}
+			}
+
+		}
+
+		channelEntries = categoryBasedEntries
+
+		count = int64(len(channelEntries))
 	}
 
 	var final_entries_list []TblChannelEntries
@@ -1972,6 +2012,29 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(categoryid, limit, offset *int
 		return []TblChannelEntries{}, 0, err
 	}
 
+	if categoryid!=nil{
+
+		var categoryBasedEntries []TblChannelEntries
+
+		for _, entry := range channelEntries{
+
+			splittedArr := strings.Split(entry.CategoriesId, ",")
+
+			for _,catid := range splittedArr{
+
+				if catid == strconv.Itoa(*categoryid){
+
+					categoryBasedEntries = append(categoryBasedEntries, entry)
+				}
+			}
+
+		}
+
+		channelEntries = categoryBasedEntries
+
+		count = int64(len(channelEntries))
+	}
+
 	var final_entries_list []TblChannelEntries
 
 	for _, entry := range channelEntries {
@@ -1988,13 +2051,13 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(categoryid, limit, offset *int
 
 		for _, catId := range splittedArr {
 
-			var indivCategory []categories.TblCategory
-
 			conv_id, _ := strconv.Atoi(catId)
+
+			var indivCategory []categories.TblCategory
 
 			category, _ := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, conv_id)
 
-			if category.Id != 0 {
+			if category.Id != 0{
 
 				indivCategory = append(indivCategory, category)
 			}
@@ -2058,6 +2121,7 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(categoryid, limit, offset *int
 	return final_entries_list, count, nil
 }
 
+// this function provides channel detail for accessible members if the channel contains published entries
 func (ch Channel) GetGraphqlChannelDetails(channelid int) (channel TblChannel, err error) {
 
 	var memberid int
