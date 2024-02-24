@@ -1,4 +1,4 @@
-package spaces
+package lms
 
 import (
 	"errors"
@@ -6,22 +6,24 @@ import (
 	"strings"
 	"time"
 
-	authcore "github.com/spurtcms/spurtcms-core/auth"
-	membercore "github.com/spurtcms/spurtcms-core/member"
-	memberaccore "github.com/spurtcms/spurtcms-core/memberaccess"
+	"github.com/spurtcms/pkgcontent/categories"
+	"github.com/spurtcms/pkgcore/auth"
+	authcore "github.com/spurtcms/pkgcore/auth"
+	memberaccore "github.com/spurtcms/pkgcore/memberaccess"
 	"gorm.io/gorm"
 )
-
+/*this struct holds dbconnection ,token*/
 type Space struct {
-	Authority *authcore.Authority
+	Authority *authcore.Authorization
 }
 
 type SPM struct{}
 
 var SP SPM
 
+/*this struct holds dbconnection ,token for weblms*/
 type MemberSpace struct {
-	MemAuth *authcore.Authority
+	MemAuth *authcore.Authorization
 }
 
 func MigrateTable(db *gorm.DB) {
@@ -32,12 +34,16 @@ func MigrateTable(db *gorm.DB) {
 		&TblPagesCategories{},
 		&TblPagesCategoriesAliases{},
 		&TblLanguage{},
+		&TblPage{},
+		&TblPageAliases{},
+		&TblPagesGroup{},
+		&TblPagesGroupAliases{},
+		&TblPageAliasesLog{},
+		&TblMemberNotesHighlight{},
 	)
 
 	db.Exec(`INSERT INTO PUBLIC.TBL_LANGUAGE(ID,LANGUAGE_NAME,LANGUAGE_CODE,JSON_PATH,IS_STATUS,IS_DEFAULT,	CREATED_BY,CREATED_ON,IS_DELETED) VALUES (1,'English', 'en', 'locales/en.json', 1, 1,1, '2023-09-11 11:27:44',0)`)
 }
-
-var IST, _ = time.LoadLocation("Asia/Kolkata")
 
 /*SpaceDetail*/
 func (s Space) SpaceDetail(spaceid int) (space TblSpaces, err error) {
@@ -69,17 +75,6 @@ func (s Space) SpaceDetail(spaceid int) (space TblSpaces, err error) {
 		SP.GetSpaceDetails(&tblspace, spaceid, s.Authority.DB)
 
 		tblspace.SpaceName = spacename.SpacesName
-
-		tblspace.CreatedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
-
-		if tblspace.ModifiedOn.IsZero() {
-
-			tblspace.ModifiedDate = tblspace.CreatedOn.Format("02 Jan 2006 3:04 PM")
-
-		} else {
-
-			tblspace.ModifiedDate = tblspace.ModifiedOn.Format("02 Jan 2006 3:04 PM")
-		}
 
 		return tblspace, err1
 
@@ -123,36 +118,76 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 
 		for _, space := range spaces {
 
-			var parent_page_Category TblPagesCategoriesAliases
+			var child_page_Category categories.TblCategory
 
-			_, parent_page := SP.GetParentPageCategory(&parent_page_Category, space.ParentId, s.Authority.DB)
+			_, child_page := categories.GetChildPageCategoriess(&child_page_Category, space.PageCategoryId, s.Authority.DB)
 
-			space.ParentCategory = parent_page
+			var categorynames []categories.TblCategory
 
-			if parent_page.Id != 0 {
+			var flg int
 
-				var child_page_Categories []TblPagesCategoriesAliases
+			categorynames = append(categorynames, child_page)
 
-				_, child_page := SP.GetChildPageCategories(&child_page_Categories, space.PageCategoryId, s.Authority.DB)
+			flg = child_page.ParentId
 
-				for _, child_category := range child_page {
+			var count int
 
-					space.ChildCategories = append(space.ChildCategories, child_category)
+			if flg != 0 {
+
+			CLOOP:
+
+				for {
+
+					count++
+
+					if count >= 50 { // for safe
+
+						break //for safe
+					}
+
+					var newchildcategory categories.TblCategory
+
+					_, child := categories.GetChildPageCategoriess(&newchildcategory, flg, s.Authority.DB)
+
+					flg = child.ParentId
+
+					if flg != 0 {
+
+						categorynames = append(categorynames, child)
+
+						goto CLOOP
+
+					} else {
+
+						categorynames = append(categorynames, child)
+
+						break
+					}
+
 				}
 
 			}
 
-			space.CreatedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
+			var reverseCategoryOrder []categories.TblCategory
 
-			if !space.ModifiedOn.IsZero() {
+			for i := len(categorynames) - 1; i >= 0; i-- {
 
-				space.ModifiedDate = space.ModifiedOn.Format("02 Jan 2006 03:04 PM")
-
-			} else {
-
-				space.ModifiedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
+				reverseCategoryOrder = append(reverseCategoryOrder, categorynames[i])
 
 			}
+
+			var pageupd TblPageAliases
+
+			SP.GetLastUpdatePageAliases(&pageupd, space.Id, s.Authority.DB)
+
+			space.SpaceFullDescription = space.SpacesDescription
+
+			Spiltdescription := truncateDescription(space.SpacesDescription, 85)
+
+			space.SpacesDescription = Spiltdescription
+
+			space.CategoryNames = reverseCategoryOrder
+
 			SpaceDetails = append(SpaceDetails, space)
 
 		}
@@ -168,23 +203,9 @@ func (s Space) SpaceList(limit, offset int, filter Filter) (tblspace []TblSpaces
 /*spacelist*/
 func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace []TblSpacesAliases, totalcount int64, err error) {
 
-	_, _, checkerr := membercore.VerifyToken(s.MemAuth.Token, s.MemAuth.Secret)
-
-	if checkerr != nil {
-
-		return []TblSpacesAliases{}, 0, checkerr
-	}
-
 	var mem memberaccore.AccessAuth
 
 	mem.Authority = *s.MemAuth
-
-	spceid, err := mem.GetSpace()
-
-	if err != nil {
-
-		log.Println(err)
-	}
 
 	var default_lang TblLanguage
 
@@ -192,7 +213,7 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 
 	var spaces []TblSpacesAliases
 
-	_, spaceerr := SP.MemberSpaceList(&spaces, default_lang.Id, limit, offset, filter, spceid, s.MemAuth.DB)
+	_, spaceerr := SP.MemberSpaceList(&spaces, default_lang.Id, limit, offset, filter, s.MemAuth.DB)
 
 	if spaceerr != nil {
 
@@ -203,41 +224,85 @@ func (s MemberSpace) MemberSpaceList(limit, offset int, filter Filter) (tblspace
 
 	for _, space := range spaces {
 
-		var parent_page_Category TblPagesCategoriesAliases
+		if space.Id != 0 {
 
-		_, parent_page := SP.GetParentPageCategory(&parent_page_Category, space.ParentId, s.MemAuth.DB)
+			var child_page_Category categories.TblCategory
 
-		space.ParentCategory = parent_page
+			_, child_page := categories.GetChildPageCategoriess(&child_page_Category, space.PageCategoryId, s.MemAuth.DB)
 
-		if parent_page.Id != 0 {
+			var categorynames []categories.TblCategory
 
-			var child_page_Categories []TblPagesCategoriesAliases
+			var flg int
 
-			_, child_page := SP.GetChildPageCategories(&child_page_Categories, space.PageCategoryId, s.MemAuth.DB)
+			categorynames = append(categorynames, child_page)
 
-			for _, child_category := range child_page {
+			flg = child_page.ParentId
 
-				space.ChildCategories = append(space.ChildCategories, child_category)
+			var count int
+
+			if flg != 0 {
+
+			CLOOP:
+
+				for {
+
+					count++
+
+					if count >= 50 {
+
+						break
+					}
+
+					var newchildcategory categories.TblCategory
+
+					_, child := categories.GetChildPageCategoriess(&newchildcategory, flg, s.MemAuth.DB)
+
+					flg = child.ParentId
+
+					if flg != 0 {
+
+						categorynames = append(categorynames, child)
+
+						goto CLOOP
+
+					} else {
+
+						categorynames = append(categorynames, child)
+
+						break
+					}
+
+				}
+
 			}
 
+			var reverseCategoryOrder []categories.TblCategory
+
+			for i := len(categorynames) - 1; i >= 0; i-- {
+
+				reverseCategoryOrder = append(reverseCategoryOrder, categorynames[i])
+
+			}
+
+			space.CategoryNames = reverseCategoryOrder
+
+			space.CreatedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+			if !space.ModifiedOn.IsZero() {
+
+				space.ModifiedDate = space.ModifiedOn.Format("02 Jan 2006 03:04 PM")
+
+			} else {
+
+				space.ModifiedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+			}
+			SpaceDetails = append(SpaceDetails, space)
 		}
-
-		space.CreatedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
-
-		if !space.ModifiedOn.IsZero() {
-
-			space.ModifiedDate = space.ModifiedOn.Format("02 Jan 2006 03:04 PM")
-
-		} else {
-
-			space.ModifiedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
-
-		}
-		SpaceDetails = append(SpaceDetails, space)
 
 	}
 
-	count, _ := SP.SpaceList(&spaces, default_lang.Id, 0, 0, filter, spceid, s.MemAuth.DB)
+	count, _ := SP.MemberSpaceList(&spaces, default_lang.Id, 0, 0, filter, s.MemAuth.DB)
 
 	return SpaceDetails, count, nil
 
@@ -271,7 +336,7 @@ func (s Space) SpaceCreation(SPC SpaceCreation) error {
 
 		spaces.PageCategoryId = SPC.CategoryId
 
-		spaces.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		spaces.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		spaces.CreatedBy = userid
 
@@ -290,7 +355,7 @@ func (s Space) SpaceCreation(SPC SpaceCreation) error {
 
 		space.LanguageId = SPC.LanguageId
 
-		space.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		space.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		space.CreatedBy = userid
 
@@ -351,11 +416,11 @@ func (s Space) SpaceUpdate(SPC SpaceCreation, spaceid int) error {
 
 		spaces.ImagePath = SPC.ImagePath
 
-		spaces.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		spaces.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		spaces.ModifiedBy = userid
 
-		space.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		space.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		space.ModifiedBy = userid
 
@@ -404,19 +469,19 @@ func (s Space) DeleteSpace(spaceid int) error {
 
 		var pageali TblPageAliases
 
-		spaces.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		spaces.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		spaces.DeletedBy = userid
 
 		spaces.IsDeleted = 1
 
-		space.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		space.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		space.DeletedBy = userid
 
 		space.IsDeleted = 1
 
-		var deletedon, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		var deletedon, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		var deletedby = userid
 
@@ -446,31 +511,67 @@ func (s Space) DeleteSpace(spaceid int) error {
 
 		var pid []int
 
-		for _, v := range page {
+		if len(page) != 0 {
 
-			pid = append(pid, v.Id)
+			for _, v := range page {
+
+				pid = append(pid, v.Id)
+
+			}
+
+			var pg TblPage
+
+			pg.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			pg.DeletedBy = userid
+
+			pg.IsDeleted = 1
+
+			SP.DeletePageInSpace(&pg, pid, s.Authority.DB)
+
+			var pgali TblPageAliases
+
+			pgali.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			pgali.DeletedBy = userid
+
+			pgali.IsDeleted = 1
+
+			SP.DeletePageAliInSpace(&pgali, pid, s.Authority.DB)
+
+			var pagegroup []TblPagesGroup
+
+			SP.GetPageGroupDetailsBySpaceId(&pagegroup, spaceid, s.Authority.DB)
+
+			var pagegroupid int
+
+			for _, v := range page {
+
+				v.Id = pagegroupid
+
+			}
+
+			var pggroupdel TblPagesGroup
+
+			pggroupdel.DeletedBy = userid
+
+			pggroupdel.IsDeleted = 1
+
+			pggroupdel.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			SP.SpaceDeletePageGroup(&pggroupdel, pagegroupid, s.Authority.DB)
+
+			var pggroupalidel TblPagesGroupAliases
+
+			pggroupalidel.DeletedBy = userid
+
+			pggroupalidel.IsDeleted = 1
+
+			pggroupalidel.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			SP.DeletePageGroupAliases(&pggroupalidel, pagegroupid, s.Authority.DB)
 
 		}
-
-		var pg TblPage
-
-		pg.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
-
-		pg.DeletedBy = userid
-
-		pg.IsDeleted = 1
-
-		SP.DeletePageInSpace(&pg, pid, s.Authority.DB)
-
-		var pgali TblPageAliases
-
-		pgali.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
-
-		pgali.DeletedBy = userid
-
-		pgali.IsDeleted = 1
-
-		SP.DeletePageAliInSpace(&pgali, pid, s.Authority.DB)
 
 		return nil
 
@@ -512,11 +613,11 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 	spaceid := clonespaceid
 
-	spaces.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+	spaces.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	spaces.CreatedBy = userid
 
-	space.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+	space.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	space.CreatedBy = userid
 
@@ -541,13 +642,17 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		group.SpacesId = tblspaces.Id
 
+		group.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
 		groups, _ := SP.CloneSpaceInPagesGroup(&group, s.Authority.DB)
 
-		var pagegroup TblPagesGroupAliases
+		// var pagegroup TblPagesGroupAliases
 
-		pagegroup = value
+		pagegroup := value
 
 		pagegroup.PageGroupId = groups.Id
+
+		pagegroup.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		SP.ClonePagesGroup(&pagegroup, s.Authority.DB)
 	}
@@ -566,13 +671,17 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		page.ParentId = 0
 
+		page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
 		pageid, _ := SP.ClonePage(&page, s.Authority.DB)
 
-		var pagesali TblPageAliases
+		// var pagesali TblPageAliases
 
-		pagesali = val
+		pagesali := val
 
 		pagesali.PageId = pageid.Id
+
+		pagesali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		SP.ClonePages(&pagesali, s.Authority.DB)
 
@@ -604,13 +713,17 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		page.ParentId = 0
 
+		page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
 		pagess, _ := SP.ClonePage(&page, s.Authority.DB)
 
-		var pagesali TblPageAliases
+		// var pagesali TblPageAliases
 
-		pagesali = value
+		pagesali := value
 
 		pagesali.PageId = pagess.Id
+
+		pagesali.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		SP.ClonePages(&pagesali, s.Authority.DB)
 
@@ -654,11 +767,13 @@ func (s Space) CloneSpace(SPC SpaceCreation, clonespaceid int) error {
 
 		page.ParentId = pageali.PageId
 
+		page.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
 		pagealiid, _ := SP.ClonePage(&page, s.Authority.DB)
 
-		var pagesali TblPageAliases
+		// var pagesali TblPageAliases
 
-		pagesali = result
+		pagesali := result
 
 		pagesali.PageId = pagealiid.Id
 
@@ -769,4 +884,192 @@ func (s Space) PageCategoryList() []Arrangecategories {
 
 	return FinalCategoryList
 
+}
+
+// Check Name is already exits or not
+func (s Space) CheckSpaceName(id int, name string) (bool, error) {
+
+	_, _, checkerr := auth.VerifyToken(s.Authority.Token, s.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, err := s.Authority.IsGranted("Spaces", authcore.CRUD)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+
+		var space TblSpacesAliases
+
+		err := SP.CheckSpaceName(&space, id, name, s.Authority.DB)
+
+		if err != nil {
+
+			return false, err
+		}
+
+	}
+	return true, nil
+}
+
+/*Get Published spaces*/
+func (s Space) GetPublishedSpaces(limit int, offset int, filter Filter, languageid int) (spacedetails []TblSpacesAliases, err error) {
+
+	_, _, checkerr := auth.VerifyToken(s.Authority.Token, s.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []TblSpacesAliases{}, checkerr
+	}
+
+	check, err := s.Authority.IsGranted("Spaces", authcore.CRUD)
+
+	if err != nil {
+
+		return []TblSpacesAliases{}, err
+	}
+
+	if check {
+
+		var spacez []TblSpacesAliases
+
+		SP.PublishPageSpaceList(&spacez, languageid, limit, offset, filter, nil, s.Authority.DB)
+
+		var SpaceDetails []TblSpacesAliases
+
+		for _, space := range spacez {
+
+			var child_page_Category categories.TblCategory
+
+			_, child_page := categories.GetChildPageCategoriess(&child_page_Category, space.PageCategoryId, s.Authority.DB)
+
+			var categorynames []categories.TblCategory
+
+			var flg int
+
+			categorynames = append(categorynames, child_page)
+
+			flg = child_page.ParentId
+
+			var count int //for safe
+
+			if flg != 0 {
+
+			CLOOP:
+
+				for {
+
+					count++ //for safe
+
+					if count == 50 { //for safe
+
+						break
+					}
+
+					var newchildcategory categories.TblCategory
+
+					_, child := categories.GetChildPageCategoriess(&newchildcategory, flg, s.Authority.DB)
+
+					flg = child.ParentId
+
+					if flg != 0 {
+
+						categorynames = append(categorynames, child)
+
+						goto CLOOP
+
+					} else {
+
+						categorynames = append(categorynames, child)
+
+						break
+					}
+
+				}
+
+			}
+
+			var reverseCategoryOrder []categories.TblCategory
+
+			for i := len(categorynames) - 1; i >= 0; i-- {
+
+				reverseCategoryOrder = append(reverseCategoryOrder, categorynames[i])
+
+			}
+
+			space.CategoryNames = reverseCategoryOrder
+
+			SpaceDetails = append(SpaceDetails, space)
+
+		}
+		return SpaceDetails, nil
+
+	}
+
+	return []TblSpacesAliases{}, errors.New("not authorized")
+}
+
+// if description is too big show specific lines and after show ...
+func truncateDescription(description string, limit int) string {
+	if len(description) <= limit {
+		return description
+	}
+
+	truncated := description[:limit] + "..."
+	return truncated
+}
+
+// Dashboard pagescount function
+func (s Space) DashboardPagesCount() (totalcount int, lasttendayscount int, err error) {
+
+	_, _, checkerr := auth.VerifyToken(s.Authority.Token, s.Authority.Secret)
+
+	if checkerr != nil {
+
+		return 0, 0, checkerr
+	}
+
+	allpagecount, err := SP.PageCount(s.Authority.DB)
+
+	if err != nil {
+
+		return 0, 0, err
+	}
+
+	Newpagecount, err := SP.NewpageCount(s.Authority.DB)
+
+	if err != nil {
+
+		return 0, 0, err
+	}
+
+	return int(allpagecount), int(Newpagecount), nil
+
+}
+
+
+/*Remove entries cover image if media image delete*/
+func (s Space) RemoveSpaceImage(ImagePath string) (err error) {
+
+	_, _, checkerr := auth.VerifyToken(s.Authority.Token, s.Authority.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	uperr := SP.UpdateImagePath(ImagePath, s.Authority.DB)
+
+	if uperr != nil {
+
+		return err
+	}
+
+	return nil
 }
