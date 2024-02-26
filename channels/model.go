@@ -1081,7 +1081,7 @@ func (ch ChannelStruct) GetGraphqlChannelEntryDetailsById(DB *gorm.DB, memberid 
 
 			if categoryId != nil {
 
-				query = query.Where("LOWER(TRIM(tbl_channel_entries.categories_id)) ILIKE LOWER(TRIM(?))", "%"+strconv.Itoa(*categoryId)+"%")
+				query = query.Where("'" + strconv.Itoa(*categoryId) + "' = ANY(STRING_TO_ARRAY(tbl_channel_entries.categories_id," + "','" + "))")
 
 			}
 
@@ -1100,7 +1100,7 @@ func (ch ChannelStruct) GetGraphqlChannelEntryDetailsById(DB *gorm.DB, memberid 
 
 			if categoryId != nil {
 
-				query = query.Where("LOWER(TRIM(tbl_channel_entries.categories_id)) ILIKE LOWER(TRIM(?))", "%"+strconv.Itoa(*categoryId)+"%")
+				query = query.Where("'" + strconv.Itoa(*categoryId) + "' = ANY(STRING_TO_ARRAY(tbl_channel_entries.categories_id," + "','" + "))")
 
 			}
 
@@ -1121,7 +1121,7 @@ func (ch ChannelStruct) GetGraphqlChannelEntryDetailsById(DB *gorm.DB, memberid 
 
 			if categoryId != nil {
 
-				query = query.Where("LOWER(TRIM(tbl_channel_entries.categories_id)) ILIKE LOWER(TRIM(?))", "%"+strconv.Itoa(*categoryId)+"%")
+				query = query.Where("'" + strconv.Itoa(*categoryId) + "' = ANY(STRING_TO_ARRAY(tbl_channel_entries.categories_id," + "','" + "))")
 
 			}
 
@@ -1138,7 +1138,7 @@ func (ch ChannelStruct) GetGraphqlChannelEntryDetailsById(DB *gorm.DB, memberid 
 
 			if categoryId != nil {
 
-				query = query.Where("LOWER(TRIM(tbl_channel_entries.categories_id)) ILIKE LOWER(TRIM(?))", "%"+strconv.Itoa(*categoryId)+"%")
+				query = query.Where("'" + strconv.Itoa(*categoryId) + "' = ANY(STRING_TO_ARRAY(tbl_channel_entries.categories_id," + "','" + "))")
 
 			}
 
@@ -1179,9 +1179,9 @@ func (ch ChannelStruct) GetGraphqlChannelEntrieslistByChannelId(DB *gorm.DB, mem
 
 		if categoryid != nil {
 
-			query = query.Where("LOWER(TRIM(tbl_channel_entries.categories_id)) ILIKE LOWER(TRIM(?))", "%"+strconv.Itoa(*categoryid)+"%")
+			query = query.Where("'" + strconv.Itoa(*categoryid) + "' = ANY(STRING_TO_ARRAY(tbl_channel_entries.categories_id," + "','" + "))")
 
-			countquery = countquery.Where("LOWER(TRIM(tbl_channel_entries.categories_id)) ILIKE LOWER(TRIM(?))", "%"+strconv.Itoa(*categoryid)+"%")
+			countquery = countquery.Where("'" + strconv.Itoa(*categoryid) + "' = ANY(STRING_TO_ARRAY(tbl_channel_entries.categories_id," + "','" + "))")
 		}
 
 		if err = query.Find(&channelEntries).Error; err != nil {
@@ -1204,9 +1204,9 @@ func (ch ChannelStruct) GetGraphqlChannelEntrieslistByChannelId(DB *gorm.DB, mem
 
 		if categoryid != nil {
 
-			query = query.Where("LOWER(TRIM(tbl_channel_entries.categories_id)) ILIKE LOWER(TRIM(?))", "%"+strconv.Itoa(*categoryid)+"%")
+			query = query.Where("'" + strconv.Itoa(*categoryid) + "' = ANY(STRING_TO_ARRAY(tbl_channel_entries.categories_id," + "','" + "))")
 
-			countquery = countquery.Where("LOWER(TRIM(tbl_channel_entries.categories_id)) ILIKE LOWER(TRIM(?))", "%"+strconv.Itoa(*categoryid)+"%")
+			countquery = countquery.Where("'" + strconv.Itoa(*categoryid) + "' = ANY(STRING_TO_ARRAY(tbl_channel_entries.categories_id," + "','" + "))")
 		}
 
 		if err = query.Find(&channelEntries).Error; err != nil {
@@ -1239,9 +1239,9 @@ func (ch ChannelStruct) GetGraphqlChannelEntriesList(DB *gorm.DB, memberid int, 
 
 		if categoryid != nil {
 
-			query = query.Where("LOWER(TRIM(tbl_channel_entries.categories_id)) ILIKE LOWER(TRIM(?))", "%"+strconv.Itoa(*categoryid)+"%")
+			query = query.Where("'" + strconv.Itoa(*categoryid) + "' = ANY(STRING_TO_ARRAY(tbl_channel_entries.categories_id," + "','" + "))")
 
-			countquery = countquery.Where("LOWER(TRIM(tbl_channel_entries.categories_id)) ILIKE LOWER(TRIM(?))", "%"+strconv.Itoa(*categoryid)+"%")
+			countquery = countquery.Where("'" + strconv.Itoa(*categoryid) + "' = ANY(STRING_TO_ARRAY(tbl_channel_entries.categories_id," + "','" + "))")
 		}
 
 		if err = query.Find(&channelEntries).Error; err != nil {
@@ -1263,9 +1263,9 @@ func (ch ChannelStruct) GetGraphqlChannelEntriesList(DB *gorm.DB, memberid int, 
 
 		if categoryid != nil {
 
-			query = query.Where("LOWER(TRIM(tbl_channel_entries.categories_id)) ILIKE LOWER(TRIM(?))", "%"+strconv.Itoa(*categoryid)+"%")
+			query = query.Where("'" + strconv.Itoa(*categoryid) + "' = ANY(STRING_TO_ARRAY(tbl_channel_entries.categories_id," + "','" + "))")
 
-			countquery = countquery.Where("LOWER(TRIM(tbl_channel_entries.categories_id)) ILIKE LOWER(TRIM(?))", "%"+strconv.Itoa(*categoryid)+"%")
+			countquery = countquery.Where("'" + strconv.Itoa(*categoryid) + "' = ANY(STRING_TO_ARRAY(tbl_channel_entries.categories_id," + "','" + "))")
 		}
 
 		if err = query.Find(&channelEntries).Error; err != nil {
