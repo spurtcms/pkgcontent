@@ -617,6 +617,23 @@ func (c Category) DeleteSubCategory(categoryid int) error {
 			return err
 		}
 
+		categoryid1 := fmt.Sprintf("%d", categoryid)
+
+		err1 := C.DeleteChannelCategoryids(&TblChannelCategory{}, categoryid1, c.Authority.DB)
+
+		err2 := C.DeleteEntriesCategoryids(categoryid1, c.Authority.DB)
+
+		if err2 != nil {
+
+			return err2
+
+		}
+
+		if err1 != nil {
+
+			return err1
+		}
+
 		return nil
 	}
 
