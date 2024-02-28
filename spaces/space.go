@@ -1073,3 +1073,218 @@ func (s Space) RemoveSpaceImage(ImagePath string) (err error) {
 
 	return nil
 }
+
+
+//Mostlyviewed space list//
+
+func (s Space) MostlyViewList(limit int) (spacedetails []TblSpacesAliases, err error) {
+
+	log.Println("check101")
+
+	_, _, checkerr := auth.VerifyToken(s.Authority.Token, s.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []TblSpacesAliases{}, checkerr
+	}
+
+	var spaces []TblSpacesAliases
+
+	spaceerr := SP.MostlyViewList(&spaces, limit, s.Authority.DB)
+
+	if spaceerr != nil {
+
+		return []TblSpacesAliases{}, spaceerr
+	}
+
+	var SpaceDetails []TblSpacesAliases
+
+	for _, space := range spaces {
+
+		if space.Id != 0 {
+
+			var child_page_Category categories.TblCategory
+
+			_, child_page := categories.GetChildPageCategoriess(&child_page_Category, space.PageCategoryId, s.Authority.DB)
+
+			var categorynames []categories.TblCategory
+
+			var flg int
+
+			categorynames = append(categorynames, child_page)
+
+			flg = child_page.ParentId
+
+			var count int
+
+			if flg != 0 {
+
+			CLOOP:
+
+				for {
+
+					count++
+
+					if count >= 50 {
+
+						break
+					}
+
+					var newchildcategory categories.TblCategory
+
+					_, child := categories.GetChildPageCategoriess(&newchildcategory, flg, s.Authority.DB)
+
+					flg = child.ParentId
+
+					if flg != 0 {
+
+						categorynames = append(categorynames, child)
+
+						goto CLOOP
+
+					} else {
+
+						categorynames = append(categorynames, child)
+
+						break
+					}
+
+				}
+
+			}
+
+			var reverseCategoryOrder []categories.TblCategory
+
+			for i := len(categorynames) - 1; i >= 0; i-- {
+
+				reverseCategoryOrder = append(reverseCategoryOrder, categorynames[i])
+
+			}
+
+			space.CategoryNames = reverseCategoryOrder
+
+			space.CreatedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+			if !space.ModifiedOn.IsZero() {
+
+				space.ModifiedDate = space.ModifiedOn.Format("02 Jan 2006 03:04 PM")
+
+			} else {
+
+				space.ModifiedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+			}
+
+			SpaceDetails = append(SpaceDetails, space)
+
+		}
+	}
+	return SpaceDetails, nil
+}
+
+// Recentlyview space List//
+
+func (s Space) RecentlyViewList(limit int) (spacedetails []TblSpacesAliases, err error) {
+
+	log.Println("check101")
+
+	_, _, checkerr := auth.VerifyToken(s.Authority.Token, s.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []TblSpacesAliases{}, checkerr
+	}
+
+	var spaces []TblSpacesAliases
+
+	spaceerr := SP.RecentlyViewList(&spaces, limit, s.Authority.DB)
+
+	if spaceerr != nil {
+
+		return []TblSpacesAliases{}, spaceerr
+	}
+	var SpaceDetails []TblSpacesAliases
+
+	for _, space := range spaces {
+
+		if space.Id != 0 {
+
+			var child_page_Category categories.TblCategory
+
+			_, child_page := categories.GetChildPageCategoriess(&child_page_Category, space.PageCategoryId, s.Authority.DB)
+
+			var categorynames []categories.TblCategory
+
+			var flg int
+
+			categorynames = append(categorynames, child_page)
+
+			flg = child_page.ParentId
+
+			var count int
+
+			if flg != 0 {
+
+			CLOOP:
+
+				for {
+
+					count++
+
+					if count >= 50 {
+
+						break
+					}
+
+					var newchildcategory categories.TblCategory
+
+					_, child := categories.GetChildPageCategoriess(&newchildcategory, flg, s.Authority.DB)
+
+					flg = child.ParentId
+
+					if flg != 0 {
+
+						categorynames = append(categorynames, child)
+
+						goto CLOOP
+
+					} else {
+
+						categorynames = append(categorynames, child)
+
+						break
+					}
+
+				}
+
+			}
+
+			var reverseCategoryOrder []categories.TblCategory
+
+			for i := len(categorynames) - 1; i >= 0; i-- {
+
+				reverseCategoryOrder = append(reverseCategoryOrder, categorynames[i])
+
+			}
+
+			space.CategoryNames = reverseCategoryOrder
+
+			space.CreatedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+			if !space.ModifiedOn.IsZero() {
+
+				space.ModifiedDate = space.ModifiedOn.Format("02 Jan 2006 03:04 PM")
+
+			} else {
+
+				space.ModifiedDate = space.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+			}
+
+			SpaceDetails = append(SpaceDetails, space)
+
+		}
+	}
+
+	return SpaceDetails, nil
+}

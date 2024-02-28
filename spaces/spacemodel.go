@@ -47,6 +47,8 @@ type TblSpacesAliases struct {
 	FullSpaceAccess      bool                     `gorm:"-"`
 	SpaceFullDescription string                   `gorm:"-"`
 	ReadTime             string                   `gorm:"-"`
+	ViewCount            int
+	RecentTime           time.Time
 }
 
 type TblPagesCategoriesAliases struct {
@@ -720,6 +722,35 @@ func (SP SPM) UpdateImagePath(Imagepath string, DB *gorm.DB) error {
 
 		return err
 	}
+
+	return nil
+
+}
+
+// Mostlyviewed List//
+
+func (SP SPM) MostlyViewList(Space *[]TblSpacesAliases, limit int, DB *gorm.DB) (err error) {
+
+	query := DB.Debug().Table("tbl_spaces_aliases").Select("tbl_spaces_aliases.*,tbl_spaces.page_category_id,tbl_categories.parent_id").
+		Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
+		Joins("inner join tbl_language on tbl_language.id = tbl_spaces_aliases.language_id").
+		Joins("inner join tbl_categories on tbl_categories.id = tbl_spaces.page_category_id").
+		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = 1").Order("tbl_spaces_aliases.view_count desc").Limit(limit)
+
+	query.Find(&Space)
+
+	return nil
+
+}
+func (SP SPM) RecentlyViewList(Space *[]TblSpacesAliases, limit int, DB *gorm.DB) (err error) {
+
+	query := DB.Debug().Table("tbl_spaces_aliases").Select("tbl_spaces_aliases.*,tbl_spaces.page_category_id,tbl_categories.parent_id").
+		Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
+		Joins("inner join tbl_language on tbl_language.id = tbl_spaces_aliases.language_id").
+		Joins("inner join tbl_categories on tbl_categories.id = tbl_spaces.page_category_id").
+		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = 1").Order("tbl_spaces_aliases.recent_time desc").Limit(limit)
+
+	query.Find(&Space)
 
 	return nil
 

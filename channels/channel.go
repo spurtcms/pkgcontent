@@ -1833,7 +1833,7 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId, channelId, cat
 	return channelEntry, nil
 }
 
-//given channel id returns all published entries
+// given channel id returns all published entries
 func (ch Channel) GetGraphqlChannelEntriesByChannelId(channelId, categoryId, limit, offset *int, pathUrl string) (channelEntries []TblChannelEntries, count int64, err error) {
 
 	var memberid int
@@ -1947,7 +1947,7 @@ func (ch Channel) GetGraphqlChannelEntriesByChannelId(channelId, categoryId, lim
 	return final_entries_list, count, nil
 }
 
-//function give all channel entries list 
+// function give all channel entries list
 func (ch Channel) GetGraphqlAllChannelEntriesList(categoryid, limit, offset *int, pathUrl string) (channelEntries []TblChannelEntries, count int64, err error) {
 
 	var memberid int
@@ -1997,7 +1997,7 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(categoryid, limit, offset *int
 
 			category, _ := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, conv_id)
 
-			if category.Id != 0{
+			if category.Id != 0 {
 
 				indivCategory = append(indivCategory, category)
 			}
