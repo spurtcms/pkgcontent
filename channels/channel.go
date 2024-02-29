@@ -2092,3 +2092,20 @@ func (ch Channel) GetGraphqlChannelDetails(channelid int) (channel TblChannel, e
 
 	return channel, nil
 }
+
+// get entry details
+func (Ch Channel) GetEntryDetailsByIdTemplates(EntryId int) (TblChannelEntries, error) {
+
+	var Entry TblChannelEntries
+
+	err := CH.GetChannelEntryById(&Entry, EntryId, Ch.Authority.DB)
+
+	if err != nil {
+
+		log.Println(err)
+	}
+
+	return Entry, nil
+}
+
+

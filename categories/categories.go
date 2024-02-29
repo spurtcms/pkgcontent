@@ -1129,95 +1129,128 @@ func (c Category) UpdateImagePath(ImagePath string) error {
 
 }
 
+// // this func helps to get parent hierarcy by child id
+// func (c Category) GetParentGivenByChildId(childcategoryid int) (arrangecategories []Arrangecategories, err error) {
+
+// 	Category, err := C.GetParentTreeByChild(childcategoryid, c.Authority.DB)
+
+// 	var pid int
+
+// 	var AllCategorieswithSubCategories []Arrangecategories
+
+// 	for _, categories := range Category {
+
+// 		var addcat Arrangecategories
+
+// 		var individualid []CatgoriesOrd
+
+// 		pid = categories.ParentId
+
+// 	LOOP:
+// 		for _, GetParent := range Category {
+
+// 			var indivi CatgoriesOrd
+
+// 			if pid == GetParent.Id {
+
+// 				pid = GetParent.ParentId
+
+// 				indivi.Id = GetParent.Id
+
+// 				indivi.Category = GetParent.CategoryName
+
+// 				individualid = append(individualid, indivi)
+
+// 				if pid != 0 {
+
+// 					goto LOOP //this loop get looped until parentid=0
+
+// 				}
+// 			}
+
+// 		}
+
+// 		var ReverseOrder Arrangecategories
+
+// 		addcat.Categories = append(addcat.Categories, individualid...)
+
+// 		var singlecat []CatgoriesOrd
+
+// 		for i := len(addcat.Categories) - 1; i >= 0; i-- {
+
+// 			var Sing CatgoriesOrd
+
+// 			Sing.Id = addcat.Categories[i].Id
+
+// 			Sing.Category = addcat.Categories[i].Category
+
+// 			singlecat = append(singlecat, Sing)
+
+// 		}
+
+// 		var newcate CatgoriesOrd
+
+// 		newcate.Id = categories.Id
+
+// 		newcate.Category = categories.CategoryName
+
+// 		addcat.Categories = append(addcat.Categories, newcate)
+
+// 		singlecat = append(singlecat, newcate)
+
+// 		ReverseOrder.Categories = singlecat
+
+// 		AllCategorieswithSubCategories = append(AllCategorieswithSubCategories, ReverseOrder)
+// 	}
+
+// 	/*This for Channel category show also individual group*/
+// 	var FinalCategoryList []Arrangecategories
+
+// 	for _, val := range AllCategorieswithSubCategories {
+
+// 		if len(val.Categories) > 1 {
+
+// 			var infinalarray Arrangecategories
+
+// 			infinalarray.Categories = append(infinalarray.Categories, val.Categories...)
+
+// 			FinalCategoryList = append(FinalCategoryList, infinalarray)
+// 		}
+
+// 	}
+
+// 	return AllCategorieswithSubCategories, err
+// }
+
+
 // this func helps to get parent hierarcy by child id
-func (c Category) GetParentGivenByChildId(childcategoryid int) (arrangecategories []Arrangecategories, err error) {
+func (c Category) GetParentGivenByChildId(childcategoryid string) (category []TblCategory, err error) {
 
-	Category, err := C.GetParentTreeByChild(childcategoryid, c.Authority.DB)
+	child := strings.Split(childcategoryid, ",")
 
-	var pid int
+	var Categories []TblCategory
 
-	var AllCategorieswithSubCategories []Arrangecategories
+	for _, val := range child {
 
-	for _, categories := range Category {
+		if val != "" {
 
-		var addcat Arrangecategories
+			var i int
 
-		var individualid []CatgoriesOrd
+			_, err := fmt.Sscanf(val, "%d", &i)
 
-		pid = categories.ParentId
+			if err != nil {
 
-	LOOP:
-		for _, GetParent := range Category {
-
-			var indivi CatgoriesOrd
-
-			if pid == GetParent.Id {
-
-				pid = GetParent.ParentId
-
-				indivi.Id = GetParent.Id
-
-				indivi.Category = GetParent.CategoryName
-
-				individualid = append(individualid, indivi)
-
-				if pid != 0 {
-
-					goto LOOP //this loop get looped until parentid=0
-
-				}
+				fmt.Println("Error:", err)
 			}
 
-		}
+			var cat TblCategory
 
-		var ReverseOrder Arrangecategories
+			category, _ := C.GetCategoryDetails(i, &cat, c.Authority.DB)
 
-		addcat.Categories = append(addcat.Categories, individualid...)
-
-		var singlecat []CatgoriesOrd
-
-		for i := len(addcat.Categories) - 1; i >= 0; i-- {
-
-			var Sing CatgoriesOrd
-
-			Sing.Id = addcat.Categories[i].Id
-
-			Sing.Category = addcat.Categories[i].Category
-
-			singlecat = append(singlecat, Sing)
-
-		}
-
-		var newcate CatgoriesOrd
-
-		newcate.Id = categories.Id
-
-		newcate.Category = categories.CategoryName
-
-		addcat.Categories = append(addcat.Categories, newcate)
-
-		singlecat = append(singlecat, newcate)
-
-		ReverseOrder.Categories = singlecat
-
-		AllCategorieswithSubCategories = append(AllCategorieswithSubCategories, ReverseOrder)
-	}
-
-	/*This for Channel category show also individual group*/
-	var FinalCategoryList []Arrangecategories
-
-	for _, val := range AllCategorieswithSubCategories {
-
-		if len(val.Categories) > 1 {
-
-			var infinalarray Arrangecategories
-
-			infinalarray.Categories = append(infinalarray.Categories, val.Categories...)
-
-			FinalCategoryList = append(FinalCategoryList, infinalarray)
+			Categories = append(Categories, category)
 		}
 
 	}
 
-	return AllCategorieswithSubCategories, err
+	return Categories, nil
 }
