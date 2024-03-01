@@ -129,14 +129,13 @@ type TblChannel struct {
 	IsDeleted          int
 	CreatedOn          time.Time
 	CreatedBy          int
-	ModifiedOn         time.Time            `gorm:"DEFAULT:NULL"`
-	ModifiedBy         int                  `gorm:"DEFAULT:NULL"`
-	DateString         string               `gorm:"-"`
-	EntriesCount       int                  `gorm:"-"`
-	ChannelEntries     []TblChannelEntries  `gorm:"-"`
-	ChannelCategory    []TblChannelCategory `gorm:"<-:false"`
-	ProfileImagePath   string               `gorm:"<-:false"`
-	Username           string               `gorm:"<-:false"`
+	ModifiedOn         time.Time           `gorm:"DEFAULT:NULL"`
+	ModifiedBy         int                 `gorm:"DEFAULT:NULL"`
+	DateString         string              `gorm:"-"`
+	EntriesCount       int                 `gorm:"-"`
+	ChannelEntries     []TblChannelEntries `gorm:"-"`
+	ProfileImagePath   string              `gorm:"<-:false"`
+	Username           string              `gorm:"<-:false"`
 }
 
 type TblChannelCategory struct {

@@ -1405,3 +1405,141 @@ func (s Space) GetGraphqlSpacelist(limit, offset int, pathUrl string) (spacelist
 	return final_spacelist, count, nil
 
 }
+
+func (s Space) GetGraphqlSpaceDetails(SpaceId int,pathUrl string) (space TblSpacesAliases,err error){
+
+	var memberid int
+
+	if s.Authority.Token==SpecialToken{
+
+		memberid = 0
+
+	}else{
+
+		memberid, _, err = member.VerifyToken(s.Authority.Token, s.Authority.Secret)
+
+		if err != nil {
+
+			return TblSpacesAliases{}, err
+		}
+
+	}
+
+	space,err = SP.GraphqlSpaceDetails(s.Authority.DB,memberid,SpaceId)
+
+	if err != nil {
+
+		return TblSpacesAliases{}, err
+	}
+
+	modified_path := pathUrl + strings.TrimPrefix(space.ImagePath, "/")
+
+	space.ImagePath = modified_path
+
+	var categoriez []categories.TblCategory
+
+	parent_category, _ := SP.GetCategoryByParentId(s.Authority.DB, space.PageCategoryId)
+
+	if parent_category.Id != 0 {
+
+		categoriez = append(categoriez, parent_category)
+	}
+
+	parentCatId := parent_category.ParentId
+
+	if parentCatId != 0 {
+
+		count := 0
+
+	LOOP:
+
+		for {
+
+			count++ //count increment used to check how many times the loop gets executed
+
+			loopParentCategory, _ := SP.GetCategoryByParentId(s.Authority.DB, parentCatId)
+
+			if loopParentCategory.Id != 0 {
+
+				categoriez = append(categoriez, loopParentCategory)
+			}
+
+			parentCatId = loopParentCategory.ParentId
+
+			if parentCatId != 0 {
+
+				goto LOOP
+
+			} else if count > 49 { //mannuall condition to break the loop in overlooping situations
+
+				break //use to break the loop if infinite loop doesn't break ,So forcing the loop to break at overlooping conditions
+
+			} else {
+
+				break
+
+			}
+
+		}
+
+	}
+
+	if len(categoriez) > 0 {
+
+		sort.SliceStable(categoriez, func(i, j int) bool {
+
+			return categoriez[i].Id < categoriez[j].Id
+
+		})
+
+		space.CategoryNames = categoriez
+
+	}
+
+	return space,nil
+   
+}
+
+func (s Space) GetPagesAndPagegroupsUnderSpace(spaceId int) (pages []TblPageAliases, subpages []TblPageAliases, pagegroups []TblPagesGroupAliases,err error){
+
+	var memberid int
+
+	if s.Authority.Token==SpecialToken{
+
+		memberid = 0
+
+	}else{
+
+		memberid, _, err = member.VerifyToken(s.Authority.Token, s.Authority.Secret)
+
+		if err != nil {
+
+			return []TblPageAliases{}, []TblPageAliases{},[]TblPagesGroupAliases{}, err
+		}
+
+	}
+
+	pages,err = SP.GetGraphqlPagesUnderSpace(s.Authority.DB,memberid,spaceId)
+
+	if err != nil {
+
+		return []TblPageAliases{}, []TblPageAliases{},[]TblPagesGroupAliases{}, err
+	}
+
+	subpages,err = SP.GetGraphqlSubpagesUnderSpace(s.Authority.DB,memberid,spaceId)
+
+	if err != nil {
+
+		return []TblPageAliases{}, []TblPageAliases{},[]TblPagesGroupAliases{}, err
+	}
+
+	pagegroups,err = SP.GetGraphqlPagegroupsUnderSpace(s.Authority.DB,memberid,spaceId)
+
+	if err != nil {
+
+		return []TblPageAliases{}, []TblPageAliases{},[]TblPagesGroupAliases{}, err
+	}
+
+	return pages,subpages,pagegroups,nil
+
+}
