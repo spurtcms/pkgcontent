@@ -3,15 +3,18 @@ package lms
 import (
 	"errors"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
 	"github.com/spurtcms/pkgcontent/categories"
 	"github.com/spurtcms/pkgcore/auth"
 	authcore "github.com/spurtcms/pkgcore/auth"
+	"github.com/spurtcms/pkgcore/member"
 	memberaccore "github.com/spurtcms/pkgcore/memberaccess"
 	"gorm.io/gorm"
 )
+
 /*this struct holds dbconnection ,token*/
 type Space struct {
 	Authority *authcore.Authorization
@@ -19,7 +22,11 @@ type Space struct {
 
 type SPM struct{}
 
-var SP SPM
+var (
+	SP SPM
+
+	SpecialToken = "%$HEID$#PDGH*&MGEAFCC"
+)
 
 /*this struct holds dbconnection ,token for weblms*/
 type MemberSpace struct {
@@ -1053,7 +1060,6 @@ func (s Space) DashboardPagesCount() (totalcount int, lasttendayscount int, err 
 
 }
 
-
 /*Remove entries cover image if media image delete*/
 func (s Space) RemoveSpaceImage(ImagePath string) (err error) {
 
@@ -1073,7 +1079,6 @@ func (s Space) RemoveSpaceImage(ImagePath string) (err error) {
 
 	return nil
 }
-
 
 //Mostlyviewed space list//
 
@@ -1299,5 +1304,104 @@ func (s Space) AddViewCount(id int) (err error) {
 	}
 
 	return nil
+
+}
+
+func (s Space) GetGraphqlSpacelist(limit, offset int, pathUrl string) (spacelist []TblSpacesAliases, count int64, err error) {
+
+	var memberid int
+
+	if s.Authority.Token == SpecialToken {
+
+		memberid = 0
+
+	} else {
+
+		memberid, _, err = member.VerifyToken(s.Authority.Token, s.Authority.Secret)
+
+		if err != nil {
+
+			return []TblSpacesAliases{}, 0, err
+		}
+	}
+
+	if spacelist, count, err = SP.GraphqlSpacelist(s.Authority.DB, memberid, limit, offset); err != nil {
+
+		return []TblSpacesAliases{}, 0, err
+	}
+
+	var final_spacelist []TblSpacesAliases
+
+	for _, space := range spacelist {
+
+		modified_path := pathUrl + strings.TrimPrefix(space.ImagePath, "/")
+
+		space.ImagePath = modified_path
+
+		var categoriez []categories.TblCategory
+
+		parent_category, _ := SP.GetCategoryByParentId(s.Authority.DB, space.PageCategoryId)
+
+		if parent_category.Id != 0 {
+
+			categoriez = append(categoriez, parent_category)
+		}
+
+		parentCatId := parent_category.ParentId
+
+		if parentCatId != 0 {
+
+			count := 0
+
+		LOOP:
+
+			for {
+
+				count++ //count increment used to check how many times the loop gets executed
+
+				loopParentCategory, _ := SP.GetCategoryByParentId(s.Authority.DB, parentCatId)
+
+				if loopParentCategory.Id != 0 {
+
+					categoriez = append(categoriez, loopParentCategory)
+				}
+
+				parentCatId = loopParentCategory.ParentId
+
+				if parentCatId != 0 {
+
+					goto LOOP
+
+				} else if count > 49 { //mannuall condition to break the loop in overlooping situations
+
+					break //use to break the loop if infinite loop doesn't break ,So forcing the loop to break at overlooping conditions
+
+				} else {
+
+					break
+
+				}
+
+			}
+
+		}
+
+		if len(categoriez) > 0 {
+
+			sort.SliceStable(categoriez, func(i, j int) bool {
+
+				return categoriez[i].Id < categoriez[j].Id
+
+			})
+
+			space.CategoryNames = categoriez
+
+		}
+
+		final_spacelist = append(final_spacelist, space)
+
+	}
+
+	return final_spacelist, count, nil
 
 }

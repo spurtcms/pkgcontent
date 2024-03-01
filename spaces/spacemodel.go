@@ -768,3 +768,49 @@ func (SP SPM) AddViewCount(id int, DB *gorm.DB) error {
 	return nil
 
 }
+
+func (SP SPM) GetCategoryByParentId(DB *gorm.DB, categoryId int) (category categories.TblCategory, err error) {
+
+	if err = DB.Table("tbl_categories").Where("is_deleted = 0 and id = ?", categoryId).First(&category).Error; err != nil {
+
+		return categories.TblCategory{}, err
+	}
+
+	return category, nil
+}
+
+func (SP SPM) GraphqlSpacelist(db *gorm.DB, memberid, limit, offset int) (spacelist []TblSpacesAliases, count int64, err error) {
+
+	if memberid == 0 {
+
+		if err = db.Debug().Table("tbl_spaces_aliases").Select("tbl_spaces_aliases.*,tbl_spaces.page_category_id").Joins("inner join tbl_spaces on tbl_spaces.id = tbl_spaces_aliases.spaces_id").
+			Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0").Order("tbl_spaces_aliases.id desc").Limit(limit).Offset(offset).Find(&spacelist).Error; err != nil {
+
+			return []TblSpacesAliases{}, 0, err
+		}
+
+		if err = db.Debug().Table("tbl_spaces_aliases").Joins("inner join tbl_spaces on tbl_spaces.id = tbl_spaces_aliases.spaces_id").Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0").Count(&count).Error; err != nil {
+
+			return []TblSpacesAliases{}, 0, err
+		}
+
+	} else {
+
+		if err = db.Debug().Table("tbl_spaces_aliases").Select("distinct on (tbl_spaces.id) tbl_spaces_aliases.*,tbl_spaces.page_category_id").
+			Joins("inner join tbl_spaces on tbl_spaces.id = tbl_spaces_aliases.spaces_id").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.spaces_id = tbl_spaces.id").Joins("inner join tbl_access_control_user_group on tbl_access_control_user_group.id = tbl_access_control_pages.access_control_user_group_id").
+			Joins("inner join tbl_member_groups on tbl_member_groups.id = tbl_access_control_user_group.member_group_id").Joins("inner join tbl_members on tbl_members.member_group_id = tbl_member_groups.id").
+			Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_members.is_deleted = 0 and tbl_member_groups.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0  and tbl_access_control_user_group.is_deleted = 0 and tbl_members.id = ?", memberid).Order("tbl_spaces.id desc").Limit(limit).Offset(offset).Find(&spacelist).Error; err != nil {
+			return []TblSpacesAliases{}, 0, err
+		}
+
+		if err = db.Debug().Table("tbl_spaces_aliases").Distinct("tbl_spaces.id").Joins("inner join tbl_spaces on tbl_spaces.id = tbl_spaces_aliases.spaces_id").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.spaces_id = tbl_spaces.id").Joins("inner join tbl_access_control_user_group on tbl_access_control_user_group.id = tbl_access_control_pages.access_control_user_group_id").
+			Joins("inner join tbl_member_groups on tbl_member_groups.id = tbl_access_control_user_group.member_group_id").Joins("inner join tbl_members on tbl_members.member_group_id = tbl_member_groups.id").
+			Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_members.is_deleted = 0 and tbl_member_groups.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0  and tbl_access_control_user_group.is_deleted = 0 and tbl_members.id = ?", memberid).Count(&count).Error; err != nil {
+
+			return []TblSpacesAliases{}, 0, err
+		}
+
+	}
+
+	return spacelist, count, nil
+}
