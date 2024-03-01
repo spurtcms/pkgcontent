@@ -129,13 +129,14 @@ type TblChannel struct {
 	IsDeleted          int
 	CreatedOn          time.Time
 	CreatedBy          int
-	ModifiedOn         time.Time           `gorm:"DEFAULT:NULL"`
-	ModifiedBy         int                 `gorm:"DEFAULT:NULL"`
-	DateString         string              `gorm:"-"`
-	EntriesCount       int                 `gorm:"-"`
-	ChannelEntries     []TblChannelEntries `gorm:"-"`
-	ProfileImagePath   string              `gorm:"<-:false"`
-	Username           string              `gorm:"<-:false"`
+	ModifiedOn         time.Time            `gorm:"DEFAULT:NULL"`
+	ModifiedBy         int                  `gorm:"DEFAULT:NULL"`
+	DateString         string               `gorm:"-"`
+	EntriesCount       int                  `gorm:"-"`
+	ChannelEntries     []TblChannelEntries  `gorm:"-"`
+	ChannelCategory    []TblChannelCategory `gorm:"<-:false"`
+	ProfileImagePath   string               `gorm:"<-:false"`
+	Username           string               `gorm:"<-:false"`
 }
 
 type TblChannelCategory struct {
@@ -457,7 +458,7 @@ func (Ch ChannelStruct) GetChannelById(ch *TblChannel, id int, DB *gorm.DB) erro
 /*Get Channel*/
 func (Ch ChannelStruct) GetChannelByChannelName(ch *TblChannel, name string, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_channels").Where("channel_name=?", name).First(&ch).Error; err != nil {
+	if err := DB.Table("tbl_channels").Where("channel_name=? and is_deleted=0", name).First(&ch).Error; err != nil {
 
 		return err
 	}
@@ -741,6 +742,12 @@ func (Ch ChannelStruct) ChannelEntryList(chentry *[]TblChannelEntries, limit, of
 	if chid != 0 {
 
 		query = query.Where("tbl_channel_entries.channel_id=?", chid)
+	}
+
+	if filter.UserName != "" {
+
+		query = query.Debug().Where("LOWER(TRIM(tbl_users.username)) ILIKE LOWER(TRIM(?))", "%"+filter.UserName+"%")
+
 	}
 
 	if filter.Keyword != "" {
@@ -1281,4 +1288,15 @@ func (ch ChannelStruct) GetGraphqlChannelEntriesList(DB *gorm.DB, memberid int, 
 	}
 
 	return channelEntries, count, nil
+}
+
+func (Ch ChannelStruct) GetChannelCategoryDetailsByChannelId(category *[]TblChannelCategory, id []int, DB *gorm.DB) error {
+
+	if err := DB.Debug().Table("tbl_channel_category").Where("channel_id in (?)", id).Find(&category).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+
 }

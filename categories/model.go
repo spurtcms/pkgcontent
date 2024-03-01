@@ -396,3 +396,13 @@ func (c Authstruct) GetParentTreeByChild(childID int, DB *gorm.DB) ([]TblCategor
 
 	return categories, nil
 }
+
+func (c Authstruct) GetCategoryByIds(category *[]TblCategory, id []int, DB *gorm.DB) ([]TblCategory, error) {
+
+	if err := DB.Table("tbl_categories").Where("is_deleted = 0 and id in (?)", id).Find(&category).Error; err != nil {
+
+		return []TblCategory{}, err
+	}
+
+	return *category, nil
+}

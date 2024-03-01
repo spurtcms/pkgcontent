@@ -2108,4 +2108,53 @@ func (Ch Channel) GetEntryDetailsByIdTemplates(EntryId int) (TblChannelEntries, 
 	return Entry, nil
 }
 
+func (Ch Channel) GetChannelCategoryByIdTemplates(channelid int) ([][]categories.CatgoriesOrd, error) {
 
+	var category []TblChannelCategory
+
+	err := CH.GetChannelCategoryDetailsByChannelId(&category, []int{channelid}, Ch.Authority.DB)
+
+	if err != nil {
+
+		log.Println(err)
+	}
+
+	var chancategory [][]categories.CatgoriesOrd
+
+	for _, val := range category {
+
+		ids := strings.Split(val.CategoryId, ",")
+
+		var intid []int
+
+		for _, val2 := range ids {
+
+			i, _ := strconv.Atoi(val2)
+
+			intid = append(intid, i)
+		}
+
+		var singcategory []categories.CatgoriesOrd
+
+		var categoriss []categories.TblCategory
+
+		categories.C.GetCategoryByIds(&categoriss, intid, Ch.Authority.DB)
+
+		for _, val3 := range categoriss {
+
+			var indsingcategory categories.CatgoriesOrd
+
+			indsingcategory.Id = val3.Id
+
+			indsingcategory.Category = val3.CategoryName
+
+			singcategory = append(singcategory, indsingcategory)
+
+		}
+
+		chancategory = append(chancategory, singcategory)
+
+	}
+
+	return chancategory, nil
+}
