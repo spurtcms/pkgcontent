@@ -165,12 +165,12 @@ func (Ch Channel) GetPermissionChannels(limit, offset int, filter Filter, active
 /*Get channel by name*/
 func (Ch Channel) GetchannelByName(channelname string) (channel TblChannel, err error) {
 
-	_, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
+	// _, _, checkerr := authcore.VerifyToken(Ch.Authority.Token, Ch.Authority.Secret)
 
-	if checkerr != nil {
+	// if checkerr != nil {
 
-		return TblChannel{}, checkerr
-	}
+	// 	return TblChannel{}, checkerr
+	// }
 
 	var channellist TblChannel
 

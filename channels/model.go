@@ -37,6 +37,7 @@ type EntriesFilter struct {
 	ChannelName string
 	Status      string
 	UserName    string
+	CategoryId  string
 }
 
 type TblFieldType struct {
@@ -985,6 +986,11 @@ func (Ch ChannelStruct) UpdateImagePath(Imagepath string, DB *gorm.DB) error {
 func (Ch ChannelStruct) ChannelEntryListForTemplates(chentry *[]TblChannelEntries, limit, offset int, filter EntriesFilter, DB *gorm.DB) (chentcount int64, err error) {
 
 	query := DB.Table("tbl_channel_entries").Select("tbl_channel_entries.*,tbl_users.username,tbl_channels.channel_name").Joins("inner join tbl_users on tbl_users.id = tbl_channel_entries.created_by").Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Where("tbl_channel_entries.is_deleted=0 and tbl_channel_entries.status=1 and LOWER(TRIM(tbl_channels.channel_name))=LOWER(TRIM(?))", filter.ChannelName).Order("id desc")
+
+	if filter.CategoryId != "" {
+
+		query = query.Where("tbl_channel_entries.id in (SELECT id FROM (SELECT id, unnest(string_to_array(categories_id, ',')) AS categoryid	FROM tbl_channel_entries) AS subquery WHERE categoryid = (?))", filter.CategoryId)
+	}
 
 	if limit != 0 {
 
