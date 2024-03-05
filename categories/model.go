@@ -336,7 +336,9 @@ func (c Authstruct) DeleteallCategoryById(category *TblCategory, categoryId []in
 
 func (c Authstruct) DeleteEntriesCategoryids(cid string, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_channel_entries").Where("categories_id LIKE ?", "%"+cid+"%").Update("categories_id", gorm.Expr("REPLACE(categories_id, ?, '')", cid)).Error; err != nil {
+
+
+	if err := DB.Debug().Exec("UPDATE tbl_channel_entries SET  categories_id  = TRIM(BOTH ',' FROM REPLACE(',' || categories_id || ',', '," + cid + ",', ','))    WHERE id IN (SELECT id FROM (SELECT id, UNNEST(STRING_TO_ARRAY(categories_id, ',')) AS split_categoryid FROM tbl_channel_entries) AS subquery WHERE split_categoryid = '" + cid + "')").Error; err != nil {
 		return err
 	}
 
@@ -345,12 +347,15 @@ func (c Authstruct) DeleteEntriesCategoryids(cid string, DB *gorm.DB) error {
 
 func (c Authstruct) DeleteChannelCategoryids(channelcategory *TblChannelCategory, cid string, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_channel_category").Where("category_id LIKE ?", "%"+cid+"%").Delete(&channelcategory).Error; err != nil {
+
+	if err := DB.Debug().Exec("DELETE FROM tbl_channel_category WHERE id IN (SELECT id FROM (SELECT id, UNNEST(STRING_TO_ARRAY(category_id, ',')) AS split_categoryid FROM tbl_channel_category) AS subquery WHERE split_categoryid ='" + cid + "')").Error; err != nil {
 		return err
 	}
 
 	return nil
+
 }
+
 
 // update imagepath
 func (c Authstruct) UpdateImagePath(Imagepath string, DB *gorm.DB) error {
