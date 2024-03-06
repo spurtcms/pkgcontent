@@ -735,7 +735,7 @@ func (SP SPM) MostlyViewList(Space *[]TblSpacesAliases, limit int, DB *gorm.DB) 
 		Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
 		Joins("inner join tbl_language on tbl_language.id = tbl_spaces_aliases.language_id").
 		Joins("inner join tbl_categories on tbl_categories.id = tbl_spaces.page_category_id").
-		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = 1").Order("tbl_spaces_aliases.view_count desc").Limit(limit)
+		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = 1 and tbl_spaces_aliases.view_count!=0").Order("tbl_spaces_aliases.view_count desc").Limit(limit)
 
 	query.Find(&Space)
 
@@ -748,7 +748,7 @@ func (SP SPM) RecentlyViewList(Space *[]TblSpacesAliases, limit int, DB *gorm.DB
 		Joins("inner join tbl_spaces on tbl_spaces_aliases.spaces_id = tbl_spaces.id").
 		Joins("inner join tbl_language on tbl_language.id = tbl_spaces_aliases.language_id").
 		Joins("inner join tbl_categories on tbl_categories.id = tbl_spaces.page_category_id").
-		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = 1").Order("tbl_spaces_aliases.recent_time desc").Limit(limit)
+		Where("tbl_spaces.is_deleted = 0 and tbl_spaces_aliases.is_deleted = 0 and tbl_spaces_aliases.language_id = 1 and tbl_spaces_aliases.view_count!=0").Order("tbl_spaces_aliases.recent_time desc").Limit(limit)
 
 	query.Find(&Space)
 

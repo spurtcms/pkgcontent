@@ -429,7 +429,7 @@ func (c Category) ListCategory(offset int, limit int, filter Filter, parent_id i
 
 			for cindex, val2 := range FinalModalCategoryList {
 
-				if index == cindex {
+				if index+offset == cindex {
 
 					for _, va3 := range val2.Categories {
 
@@ -1221,7 +1221,6 @@ func (c Category) UpdateImagePath(ImagePath string) error {
 
 // 	return AllCategorieswithSubCategories, err
 // }
-
 
 // this func helps to get parent hierarcy by child id
 func (c Category) GetParentGivenByChildId(childcategoryid string) (category []TblCategory, err error) {
