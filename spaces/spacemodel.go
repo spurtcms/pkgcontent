@@ -843,15 +843,14 @@ func (SP SPM) GetGraphqlPagesUnderSpace(db *gorm.DB, memberid, spaceId int) (pag
 
 	if memberid == 0 {
 
-		if err = db.Table("tbl_page_aliases").Select("tbl_page.id,tbl_page_aliases.page_title,tbl_page_aliases.page_description,tbl_page.page_group_id,tbl_page_aliases.order_index,tbl_page.parent_id,tbl_page_aliases.status,tbl_page_aliases.created_on,tbl_page_aliases.created_by,tbl_page_aliases.modified_on,tbl_page_aliases.modified_by").
-			Joins("inner join tbl_page on tbl_page.id = tbl_page_aliases.page_id").Where("tbl_page.is_deleted = 0 and tbl_page_aliases.is_deleted = 0 and tbl_page.parent_id = 0 and tbl_page.spaces_id = ?", spaceId).Find(&pages).Error; err != nil {
+		if err = db.Table("tbl_page_aliases").Select("tbl_page_aliases.*").Joins("inner join tbl_page on tbl_page.id = tbl_page_aliases.page_id").Where("tbl_page.is_deleted = 0 and tbl_page_aliases.is_deleted = 0 and tbl_page.parent_id = 0 and tbl_page.spaces_id = ?", spaceId).Find(&pages).Error; err != nil {
 
 			return []TblPageAliases{}, err
 		}
 
 	} else {
 
-		if err = db.Table("tbl_page_aliases").Select("distinct on (tbl_page.id) tbl_page.id,tbl_page_aliases.page_title,tbl_page_aliases.page_description,tbl_page.page_group_id,tbl_page_aliases.order_index,tbl_page.parent_id,tbl_page_aliases.status,tbl_page_aliases.created_on,tbl_page_aliases.created_by,tbl_page_aliases.modified_on,tbl_page_aliases.modified_by").
+		if err = db.Table("tbl_page_aliases").Select("distinct on (tbl_page.id) tbl_page_aliases.*").
 			Joins("inner join tbl_page on tbl_page.id = tbl_page_aliases.page_id").Joins("inner join tbl_spaces on tbl_spaces.id = tbl_page.spaces_id").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.page_id = tbl_page.id").Joins("inner join tbl_access_control_user_group on tbl_access_control_user_group.id = tbl_access_control_pages.access_control_user_group_id").
 			Joins("inner join tbl_member_groups on tbl_member_groups.id = tbl_access_control_user_group.member_group_id").Joins("inner join tbl_members on tbl_members.member_group_id = tbl_member_groups.id").
 			Where("tbl_page.is_deleted = 0 and tbl_page_aliases.is_deleted = 0 and tbl_page.parent_id = 0 and tbl_spaces.is_deleted = 0 and tbl_members.is_deleted = 0 and tbl_member_groups.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0  and tbl_access_control_user_group.is_deleted = 0 and tbl_page.spaces_id = ? and tbl_members.id=?", spaceId, memberid).Find(&pages).Error; err != nil {

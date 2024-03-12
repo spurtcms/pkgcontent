@@ -1727,7 +1727,7 @@ func (ch Channel) GetGraphqlChannelList(limit, offset int) (channelList []TblCha
 }
 
 // given entry id returns related entry
-func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId, channelId, categoryId *int, pathUrl string) (channelEntry TblChannelEntries, err error) {
+func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId int, channelId, categoryId *int, pathUrl string,sectionTypeId int) (channelEntry TblChannelEntries, err error) {
 
 	var memberid int
 
@@ -1754,9 +1754,77 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId, channelId, cat
 		return TblChannelEntries{}, err
 	}
 
-	modified_path := strings.TrimPrefix(channelEntry.CoverImage, "/")
+	var modified_path string
 
-	channelEntry.CoverImage = pathUrl + modified_path
+	if channelEntry.CoverImage!=""{
+
+		modified_path = pathUrl + strings.TrimPrefix(channelEntry.CoverImage, "/")
+	}
+
+	channelEntry.CoverImage = modified_path
+
+	authorDetails,_ := CH.GetAuthorDetails(ch.Authority.DB,channelEntry.CreatedBy)
+
+	if authorDetails.AuthorID!=0{
+
+		channelEntry.AuthorDetail = authorDetails
+	}
+
+	sections,_ := CH.GetSectionsUnderEntries(ch.Authority.DB,channelEntry.ChannelId,sectionTypeId)
+
+		channelEntry.Sections = sections
+
+		var memberids string
+
+		var final_fieldsList []TblField
+
+		fields,_ := CH.GetFieldsInEntries(ch.Authority.DB,channelEntry.ChannelId,sectionTypeId)
+
+		for _, field := range fields {
+
+			fieldValue,_ := CH.GetFieldValue(ch.Authority.DB, field.Id,channelEntry.Id)
+
+			if fieldValue.Id != 0 {
+
+				field.FieldValue = fieldValue
+
+				if fieldValue.FieldTypeId == sectionTypeId {
+
+					memberids = fieldValue.FieldValue
+				}
+			}
+
+			fieldOptions,_ := CH.GetFieldOptions(ch.Authority.DB,field.Id)
+
+			if len(fieldOptions) > 0 {
+
+				field.FieldOptions = fieldOptions
+
+			}
+
+			final_fieldsList = append(final_fieldsList, field)
+		}
+
+		channelEntry.Fields = final_fieldsList
+
+		var memberProfiles []TblMemberProfiles
+
+		MemIds := strings.Split(memberids, ",")
+
+		for _, memberid := range MemIds {
+
+			conv_memid,_ := strconv.Atoi(memberid)
+
+			memberProfile,_ := CH.GetMemberProfile(ch.Authority.DB,conv_memid)
+
+			if memberProfile.Id != 0{
+
+				memberProfiles = append(memberProfiles, memberProfile)
+
+			}
+		}
+
+		channelEntry.MemberProfiles = memberProfiles
 
 	splittedArr := strings.Split(channelEntry.CategoriesId, ",")
 
@@ -1833,122 +1901,9 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId, channelId, cat
 	return channelEntry, nil
 }
 
-// given channel id returns all published entries
-func (ch Channel) GetGraphqlChannelEntriesByChannelId(channelId, categoryId, limit, offset *int, pathUrl string) (channelEntries []TblChannelEntries, count int64, err error) {
-
-	var memberid int
-
-	if ch.Authority.Token == SpecialToken {
-
-		memberid = 0
-
-	} else {
-
-		memberid, _, err = member.VerifyToken(ch.Authority.Token, ch.Authority.Secret)
-
-		if err != nil {
-
-			return []TblChannelEntries{}, 0, err
-
-		}
-
-	}
-
-	channelEntries, count, err = CH.GetGraphqlChannelEntrieslistByChannelId(ch.Authority.DB, memberid, channelId, categoryId, limit, offset)
-
-	if err != nil {
-
-		return []TblChannelEntries{}, 0, err
-	}
-
-	var final_entries_list []TblChannelEntries
-
-	for _, entry := range channelEntries {
-
-		modified_path := strings.TrimPrefix(entry.CoverImage, "/")
-
-		entry.CoverImage = pathUrl + modified_path
-
-		splittedArr := strings.Split(entry.CategoriesId, ",")
-
-		var parentCatId int
-
-		var indivCategories [][]categories.TblCategory
-
-		for _, catId := range splittedArr {
-
-			var indivCategory []categories.TblCategory
-
-			conv_id, _ := strconv.Atoi(catId)
-
-			category, _ := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, conv_id)
-
-			if category.Id != 0 {
-
-				indivCategory = append(indivCategory, category)
-			}
-
-			parentCatId = category.ParentId
-
-			if parentCatId != 0 {
-
-				var count int
-
-			LOOP:
-
-				for {
-
-					count = count + 1 //count increment used to check how many times the loop gets executed
-
-					parentCategory, _ := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, parentCatId)
-
-					if parentCategory.Id != 0 {
-
-						indivCategory = append(indivCategory, parentCategory)
-					}
-
-					parentCatId = parentCategory.ParentId
-
-					if parentCatId != 0 { //mannuall condition to break the loop in overlooping situations
-
-						goto LOOP
-
-					} else if count > 49 {
-
-						break //use to break the loop if infinite loop doesn't break ,So forcing the loop to break at overlooping conditions
-
-					} else {
-
-						break
-					}
-
-				}
-
-			}
-
-			if len(indivCategory) > 0 {
-
-				sort.SliceStable(indivCategory, func(i, j int) bool {
-
-					return indivCategory[i].Id < indivCategory[j].Id
-
-				})
-
-				indivCategories = append(indivCategories, indivCategory)
-			}
-
-		}
-
-		entry.Categories = indivCategories
-
-		final_entries_list = append(final_entries_list, entry)
-	}
-
-	return final_entries_list, count, nil
-}
 
 // function give all channel entries list
-func (ch Channel) GetGraphqlAllChannelEntriesList(categoryid, limit, offset *int, pathUrl string) (channelEntries []TblChannelEntries, count int64, err error) {
+func (ch Channel) GetGraphqlAllChannelEntriesList(channelId,categoryid  *int, limit, offset, sectionTypeId int, pathUrl string) (channelEntries []TblChannelEntries, count int64, err error) {
 
 	var memberid int
 
@@ -1968,7 +1923,14 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(categoryid, limit, offset *int
 
 	}
 
-	channelEntries, count, err = CH.GetGraphqlChannelEntriesList(ch.Authority.DB, memberid, categoryid, limit, offset)
+	if channelId == nil {
+
+		channelEntries, count, err = CH.GetGraphqlChannelEntriesList(ch.Authority.DB, memberid, categoryid, limit, offset)
+
+	} else {
+
+		channelEntries, count, err = CH.GetGraphqlChannelEntrieslistByChannelId(ch.Authority.DB, memberid, channelId, categoryid, limit, offset)
+	}
 
 	if err != nil {
 
@@ -1979,9 +1941,77 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(categoryid, limit, offset *int
 
 	for _, entry := range channelEntries {
 
-		modified_path := strings.TrimPrefix(entry.CoverImage, "/")
+		var  modified_path string
 
-		entry.CoverImage = pathUrl + modified_path
+		if entry.CoverImage!=""{
+
+			modified_path =  pathUrl + strings.TrimPrefix(entry.CoverImage, "/")
+		}
+
+		entry.CoverImage = modified_path
+
+		authorDetails,_ := CH.GetAuthorDetails(ch.Authority.DB,entry.CreatedBy)
+
+		if authorDetails.AuthorID!=0{
+
+			entry.AuthorDetail = authorDetails
+		}
+
+		sections,_ := CH.GetSectionsUnderEntries(ch.Authority.DB,entry.ChannelId,sectionTypeId)
+
+		entry.Sections = sections
+
+		var memberids string
+
+		var final_fieldsList []TblField
+
+		fields,_ := CH.GetFieldsInEntries(ch.Authority.DB,entry.ChannelId,sectionTypeId)
+
+		for _, field := range fields {
+
+			fieldValue,_ := CH.GetFieldValue(ch.Authority.DB, field.Id,entry.Id)
+
+			if fieldValue.Id != 0 {
+
+				field.FieldValue = fieldValue
+
+				if fieldValue.FieldTypeId == sectionTypeId {
+
+					memberids = fieldValue.FieldValue
+				}
+			}
+
+			fieldOptions,_ := CH.GetFieldOptions(ch.Authority.DB,field.Id)
+
+			if len(fieldOptions) > 0 {
+
+				field.FieldOptions = fieldOptions
+
+			}
+
+			final_fieldsList = append(final_fieldsList, field)
+		}
+
+		entry.Fields = final_fieldsList
+
+		var memberProfiles []TblMemberProfiles
+
+		MemIds := strings.Split(memberids, ",")
+
+		for _, memberid := range MemIds {
+
+			conv_memid,_ := strconv.Atoi(memberid)
+
+			memberProfile,_ := CH.GetMemberProfile(ch.Authority.DB,conv_memid)
+
+			if memberProfile.Id != 0{
+
+				memberProfiles = append(memberProfiles, memberProfile)
+
+			}
+		}
+
+		entry.MemberProfiles = memberProfiles
 
 		splittedArr := strings.Split(entry.CategoriesId, ",")
 
@@ -2060,6 +2090,7 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(categoryid, limit, offset *int
 
 	return final_entries_list, count, nil
 }
+
 
 // this function provides channel detail for accessible members if the channel contains published entries
 func (ch Channel) GetGraphqlChannelDetails(channelid int) (channel TblChannel, err error) {

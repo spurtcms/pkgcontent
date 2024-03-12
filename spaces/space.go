@@ -1334,10 +1334,14 @@ func (s Space) GetGraphqlSpacelist(limit, offset int, pathUrl string) (spacelist
 
 	for _, space := range spacelist {
 
-		modified_path := pathUrl + strings.TrimPrefix(space.ImagePath, "/")
+		var modified_path string
+
+		if space.ImagePath != "" {
+
+			modified_path = pathUrl + strings.TrimPrefix(space.ImagePath, "/")
+		}
 
 		space.ImagePath = modified_path
-
 		var categoriez []categories.TblCategory
 
 		parent_category, _ := SP.GetCategoryByParentId(s.Authority.DB, space.PageCategoryId)
@@ -1406,15 +1410,15 @@ func (s Space) GetGraphqlSpacelist(limit, offset int, pathUrl string) (spacelist
 
 }
 
-func (s Space) GetGraphqlSpaceDetails(SpaceId int,pathUrl string) (space TblSpacesAliases,err error){
+func (s Space) GetGraphqlSpaceDetails(SpaceId int, pathUrl string) (space TblSpacesAliases, err error) {
 
 	var memberid int
 
-	if s.Authority.Token==SpecialToken{
+	if s.Authority.Token == SpecialToken {
 
 		memberid = 0
 
-	}else{
+	} else {
 
 		memberid, _, err = member.VerifyToken(s.Authority.Token, s.Authority.Secret)
 
@@ -1425,14 +1429,19 @@ func (s Space) GetGraphqlSpaceDetails(SpaceId int,pathUrl string) (space TblSpac
 
 	}
 
-	space,err = SP.GraphqlSpaceDetails(s.Authority.DB,memberid,SpaceId)
+	space, err = SP.GraphqlSpaceDetails(s.Authority.DB, memberid, SpaceId)
 
 	if err != nil {
 
 		return TblSpacesAliases{}, err
 	}
 
-	modified_path := pathUrl + strings.TrimPrefix(space.ImagePath, "/")
+	var modified_path string
+
+	if space.ImagePath != "" {
+
+		modified_path = pathUrl + strings.TrimPrefix(space.ImagePath, "/")
+	}
 
 	space.ImagePath = modified_path
 
@@ -1496,50 +1505,50 @@ func (s Space) GetGraphqlSpaceDetails(SpaceId int,pathUrl string) (space TblSpac
 
 	}
 
-	return space,nil
-   
+	return space, nil
+
 }
 
-func (s Space) GetPagesAndPagegroupsUnderSpace(spaceId int) (pages []TblPageAliases, subpages []TblPageAliases, pagegroups []TblPagesGroupAliases,err error){
+func (s Space) GetPagesAndPagegroupsUnderSpace(spaceId int) (pages []TblPageAliases, subpages []TblPageAliases, pagegroups []TblPagesGroupAliases, err error) {
 
 	var memberid int
 
-	if s.Authority.Token==SpecialToken{
+	if s.Authority.Token == SpecialToken {
 
 		memberid = 0
 
-	}else{
+	} else {
 
 		memberid, _, err = member.VerifyToken(s.Authority.Token, s.Authority.Secret)
 
 		if err != nil {
 
-			return []TblPageAliases{}, []TblPageAliases{},[]TblPagesGroupAliases{}, err
+			return []TblPageAliases{}, []TblPageAliases{}, []TblPagesGroupAliases{}, err
 		}
 
 	}
 
-	pages,err = SP.GetGraphqlPagesUnderSpace(s.Authority.DB,memberid,spaceId)
+	pages, err = SP.GetGraphqlPagesUnderSpace(s.Authority.DB, memberid, spaceId)
 
 	if err != nil {
 
-		return []TblPageAliases{}, []TblPageAliases{},[]TblPagesGroupAliases{}, err
+		return []TblPageAliases{}, []TblPageAliases{}, []TblPagesGroupAliases{}, err
 	}
 
-	subpages,err = SP.GetGraphqlSubpagesUnderSpace(s.Authority.DB,memberid,spaceId)
+	subpages, err = SP.GetGraphqlSubpagesUnderSpace(s.Authority.DB, memberid, spaceId)
 
 	if err != nil {
 
-		return []TblPageAliases{}, []TblPageAliases{},[]TblPagesGroupAliases{}, err
+		return []TblPageAliases{}, []TblPageAliases{}, []TblPagesGroupAliases{}, err
 	}
 
-	pagegroups,err = SP.GetGraphqlPagegroupsUnderSpace(s.Authority.DB,memberid,spaceId)
+	pagegroups, err = SP.GetGraphqlPagegroupsUnderSpace(s.Authority.DB, memberid, spaceId)
 
 	if err != nil {
 
-		return []TblPageAliases{}, []TblPageAliases{},[]TblPagesGroupAliases{}, err
+		return []TblPageAliases{}, []TblPageAliases{}, []TblPagesGroupAliases{}, err
 	}
 
-	return pages,subpages,pagegroups,nil
+	return pages, subpages, pagegroups, nil
 
 }
