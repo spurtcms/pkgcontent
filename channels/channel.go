@@ -1727,7 +1727,7 @@ func (ch Channel) GetGraphqlChannelList(limit, offset int) (channelList []TblCha
 }
 
 // given entry id returns related entry
-func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId int, channelId, categoryId *int, pathUrl string,sectionTypeId int) (channelEntry TblChannelEntries, err error) {
+func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId int, channelId, categoryId *int, pathUrl string, sectionTypeId, MemberFieldTypeId int) (channelEntry TblChannelEntries, err error) {
 
 	var memberid int
 
@@ -1756,75 +1756,93 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId int, channelId,
 
 	var modified_path string
 
-	if channelEntry.CoverImage!=""{
+	if channelEntry.CoverImage != "" {
 
 		modified_path = pathUrl + strings.TrimPrefix(channelEntry.CoverImage, "/")
 	}
 
 	channelEntry.CoverImage = modified_path
 
-	authorDetails,_ := CH.GetAuthorDetails(ch.Authority.DB,channelEntry.CreatedBy)
+	authorDetails, _ := CH.GetAuthorDetails(ch.Authority.DB, channelEntry.CreatedBy)
 
-	if authorDetails.AuthorID!=0{
+	if authorDetails.AuthorID != 0 {
+
+		var modified_profileImage string
+
+		if authorDetails.ProfileImagePath != nil {
+
+			modified_profileImage = pathUrl + *authorDetails.ProfileImagePath
+		}
+
+		authorDetails.ProfileImagePath = &modified_profileImage
 
 		channelEntry.AuthorDetail = authorDetails
 	}
 
-	sections,_ := CH.GetSectionsUnderEntries(ch.Authority.DB,channelEntry.ChannelId,sectionTypeId)
+	sections, _ := CH.GetSectionsUnderEntries(ch.Authority.DB, channelEntry.ChannelId, sectionTypeId)
 
-		channelEntry.Sections = sections
+	channelEntry.Sections = sections
 
-		var memberids string
+	var memberids string
 
-		var final_fieldsList []TblField
+	var final_fieldsList []TblField
 
-		fields,_ := CH.GetFieldsInEntries(ch.Authority.DB,channelEntry.ChannelId,sectionTypeId)
+	fields, _ := CH.GetFieldsInEntries(ch.Authority.DB, channelEntry.ChannelId, sectionTypeId)
 
-		for _, field := range fields {
+	for _, field := range fields {
 
-			fieldValue,_ := CH.GetFieldValue(ch.Authority.DB, field.Id,channelEntry.Id)
+		var modified_field_path string
 
-			if fieldValue.Id != 0 {
+		if field.ImagePath != "" {
 
-				field.FieldValue = fieldValue
-
-				if fieldValue.FieldTypeId == sectionTypeId {
-
-					memberids = fieldValue.FieldValue
-				}
-			}
-
-			fieldOptions,_ := CH.GetFieldOptions(ch.Authority.DB,field.Id)
-
-			if len(fieldOptions) > 0 {
-
-				field.FieldOptions = fieldOptions
-
-			}
-
-			final_fieldsList = append(final_fieldsList, field)
+			modified_field_path = pathUrl + strings.TrimPrefix(field.ImagePath, "/")
 		}
 
-		channelEntry.Fields = final_fieldsList
+		field.ImagePath = modified_field_path
 
-		var memberProfiles []TblMemberProfiles
+		fieldValue, _ := CH.GetFieldValue(ch.Authority.DB, field.Id, channelEntry.Id)
 
-		MemIds := strings.Split(memberids, ",")
+		if fieldValue.Id != 0 {
 
-		for _, memberid := range MemIds {
+			field.FieldValue = fieldValue
 
-			conv_memid,_ := strconv.Atoi(memberid)
+			if field.FieldTypeId == MemberFieldTypeId {
 
-			memberProfile,_ := CH.GetMemberProfile(ch.Authority.DB,conv_memid)
-
-			if memberProfile.Id != 0{
-
-				memberProfiles = append(memberProfiles, memberProfile)
-
+				memberids = fieldValue.FieldValue
 			}
 		}
 
-		channelEntry.MemberProfiles = memberProfiles
+		fieldOptions, _ := CH.GetFieldOptions(ch.Authority.DB, field.Id)
+
+		if len(fieldOptions) > 0 {
+
+			field.FieldOptions = fieldOptions
+
+		}
+
+		final_fieldsList = append(final_fieldsList, field)
+	}
+
+	channelEntry.Fields = final_fieldsList
+
+	var memberProfiles []TblMemberProfiles
+
+	MemIds := strings.Split(memberids, ",")
+
+	for _, memberid := range MemIds {
+
+		conv_memid, _ := strconv.Atoi(memberid)
+
+		memberProfile, _ := CH.GetMemberProfile(ch.Authority.DB, conv_memid)
+
+		if memberProfile.Id != 0 {
+
+			memberProfiles = append(memberProfiles, memberProfile)
+
+		}
+	}
+
+	channelEntry.MemberProfiles = memberProfiles
 
 	splittedArr := strings.Split(channelEntry.CategoriesId, ",")
 
@@ -1901,9 +1919,8 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId int, channelId,
 	return channelEntry, nil
 }
 
-
 // function give all channel entries list
-func (ch Channel) GetGraphqlAllChannelEntriesList(channelId,categoryid  *int, limit, offset, sectionTypeId int, pathUrl string) (channelEntries []TblChannelEntries, count int64, err error) {
+func (ch Channel) GetGraphqlAllChannelEntriesList(channelId, categoryid *int, limit, offset, sectionTypeId, MemberFieldTypeId int, pathUrl string) (channelEntries []TblChannelEntries, count int64, err error) {
 
 	var memberid int
 
@@ -1941,23 +1958,32 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(channelId,categoryid  *int, li
 
 	for _, entry := range channelEntries {
 
-		var  modified_path string
+		var modified_path string
 
-		if entry.CoverImage!=""{
+		if entry.CoverImage != "" {
 
-			modified_path =  pathUrl + strings.TrimPrefix(entry.CoverImage, "/")
+			modified_path = pathUrl + strings.TrimPrefix(entry.CoverImage, "/")
 		}
 
 		entry.CoverImage = modified_path
 
-		authorDetails,_ := CH.GetAuthorDetails(ch.Authority.DB,entry.CreatedBy)
+		authorDetails, _ := CH.GetAuthorDetails(ch.Authority.DB, entry.CreatedBy)
 
-		if authorDetails.AuthorID!=0{
+		if authorDetails.AuthorID != 0 {
+
+			var modified_profileImage string
+
+			if authorDetails.ProfileImagePath != nil {
+
+				modified_profileImage = pathUrl + *authorDetails.ProfileImagePath
+			}
+
+			authorDetails.ProfileImagePath = &modified_profileImage
 
 			entry.AuthorDetail = authorDetails
 		}
 
-		sections,_ := CH.GetSectionsUnderEntries(ch.Authority.DB,entry.ChannelId,sectionTypeId)
+		sections, _ := CH.GetSectionsUnderEntries(ch.Authority.DB, entry.ChannelId, sectionTypeId)
 
 		entry.Sections = sections
 
@@ -1965,23 +1991,32 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(channelId,categoryid  *int, li
 
 		var final_fieldsList []TblField
 
-		fields,_ := CH.GetFieldsInEntries(ch.Authority.DB,entry.ChannelId,sectionTypeId)
+		fields, _ := CH.GetFieldsInEntries(ch.Authority.DB, entry.ChannelId, sectionTypeId)
 
 		for _, field := range fields {
 
-			fieldValue,_ := CH.GetFieldValue(ch.Authority.DB, field.Id,entry.Id)
+			var modified_field_path string
+
+			if field.ImagePath != "" {
+
+				modified_field_path = pathUrl + strings.TrimPrefix(field.ImagePath, "/")
+			}
+
+			field.ImagePath = modified_field_path
+
+			fieldValue, _ := CH.GetFieldValue(ch.Authority.DB, field.Id, entry.Id)
 
 			if fieldValue.Id != 0 {
 
 				field.FieldValue = fieldValue
 
-				if fieldValue.FieldTypeId == sectionTypeId {
+				if field.FieldTypeId == MemberFieldTypeId {
 
 					memberids = fieldValue.FieldValue
 				}
 			}
 
-			fieldOptions,_ := CH.GetFieldOptions(ch.Authority.DB,field.Id)
+			fieldOptions, _ := CH.GetFieldOptions(ch.Authority.DB, field.Id)
 
 			if len(fieldOptions) > 0 {
 
@@ -2000,11 +2035,11 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(channelId,categoryid  *int, li
 
 		for _, memberid := range MemIds {
 
-			conv_memid,_ := strconv.Atoi(memberid)
+			conv_memid, _ := strconv.Atoi(memberid)
 
-			memberProfile,_ := CH.GetMemberProfile(ch.Authority.DB,conv_memid)
+			memberProfile, _ := CH.GetMemberProfile(ch.Authority.DB, conv_memid)
 
-			if memberProfile.Id != 0{
+			if memberProfile.Id != 0 {
 
 				memberProfiles = append(memberProfiles, memberProfile)
 
@@ -2090,7 +2125,6 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(channelId,categoryid  *int, li
 
 	return final_entries_list, count, nil
 }
-
 
 // this function provides channel detail for accessible members if the channel contains published entries
 func (ch Channel) GetGraphqlChannelDetails(channelid int) (channel TblChannel, err error) {
@@ -2188,4 +2222,17 @@ func (Ch Channel) GetChannelCategoryByIdTemplates(channelid int) ([][]categories
 	}
 
 	return chancategory, nil
+}
+
+func (ch Channel) MakeFeature(channelid, entryid int) (flag bool, err error) {
+
+	merr := CH.MakeFeature(channelid, entryid, ch.Authority.DB)
+
+	if merr != nil {
+
+		return false, merr
+	}
+
+	return true, nil
+
 }

@@ -1404,3 +1404,15 @@ func (ch ChannelStruct) GetMemberProfile(DB *gorm.DB, memberid int) (memberProfi
 	return memberProfile, nil
 
 }
+
+func (ch ChannelStruct) MakeFeature(channelid, entryid int, DB *gorm.DB) (err error) {
+
+	DB.Model(TblChannelEntries{}).UpdateColumns(map[string]interface{}{"feature": 0}).Where("channel_id=?", channelid)
+
+	if err := DB.Model(TblChannelEntries{}).UpdateColumns(map[string]interface{}{"feature": 1}).Where("id=? and channel_id=?", entryid, channelid).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
