@@ -2224,9 +2224,9 @@ func (Ch Channel) GetChannelCategoryByIdTemplates(channelid int) ([][]categories
 	return chancategory, nil
 }
 
-func (ch Channel) MakeFeature(channelid, entryid int) (flag bool, err error) {
+func (ch Channel) MakeFeature(channelid, entryid, status int) (flag bool, err error) {
 
-	merr := CH.MakeFeature(channelid, entryid, ch.Authority.DB)
+	merr := CH.MakeFeature(channelid, entryid, status, ch.Authority.DB)
 
 	if merr != nil {
 
