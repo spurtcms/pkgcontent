@@ -1165,7 +1165,15 @@ func (Ch Channel) CreateEntry(entriesrequired EntriesRequired) (entry TblChannel
 
 		Entries.Keyword = entriesrequired.SEODetails.MetaKeywords
 
-		Entries.Slug = entriesrequired.SEODetails.MetaSlug
+		if entriesrequired.SEODetails.MetaSlug == "" {
+
+			Entries.Slug = strings.ReplaceAll(strings.ToLower(entriesrequired.Title), " ", "_")
+
+		} else {
+
+			Entries.Slug = entriesrequired.SEODetails.MetaSlug
+
+		}
 
 		Entries.Status = entriesrequired.Status
 
@@ -1378,7 +1386,15 @@ func (Ch Channel) UpdateEntryDetailsById(entriesrequired EntriesRequired, Channe
 
 		Entries.Keyword = entriesrequired.SEODetails.MetaKeywords
 
-		Entries.Slug = entriesrequired.SEODetails.MetaSlug
+		if entriesrequired.SEODetails.MetaSlug == "" {
+
+			Entries.Slug = strings.ReplaceAll(strings.ToLower(entriesrequired.Title), " ", "_")
+
+		} else {
+
+			Entries.Slug = entriesrequired.SEODetails.MetaSlug
+
+		}
 
 		Entries.Status = entriesrequired.Status
 

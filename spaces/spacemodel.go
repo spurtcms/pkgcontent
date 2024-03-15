@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/spurtcms/pkgcontent/categories"
+	"github.com/spurtcms/pkgcore/member"
 	"gorm.io/gorm"
 )
 
@@ -756,11 +757,18 @@ func (SP SPM) RecentlyViewList(Space *[]TblSpacesAliases, limit int, DB *gorm.DB
 
 }
 
-func (SP SPM) AddViewCount(id int, DB *gorm.DB) error {
+func (SP SPM) AddViewCount(id, memberid int, DB *gorm.DB) error {
 
-	if err := DB.Debug().Model(TblSpacesAliases{}).Where("spaces_id = ?", id).Updates(map[string]interface{}{
+	if err := DB.Model(TblSpacesAliases{}).Where("spaces_id = ?", id).Updates(map[string]interface{}{
 		"view_count":  gorm.Expr("view_count + ?", 1),
 		"recent_time": time.Now().UTC().Format("2006-01-02 15:04:05"),
+	}).Error; err != nil {
+		return err
+	}
+
+	if err := DB.Model(member.TblMember{}).Where("id = ?", memberid).Updates(map[string]interface{}{
+
+		"login_time": time.Now().UTC().Format("2006-01-02 15:04:05"),
 	}).Error; err != nil {
 		return err
 	}

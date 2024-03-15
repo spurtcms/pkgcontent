@@ -1294,9 +1294,9 @@ func (s Space) RecentlyViewList(limit int) (spacedetails []TblSpacesAliases, err
 	return SpaceDetails, nil
 }
 
-func (s Space) AddViewCount(id int) (err error) {
+func (s Space) AddViewCount(spaceid, memberid int) (err error) {
 
-	err1 := SP.AddViewCount(id, s.Authority.DB)
+	err1 := SP.AddViewCount(spaceid, memberid, s.Authority.DB)
 
 	if err1 != nil {
 
