@@ -429,7 +429,7 @@ func (c Category) ListCategory(offset int, limit int, filter Filter, parent_id i
 
 			for cindex, val2 := range FinalModalCategoryList {
 
-				if index+offset == cindex {
+				if index == cindex {
 
 					for _, va3 := range val2.Categories {
 
@@ -449,7 +449,7 @@ func (c Category) ListCategory(offset int, limit int, filter Filter, parent_id i
 
 			for cindex, val2 := range FinalCategoryList {
 
-				if index == cindex {
+				if index+offset == cindex {
 
 					for _, va3 := range val2.Categories {
 
