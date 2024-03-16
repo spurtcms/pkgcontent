@@ -3,6 +3,7 @@ package channels
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"sort"
 	"strconv"
@@ -1763,6 +1764,14 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId int, channelId,
 
 	}
 
+	verr := CH.GraphqlEntiresViewCountUpdate(ch.Authority.DB, channelEntryId)
+
+	if verr != nil {
+
+		fmt.Println(verr)
+
+	}
+
 	channelEntry, err = CH.GetGraphqlChannelEntryDetailsById(ch.Authority.DB, memberid, channelEntryId, channelId, categoryId)
 
 	if err != nil {
@@ -1936,7 +1945,7 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId int, channelId,
 }
 
 // function give all channel entries list
-func (ch Channel) GetGraphqlAllChannelEntriesList(channelId, categoryid *int, limit, offset, sectionTypeId, MemberFieldTypeId int, pathUrl string) (channelEntries []TblChannelEntries, count int64, err error) {
+func (ch Channel) GetGraphqlAllChannelEntriesList(channelId, categoryid *int, limit, offset, sectionTypeId, MemberFieldTypeId int, pathUrl string, entryKeyword *string) (channelEntries []TblChannelEntries, count int64, err error) {
 
 	var memberid int
 
@@ -1956,14 +1965,7 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(channelId, categoryid *int, li
 
 	}
 
-	if channelId == nil {
-
-		channelEntries, count, err = CH.GetGraphqlChannelEntriesList(ch.Authority.DB, memberid, categoryid, limit, offset)
-
-	} else {
-
-		channelEntries, count, err = CH.GetGraphqlChannelEntrieslistByChannelId(ch.Authority.DB, memberid, channelId, categoryid, limit, offset)
-	}
+	channelEntries, count, err = CH.GetGraphqlChannelEntriesData(ch.Authority.DB, memberid, channelId, categoryid, limit, offset, entryKeyword)
 
 	if err != nil {
 
