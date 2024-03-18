@@ -1116,7 +1116,7 @@ func (ch ChannelStruct) GetGraphqlChannelDetailsById(DB *gorm.DB, memberid, chan
 	return channel, nil
 }
 
-func (ch ChannelStruct) GetGraphqlChannelEntryDetailsById(DB *gorm.DB, memberid int, channelEntryId int, channelId, categoryId *int) (channelEntry TblChannelEntries, err error) {
+func (ch ChannelStruct) GetGraphqlChannelEntryDetails(DB *gorm.DB, memberid int, channelEntryId int, channelId, categoryId *int, slug *string) (channelEntry TblChannelEntries, err error) {
 
 	var query *gorm.DB
 
@@ -1127,7 +1127,16 @@ func (ch ChannelStruct) GetGraphqlChannelEntryDetailsById(DB *gorm.DB, memberid 
 			query = DB.Table("tbl_channel_entries").Select("tbl_channel_entries.id,tbl_channel_entries.title,tbl_channel_entries.slug,tbl_channel_entries.description,tbl_channel_entries.user_id,tbl_channel_entries.channel_id,tbl_channel_entries.status,tbl_channel_entries.is_active,tbl_channel_entries.deleted_by,tbl_channel_entries.deleted_on,tbl_channel_entries.created_on,tbl_channel_entries.created_by,tbl_channel_entries.modified_by,tbl_channel_entries.modified_on,tbl_channel_entries.cover_image,tbl_channel_entries.thumbnail_image,tbl_channel_entries.meta_title,tbl_channel_entries.meta_description,tbl_channel_entries.keyword,tbl_channel_entries.categories_id,tbl_channel_entries.related_articles,tbl_channel_entries.feature,tbl_channel_entries.view_count").
 				Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.entry_id = tbl_channel_entries.id").Joins("inner join tbl_access_control_user_group on tbl_access_control_user_group.id = tbl_access_control_pages.access_control_user_group_id").
 				Joins("inner join tbl_member_groups on tbl_member_groups.id = tbl_access_control_user_group.member_group_id").Joins("inner join tbl_members on tbl_members.member_group_id = tbl_member_groups.id").
-				Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.is_deleted = 0 and tbl_channel_entries.status = 1 and tbl_members.is_deleted = 0 and tbl_member_groups.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0  and tbl_access_control_user_group.is_deleted = 0 and tbl_members.id = ? and tbl_channel_entries.channel_id = ? and tbl_channel_entries.id = ?", memberid, channelId, channelEntryId)
+				Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.is_deleted = 0 and tbl_channel_entries.status = 1 and tbl_members.is_deleted = 0 and tbl_member_groups.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0  and tbl_access_control_user_group.is_deleted = 0 and tbl_members.id = ? and tbl_channel_entries.channel_id = ?", memberid, channelId)
+
+			if !(channelEntryId < 1) {
+
+				query = query.Where("tbl_channel_entries.id = ?", channelEntryId)
+
+			} else if *slug != "" {
+
+				query = query.Where("tbl_channel_entries.slug = ?",*slug)
+			}
 
 			if categoryId != nil {
 
@@ -1146,7 +1155,16 @@ func (ch ChannelStruct) GetGraphqlChannelEntryDetailsById(DB *gorm.DB, memberid 
 			query = DB.Table("tbl_channel_entries").Select("tbl_channel_entries.id,tbl_channel_entries.title,tbl_channel_entries.slug,tbl_channel_entries.description,tbl_channel_entries.user_id,tbl_channel_entries.channel_id,tbl_channel_entries.status,tbl_channel_entries.is_active,tbl_channel_entries.deleted_by,tbl_channel_entries.deleted_on,tbl_channel_entries.created_on,tbl_channel_entries.created_by,tbl_channel_entries.modified_by,tbl_channel_entries.modified_on,tbl_channel_entries.cover_image,tbl_channel_entries.thumbnail_image,tbl_channel_entries.meta_title,tbl_channel_entries.meta_description,tbl_channel_entries.keyword,tbl_channel_entries.categories_id,tbl_channel_entries.related_articles,tbl_channel_entries.feature,tbl_channel_entries.view_count").
 				Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.entry_id = tbl_channel_entries.id").Joins("inner join tbl_access_control_user_group on tbl_access_control_user_group.id = tbl_access_control_pages.access_control_user_group_id").
 				Joins("inner join tbl_member_groups on tbl_member_groups.id = tbl_access_control_user_group.member_group_id").Joins("inner join tbl_members on tbl_members.member_group_id = tbl_member_groups.id").
-				Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.is_deleted = 0 and tbl_channel_entries.status = 1 and tbl_members.is_deleted = 0 and tbl_member_groups.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0  and tbl_access_control_user_group.is_deleted = 0 and tbl_members.id = ? and tbl_channel_entries.id = ?", memberid, channelEntryId)
+				Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.is_deleted = 0 and tbl_channel_entries.status = 1 and tbl_members.is_deleted = 0 and tbl_member_groups.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0  and tbl_access_control_user_group.is_deleted = 0 and tbl_members.id = ?", memberid)
+
+			if !(channelEntryId < 1) {
+
+				query = query.Where("tbl_channel_entries.id = ?", channelEntryId)
+
+			} else if *slug != "" {
+
+				query = query.Where("tbl_channel_entries.slug = ?",*slug)
+			}
 
 			if categoryId != nil {
 
@@ -1167,7 +1185,16 @@ func (ch ChannelStruct) GetGraphqlChannelEntryDetailsById(DB *gorm.DB, memberid 
 		if channelId != nil {
 
 			query = DB.Table("tbl_channel_entries").Select("tbl_channel_entries.id,tbl_channel_entries.title,tbl_channel_entries.slug,tbl_channel_entries.description,tbl_channel_entries.user_id,tbl_channel_entries.channel_id,tbl_channel_entries.status,tbl_channel_entries.is_active,tbl_channel_entries.deleted_by,tbl_channel_entries.deleted_on,tbl_channel_entries.created_on,tbl_channel_entries.created_by,tbl_channel_entries.modified_by,tbl_channel_entries.modified_on,tbl_channel_entries.cover_image,tbl_channel_entries.thumbnail_image,tbl_channel_entries.meta_title,tbl_channel_entries.meta_description,tbl_channel_entries.keyword,tbl_channel_entries.categories_id,tbl_channel_entries.related_articles,tbl_channel_entries.feature,tbl_channel_entries.view_count").
-				Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.is_deleted = 0 and tbl_channel_entries.status = 1 and tbl_channel_entries.channel_id = ? and tbl_channel_entries.id = ?", channelId, channelEntryId)
+				Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.is_deleted = 0 and tbl_channel_entries.status = 1 and tbl_channel_entries.channel_id = ?", channelId)
+
+			if !(channelEntryId < 1) {
+
+				query = query.Where("tbl_channel_entries.id = ?", channelEntryId)
+
+			} else if *slug != "" {
+
+				query = query.Where("tbl_channel_entries.slug = ?",*slug)
+			}
 
 			if categoryId != nil {
 
@@ -1184,7 +1211,16 @@ func (ch ChannelStruct) GetGraphqlChannelEntryDetailsById(DB *gorm.DB, memberid 
 		} else {
 
 			query = DB.Table("tbl_channel_entries").Select("tbl_channel_entries.id,tbl_channel_entries.title,tbl_channel_entries.slug,tbl_channel_entries.description,tbl_channel_entries.user_id,tbl_channel_entries.channel_id,tbl_channel_entries.status,tbl_channel_entries.is_active,tbl_channel_entries.deleted_by,tbl_channel_entries.deleted_on,tbl_channel_entries.created_on,tbl_channel_entries.created_by,tbl_channel_entries.modified_by,tbl_channel_entries.modified_on,tbl_channel_entries.cover_image,tbl_channel_entries.thumbnail_image,tbl_channel_entries.meta_title,tbl_channel_entries.meta_description,tbl_channel_entries.keyword,tbl_channel_entries.categories_id,tbl_channel_entries.related_articles,tbl_channel_entries.feature,tbl_channel_entries.view_count").
-				Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.is_deleted = 0 and tbl_channel_entries.status = 1 and tbl_channel_entries.id = ?", channelEntryId)
+				Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.is_deleted = 0 and tbl_channel_entries.status = 1", channelEntryId)
+
+			if !(channelEntryId < 1) {
+
+				query = query.Where("tbl_channel_entries.id = ?", channelEntryId)
+
+			} else if *slug != "" {
+
+				query = query.Where("tbl_channel_entries.slug = ?",*slug)
+			}
 
 			if categoryId != nil {
 
