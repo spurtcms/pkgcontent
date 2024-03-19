@@ -3,7 +3,7 @@ module github.com/spurtcms/pkgcontent
 go 1.20
 
 require (
-	github.com/spurtcms/pkgcore v1.0.53
+	github.com/spurtcms/pkgcore v1.0.54
 	gorm.io/datatypes v1.2.0
 	gorm.io/gorm v1.25.5
 )

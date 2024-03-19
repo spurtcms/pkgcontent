@@ -1745,7 +1745,7 @@ func (ch Channel) GetGraphqlChannelList(limit, offset int) (channelList []TblCha
 }
 
 // given entry id returns related entry
-func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId int, channelId, categoryId *int, pathUrl string, sectionTypeId, MemberFieldTypeId int, slug *string) (channelEntry TblChannelEntries, err error) {
+func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId *int, channelId, categoryId *int, pathUrl string, sectionTypeId, MemberFieldTypeId int, slug *string) (channelEntry TblChannelEntries, err error) {
 
 	var memberid int
 
@@ -2333,7 +2333,7 @@ func GetEntryCategoriessync(db *gorm.DB, entry TblChannelEntries, channel chan [
 	channel <- indivCategories
 }
 
-func GetEntryAdditionalFieldssync(db *gorm.DB, entry TblChannelEntries, sectionChannel, fieldsChannel chan []TblField, memidchannel chan string, pathUrl string, sectionTypeId, MemberFieldTypeId int, wg sync.WaitGroup) {
+func GetEntryAdditionalFieldssync(db *gorm.DB, entry TblChannelEntries, sectionChannel, fieldsChannel chan []TblField, memidchannel chan string, pathUrl string, sectionTypeId, MemberFieldTypeId int, wg *sync.WaitGroup) {
 
 	defer wg.Done()
 
@@ -2453,7 +2453,7 @@ func (ch Channel) GetGraphqlAllChannelEntriesListsync(channelId, categoryid *int
 
 		wg.Add(1)
 
-		go GetEntryAdditionalFieldssync(ch.Authority.DB, entry, sectionChannel, fieldsChannel, memidchan, pathUrl, sectionTypeId, MemberFieldTypeId, wg)
+		go GetEntryAdditionalFieldssync(ch.Authority.DB, entry, sectionChannel, fieldsChannel, memidchan, pathUrl, sectionTypeId, MemberFieldTypeId, &wg)
 
 		entry.Fields = <-fieldsChannel
 

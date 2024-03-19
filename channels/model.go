@@ -1116,7 +1116,7 @@ func (ch ChannelStruct) GetGraphqlChannelDetailsById(DB *gorm.DB, memberid, chan
 	return channel, nil
 }
 
-func (ch ChannelStruct) GetGraphqlChannelEntryDetails(DB *gorm.DB, memberid int, channelEntryId int, channelId, categoryId *int, slug *string) (channelEntry TblChannelEntries, err error) {
+func (ch ChannelStruct) GetGraphqlChannelEntryDetails(DB *gorm.DB, memberid int, channelEntryId, channelId, categoryId *int, slug *string) (channelEntry TblChannelEntries, err error) {
 
 	var query *gorm.DB
 
@@ -1129,13 +1129,13 @@ func (ch ChannelStruct) GetGraphqlChannelEntryDetails(DB *gorm.DB, memberid int,
 				Joins("inner join tbl_member_groups on tbl_member_groups.id = tbl_access_control_user_group.member_group_id").Joins("inner join tbl_members on tbl_members.member_group_id = tbl_member_groups.id").
 				Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.is_deleted = 0 and tbl_channel_entries.status = 1 and tbl_members.is_deleted = 0 and tbl_member_groups.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0  and tbl_access_control_user_group.is_deleted = 0 and tbl_members.id = ? and tbl_channel_entries.channel_id = ?", memberid, channelId)
 
-			if !(channelEntryId < 1) {
+			if channelEntryId != nil {
 
-				query = query.Where("tbl_channel_entries.id = ?", channelEntryId)
+				query = query.Where("tbl_channel_entries.id = ?", *channelEntryId)
 
 			} else if *slug != "" {
 
-				query = query.Where("tbl_channel_entries.slug = ?",*slug)
+				query = query.Where("tbl_channel_entries.slug = ?", *slug)
 			}
 
 			if categoryId != nil {
@@ -1157,13 +1157,13 @@ func (ch ChannelStruct) GetGraphqlChannelEntryDetails(DB *gorm.DB, memberid int,
 				Joins("inner join tbl_member_groups on tbl_member_groups.id = tbl_access_control_user_group.member_group_id").Joins("inner join tbl_members on tbl_members.member_group_id = tbl_member_groups.id").
 				Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.is_deleted = 0 and tbl_channel_entries.status = 1 and tbl_members.is_deleted = 0 and tbl_member_groups.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0  and tbl_access_control_user_group.is_deleted = 0 and tbl_members.id = ?", memberid)
 
-			if !(channelEntryId < 1) {
+			if channelEntryId != nil {
 
-				query = query.Where("tbl_channel_entries.id = ?", channelEntryId)
+				query = query.Where("tbl_channel_entries.id = ?", *channelEntryId)
 
 			} else if *slug != "" {
 
-				query = query.Where("tbl_channel_entries.slug = ?",*slug)
+				query = query.Where("tbl_channel_entries.slug = ?", *slug)
 			}
 
 			if categoryId != nil {
@@ -1187,13 +1187,13 @@ func (ch ChannelStruct) GetGraphqlChannelEntryDetails(DB *gorm.DB, memberid int,
 			query = DB.Table("tbl_channel_entries").Select("tbl_channel_entries.id,tbl_channel_entries.title,tbl_channel_entries.slug,tbl_channel_entries.description,tbl_channel_entries.user_id,tbl_channel_entries.channel_id,tbl_channel_entries.status,tbl_channel_entries.is_active,tbl_channel_entries.deleted_by,tbl_channel_entries.deleted_on,tbl_channel_entries.created_on,tbl_channel_entries.created_by,tbl_channel_entries.modified_by,tbl_channel_entries.modified_on,tbl_channel_entries.cover_image,tbl_channel_entries.thumbnail_image,tbl_channel_entries.meta_title,tbl_channel_entries.meta_description,tbl_channel_entries.keyword,tbl_channel_entries.categories_id,tbl_channel_entries.related_articles,tbl_channel_entries.feature,tbl_channel_entries.view_count").
 				Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.is_deleted = 0 and tbl_channel_entries.status = 1 and tbl_channel_entries.channel_id = ?", channelId)
 
-			if !(channelEntryId < 1) {
+			if channelEntryId != nil {
 
-				query = query.Where("tbl_channel_entries.id = ?", channelEntryId)
+				query = query.Where("tbl_channel_entries.id = ?", *channelEntryId)
 
 			} else if *slug != "" {
 
-				query = query.Where("tbl_channel_entries.slug = ?",*slug)
+				query = query.Where("tbl_channel_entries.slug = ?", *slug)
 			}
 
 			if categoryId != nil {
@@ -1211,15 +1211,15 @@ func (ch ChannelStruct) GetGraphqlChannelEntryDetails(DB *gorm.DB, memberid int,
 		} else {
 
 			query = DB.Table("tbl_channel_entries").Select("tbl_channel_entries.id,tbl_channel_entries.title,tbl_channel_entries.slug,tbl_channel_entries.description,tbl_channel_entries.user_id,tbl_channel_entries.channel_id,tbl_channel_entries.status,tbl_channel_entries.is_active,tbl_channel_entries.deleted_by,tbl_channel_entries.deleted_on,tbl_channel_entries.created_on,tbl_channel_entries.created_by,tbl_channel_entries.modified_by,tbl_channel_entries.modified_on,tbl_channel_entries.cover_image,tbl_channel_entries.thumbnail_image,tbl_channel_entries.meta_title,tbl_channel_entries.meta_description,tbl_channel_entries.keyword,tbl_channel_entries.categories_id,tbl_channel_entries.related_articles,tbl_channel_entries.feature,tbl_channel_entries.view_count").
-				Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.is_deleted = 0 and tbl_channel_entries.status = 1", channelEntryId)
+				Joins("inner join tbl_channels on tbl_channels.id = tbl_channel_entries.channel_id").Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.is_deleted = 0 and tbl_channel_entries.status = 1")
 
-			if !(channelEntryId < 1) {
+			if channelEntryId != nil {
 
-				query = query.Where("tbl_channel_entries.id = ?", channelEntryId)
+				query = query.Where("tbl_channel_entries.id = ?", *channelEntryId)
 
 			} else if *slug != "" {
 
-				query = query.Where("tbl_channel_entries.slug = ?",*slug)
+				query = query.Where("tbl_channel_entries.slug = ?", *slug)
 			}
 
 			if categoryId != nil {
@@ -1240,7 +1240,7 @@ func (ch ChannelStruct) GetGraphqlChannelEntryDetails(DB *gorm.DB, memberid int,
 	return channelEntry, nil
 }
 
-func (ch ChannelStruct) GraphqlEntiresViewCountUpdate(DB *gorm.DB, entryId int) error {
+func (ch ChannelStruct) GraphqlEntiresViewCountUpdate(DB *gorm.DB, entryId *int) error {
 
 	if err := DB.Model(TblChannelEntries{}).Where("id=? and is_deleted=0", entryId).UpdateColumns(map[string]interface{}{"view_count": gorm.Expr("view_count + 1")}).Error; err != nil {
 
