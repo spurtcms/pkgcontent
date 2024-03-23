@@ -4,7 +4,43 @@ import (
 	"log"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
+
+type BasicEntries struct {
+	EntriesRepository  EntriesRepository //ChannelRepository have all methods
+	DatabaseConnection *gorm.DB          //var holds db connections string
+}
+
+type Entries struct {
+	EntriesRepository BasicEntries //EntriesRepository have all methodsk
+	Authentication    Auth         //Check jwt tokens only
+}
+
+type Entriesmodel struct{}
+
+var emod Entriesmodel
+
+func DefaultEntries(db *gorm.DB) *Entries {
+
+	err := db.AutoMigrate(
+		&TblChannelEntries{},
+	)
+
+	if err != nil {
+		//panic terminate the server
+		panic(err)
+
+	}
+
+	Entries := new(Entries)
+
+	Entries.EntriesRepository.DatabaseConnection = db
+
+	return Entries
+
+}
 
 type EntriesRepository interface {
 	
@@ -28,7 +64,7 @@ type EntriesRepository interface {
 /*all channel Entries List*/
 //if channelid 0 get all channel entries
 //if channelid not eq 0 to get particular entries of the channel
-func (ch Channels) GetAllChannelEntriesList(channelid int, limit, offset int, filter EntriesFilter) (entries []TblChannelEntries, filterentriescount int, totalentriescount int, err error) {
+func (ch BasicEntries) GetAllChannelEntriesList(channelid int, limit, offset int, filter EntriesFilter) (entries []TblChannelEntries, filterentriescount int, totalentriescount int, err error) {
 
 	if filter.Status == "Draft" {
 
@@ -44,35 +80,35 @@ func (ch Channels) GetAllChannelEntriesList(channelid int, limit, offset int, fi
 	}
 	var chnentry []TblChannelEntries
 
-	cmod.ChannelEntryList(&chnentry, limit, offset, channelid, filter, false, true, ch.DatabaseConnection)
+	emod.ChannelEntryList(&chnentry, limit, offset, channelid, filter, false, true, ch.DatabaseConnection)
 
 	var chnentry1 []TblChannelEntries
 
-	filtercount, _ := cmod.ChannelEntryList(&chnentry1, 0, 0, channelid, filter, false, true, ch.DatabaseConnection)
+	filtercount, _ := emod.ChannelEntryList(&chnentry1, 0, 0, channelid, filter, false, true, ch.DatabaseConnection)
 
-	entrcount, _ := cmod.ChannelEntryList(&chnentry1, 0, 0, channelid, EntriesFilter{}, false, true, ch.DatabaseConnection)
+	entrcount, _ := emod.ChannelEntryList(&chnentry1, 0, 0, channelid, EntriesFilter{}, false, true, ch.DatabaseConnection)
 
 	return chnentry, int(filtercount), int(entrcount), nil
 }
 
 // Get published entries
-func (ch Channels) GetPublishedChannelEntriesList(limit, offset int, filter EntriesFilter) (entries []TblChannelEntries, filterentriescount int, totalentriescount int, err error) {
+func (ch BasicEntries) GetPublishedChannelEntriesList(limit, offset int, filter EntriesFilter) (entries []TblChannelEntries, filterentriescount int, totalentriescount int, err error) {
 
 	var chnentry []TblChannelEntries
 
-	cmod.ChannelEntryList(&chnentry, limit, offset, 0, filter, true, true, ch.DatabaseConnection)
+	emod.ChannelEntryList(&chnentry, limit, offset, 0, filter, true, true, ch.DatabaseConnection)
 
-	filtercount, _ := cmod.ChannelEntryList(&chnentry, 0, 0, 0, filter, true, true, ch.DatabaseConnection)
+	filtercount, _ := emod.ChannelEntryList(&chnentry, 0, 0, 0, filter, true, true, ch.DatabaseConnection)
 
 	var chnentry1 []TblChannelEntries
 
-	entrcount, _ := cmod.ChannelEntryList(&chnentry1, 0, 0, 0, EntriesFilter{}, true, true, ch.DatabaseConnection)
+	entrcount, _ := emod.ChannelEntryList(&chnentry1, 0, 0, 0, EntriesFilter{}, true, true, ch.DatabaseConnection)
 
 	return chnentry, int(filtercount), int(entrcount), nil
 }
 
 // create entry
-func (ch Channels) CreateEntry(entriesrequired EntriesRequired) (entry TblChannelEntries, flg bool, err error) {
+func (ch BasicEntries) CreateEntry(entriesrequired EntriesRequired) (entry TblChannelEntries, flg bool, err error) {
 
 	var Entries TblChannelEntries
 
@@ -108,7 +144,7 @@ func (ch Channels) CreateEntry(entriesrequired EntriesRequired) (entry TblChanne
 
 	Entries.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-	Entriess, err := cmod.CreateChannelEntry(&Entries, ch.DatabaseConnection)
+	Entriess, err := emod.CreateChannelEntry(&Entries, ch.DatabaseConnection)
 
 	if err != nil {
 
@@ -139,7 +175,7 @@ func (ch Channels) CreateEntry(entriesrequired EntriesRequired) (entry TblChanne
 
 		}
 
-		ferr := cmod.CreateEntrychannelFields(&EntriesField, ch.DatabaseConnection)
+		ferr := emod.CreateEntrychannelFields(&EntriesField, ch.DatabaseConnection)
 
 		if ferr != nil {
 
@@ -150,7 +186,7 @@ func (ch Channels) CreateEntry(entriesrequired EntriesRequired) (entry TblChanne
 	return Entries, true, nil
 }
 
-func (ch Channels) DeleteEntry(Entryid, userid int) (bool, error) {
+func (ch BasicEntries) DeleteEntry(Entryid, userid int) (bool, error) {
 
 	var entries TblChannelEntries
 
@@ -162,7 +198,7 @@ func (ch Channels) DeleteEntry(Entryid, userid int) (bool, error) {
 
 	entries.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-	err := cmod.DeleteChannelEntryId(&entries, Entryid, ch.DatabaseConnection)
+	err := emod.DeleteChannelEntryId(&entries, Entryid, ch.DatabaseConnection)
 
 	var field TblChannelEntryField
 
@@ -170,7 +206,7 @@ func (ch Channels) DeleteEntry(Entryid, userid int) (bool, error) {
 
 	field.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-	err1 := cmod.DeleteChannelEntryFieldId(&field, Entryid, ch.DatabaseConnection)
+	err1 := emod.DeleteChannelEntryFieldId(&field, Entryid, ch.DatabaseConnection)
 
 	if err != nil {
 
@@ -185,11 +221,11 @@ func (ch Channels) DeleteEntry(Entryid, userid int) (bool, error) {
 	return true, nil
 }
 
-func (ch Channels) GetAdditionalFieldDataBychannelId(ChannelName string, EntryId int) ([]TblChannelEntryField, error) {
+func (ch BasicEntries) GetAdditionalFieldDataBychannelId(ChannelName string, EntryId int) ([]TblChannelEntryField, error) {
 
 	var EntriesField []TblChannelEntryField
 
-	err := cmod.GetChannelEntryDetailsById(&EntriesField, EntryId, ch.DatabaseConnection)
+	err := emod.GetChannelEntryDetailsById(&EntriesField, EntryId, ch.DatabaseConnection)
 
 	if err != nil {
 
@@ -201,11 +237,11 @@ func (ch Channels) GetAdditionalFieldDataBychannelId(ChannelName string, EntryId
 }
 
 // get entry details
-func (ch Channels) GetEntryDetailsById(ChannelName string, EntryId int) (TblChannelEntries, error) {
+func (ch BasicEntries) GetEntryDetailsById(ChannelName string, EntryId int) (TblChannelEntries, error) {
 
 	var Entry TblChannelEntries
 
-	err := cmod.GetChannelEntryById(&Entry, EntryId, ch.DatabaseConnection)
+	err := emod.GetChannelEntryById(&Entry, EntryId, ch.DatabaseConnection)
 
 	if err != nil {
 
@@ -217,7 +253,7 @@ func (ch Channels) GetEntryDetailsById(ChannelName string, EntryId int) (TblChan
 }
 
 /*update entry details */
-func (ch Channels) UpdateEntryDetailsById(entriesrequired EntriesRequired, EntryId int) (bool, error) {
+func (ch BasicEntries) UpdateEntryDetailsById(entriesrequired EntriesRequired, EntryId int) (bool, error) {
 
 	var Entries TblChannelEntries
 
@@ -253,7 +289,7 @@ func (ch Channels) UpdateEntryDetailsById(entriesrequired EntriesRequired, Entry
 
 	Entries.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-	err := cmod.UpdateChannelEntryDetails(&Entries, EntryId, ch.DatabaseConnection)
+	err := emod.UpdateChannelEntryDetails(&Entries, EntryId, ch.DatabaseConnection)
 
 	if err != nil {
 
@@ -278,7 +314,7 @@ func (ch Channels) UpdateEntryDetailsById(entriesrequired EntriesRequired, Entry
 
 			Entrfield.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-			cmod.CreateSingleEntrychannelFields(&Entrfield, ch.DatabaseConnection)
+			emod.CreateSingleEntrychannelFields(&Entrfield, ch.DatabaseConnection)
 
 		} else {
 
@@ -298,7 +334,7 @@ func (ch Channels) UpdateEntryDetailsById(entriesrequired EntriesRequired, Entry
 
 			Entrfield.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-			cmod.UpdateChannelEntryAdditionalDetails(Entrfield, ch.DatabaseConnection)
+			emod.UpdateChannelEntryAdditionalDetails(Entrfield, ch.DatabaseConnection)
 
 		}
 
@@ -309,7 +345,7 @@ func (ch Channels) UpdateEntryDetailsById(entriesrequired EntriesRequired, Entry
 }
 
 // change entries status
-func (ch Channels) EntryStatus(ChannelName string, EntryId, userid int, status int) (bool, error) {
+func (ch BasicEntries) EntryStatus(ChannelName string, EntryId, userid int, status int) (bool, error) {
 
 	var Entries TblChannelEntries
 
@@ -319,7 +355,7 @@ func (ch Channels) EntryStatus(ChannelName string, EntryId, userid int, status i
 
 	Entries.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-	cmod.PublishQuery(&Entries, EntryId, ch.DatabaseConnection)
+	emod.PublishQuery(&Entries, EntryId, ch.DatabaseConnection)
 
 	return true, nil
 

@@ -223,21 +223,6 @@ type Author struct {
 	CreatedBy        int       `json:"CreatedBy"`
 }
 
-type TblChannelEntryField struct {
-	Id             int
-	FieldName      string
-	FieldValue     string
-	ChannelEntryId int
-	FieldId        int
-	CreatedOn      time.Time
-	CreatedBy      int
-	ModifiedOn     time.Time `gorm:"DEFAULT:NULL"`
-	ModifiedBy     int       `gorm:"DEFAULT:NULL"`
-	FieldTypeId    int       `gorm:"<-:false"`
-	DeletedBy      int       `gorm:"DEFAULT:NULL"`
-	DeletedOn      time.Time `gorm:"DEFAULT:NULL"`
-}
-
 type SEODetails struct {
 	MetaTitle       string
 	MetaDescription string
@@ -1170,15 +1155,6 @@ func (Ch Channelmodel) GetFieldsInEntries(DB *gorm.DB, channelId, sectionTypeId 
 	return fields, nil
 }
 
-func (Ch Channelmodel) GetFieldValue(DB *gorm.DB, fieldId, entryId int) (fieldvalue TblChannelEntryField, err error) {
-
-	if err = DB.Table("tbl_channel_entry_fields").Where("tbl_channel_entry_fields.field_id = ? and tbl_channel_entry_fields.channel_entry_id = ?", fieldId, entryId).First(&fieldvalue).Error; err != nil {
-
-		return TblChannelEntryField{}, err
-	}
-
-	return fieldvalue, nil
-}
 
 func (Ch Channelmodel) GetFieldOptions(DB *gorm.DB, fieldId int) (fieldOptions []TblFieldOption, err error) {
 

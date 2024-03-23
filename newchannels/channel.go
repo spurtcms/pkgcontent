@@ -23,7 +23,6 @@ func DefaultChannel(db *gorm.DB) *Channels {
 		&TblFieldOption{},
 		&TblGroupField{},
 		&TblChannelCategory{},
-		&TblChannelEntries{},
 	)
 
 	if err != nil {
@@ -34,7 +33,7 @@ func DefaultChannel(db *gorm.DB) *Channels {
 
 	channels := new(Channels)
 
-	channels.DatabaseConnection = db
+	channels.ChannelRepository.DatabaseConnection = db
 
 	return channels
 }
@@ -63,12 +62,33 @@ type Auth struct {
 	Authentication Authentication
 }
 
-type Channels struct {
-	DatabaseConnection *gorm.DB          //var holds db connections string
+type BasicChannel struct {
 	ChannelRepository  ChannelRepository //ChannelRepository have all methods
-	EntriesRepository  EntriesRepository //EntriesRepository have all methodsk
-	Authentication     Authentication    //Check jwt tokens only
+	DatabaseConnection *gorm.DB          //var holds db connections string
 }
+
+type Channels struct {
+	ChannelRepository BasicChannel //ChannelRepository have all method
+	Permissions       PermissionAuthentication
+	Authentication    Auth //Check jwt tokens only
+}
+
+type PermissionAuthentication struct {
+}
+
+type Action string
+
+const ( //for permission check
+	Create Action = "Create"
+
+	Read Action = "View"
+
+	Update Action = "Update"
+
+	Delete Action = "Delete"
+
+	CRUD Action = "CRUD"
+)
 
 type Channelmodel struct{}
 
@@ -82,7 +102,15 @@ func (a Auth) Authenticate(Authority *auth.Authorization) (flg bool, user, rolei
 	return true, userid, roleid, err
 }
 
-func (Ch Channels) CreateChannel(channelcreate ChannelCreate) error {
+func (per PermissionAuthentication) IsGranted(modulename string, Permission Action) (flag bool, err error) {
+
+	flag, perr := auth.Authorization.IsGranted(auth.Authorization{}, modulename, auth.Action(Permission))
+
+	return flag, perr
+
+}
+
+func (Ch BasicChannel) CreateChannel(channelcreate ChannelCreate) error {
 
 	/*create channel*/
 	var channel TblChannel
@@ -125,19 +153,7 @@ func (Ch Channels) CreateChannel(channelcreate ChannelCreate) error {
 
 	modperms.FullAccessPermission = 1
 
-	modid, _ := auth.AS.CreateModulePermission(&modperms, Ch.DatabaseConnection)
-
-	var tblrole auth.TblRolePermission
-
-	tblrole.RoleId = 1
-
-	tblrole.PermissionId = modid.Id
-
-	tblrole.CreatedBy = channelcreate.CreatedBy
-
-	tblrole.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-	auth.AS.CreateRolePermissionsingle(&tblrole, Ch.DatabaseConnection)
+	auth.AS.CreateModulePermission(&modperms, Ch.DatabaseConnection)
 
 	for _, categoriesid := range channelcreate.CategoryIds {
 
@@ -164,7 +180,7 @@ func (Ch Channels) CreateChannel(channelcreate ChannelCreate) error {
 	return nil
 }
 
-func (Ch Channels) CreateChannelFields(createfield CreateChannelFields) error {
+func (Ch BasicChannel) CreateChannelFields(createfield CreateChannelFields) error {
 
 	/*Temp store section id*/
 	type tempsection struct {
@@ -323,7 +339,7 @@ func (Ch Channels) CreateChannelFields(createfield CreateChannelFields) error {
 	return nil
 }
 
-func (ch Channels) DeleteChannel(ChannelId, userid int) error {
+func (ch BasicChannel) DeleteChannel(ChannelId, userid int) error {
 
 	if ChannelId <= 0 {
 
@@ -366,7 +382,7 @@ func (ch Channels) DeleteChannel(ChannelId, userid int) error {
 	return nil
 }
 
-func (ch Channels) GetChannels(limit, offset int, filter Filter, activestatus bool) (channelList []TblChannel, channelcount int, err error) {
+func (ch BasicChannel) GetChannels(limit, offset int, filter Filter, activestatus bool) (channelList []TblChannel, channelcount int, err error) {
 
 	var channellist []TblChannel
 
@@ -390,7 +406,7 @@ func (ch Channels) GetChannels(limit, offset int, filter Filter, activestatus bo
 
 		}
 
-		entrcount, _ := cmod.ChannelEntryList(&[]TblChannelEntries{}, 0, 0, val.Id, EntriesFilter{}, false, false, ch.DatabaseConnection)
+		entrcount, _ := emod.ChannelEntryList(&[]TblChannelEntries{}, 0, 0, val.Id, EntriesFilter{}, false, false, ch.DatabaseConnection)
 
 		val.EntriesCount = int(entrcount)
 
@@ -405,7 +421,7 @@ func (ch Channels) GetChannels(limit, offset int, filter Filter, activestatus bo
 	return chnallist, int(chcount), nil
 }
 
-func (ch Channels) GetchannelByName(channelname string) (channel TblChannel, err error) {
+func (ch BasicChannel) GetchannelByName(channelname string) (channel TblChannel, err error) {
 
 	var channellist TblChannel
 
@@ -419,7 +435,7 @@ func (ch Channels) GetchannelByName(channelname string) (channel TblChannel, err
 	return channellist, nil
 }
 
-func (ch Channels) GetChannelsById(channelid int) (channels TblChannel, section []Section, fields []Fiedlvalue, SelectedCategories []categories.Arrangecategories, err error) {
+func (ch BasicChannel) GetChannelsById(channelid int) (channels TblChannel, section []Section, fields []Fiedlvalue, SelectedCategories []categories.Arrangecategories, err error) {
 
 	var channellist TblChannel
 
@@ -569,4 +585,3 @@ func TruncateDescription(description string, limit int) string {
 	truncated := description[:limit] + "..."
 	return truncated
 }
-
