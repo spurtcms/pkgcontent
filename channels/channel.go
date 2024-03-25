@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/spurtcms/pkgcontent/categories"
@@ -1851,7 +1850,7 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId *int, channelId
 
 	channelEntry.Fields = final_fieldsList
 
-	var memberProfiles []TblMemberProfiles
+	var memberProfiles []member.TblMemberProfile
 
 	MemIds := strings.Split(memberids, ",")
 
@@ -1860,6 +1859,15 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId *int, channelId
 		conv_memid, _ := strconv.Atoi(memberid)
 
 		memberProfile, _ := CH.GetMemberProfile(ch.Authority.DB, conv_memid)
+
+		var modified_profile_path string
+
+		if memberProfile.CompanyLogo != "" {
+
+			modified_profile_path = pathUrl + strings.TrimPrefix(memberProfile.CompanyLogo, "/")
+		}
+
+		memberProfile.CompanyLogo = modified_profile_path
 
 		if memberProfile.Id != 0 {
 
@@ -1884,6 +1892,15 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId *int, channelId
 
 		category, _ := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, conv_id)
 
+		var modified_category_path string
+
+		if category.ImagePath != "" {
+
+			modified_category_path = pathUrl + strings.TrimPrefix(category.ImagePath, "/")
+		}
+
+		category.ImagePath = modified_category_path
+
 		if category.Id != 0 {
 
 			indivCategory = append(indivCategory, category)
@@ -1902,6 +1919,15 @@ func (ch Channel) GetGraphqlChannelEntriesDetails(channelEntryId *int, channelId
 				count = count + 1 //count increment used to check how many times the loop gets executed
 
 				parentCategory, _ := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, parentCatId)
+
+				var modified_category_path string
+
+				if parentCategory.ImagePath != "" {
+
+					modified_category_path = pathUrl + strings.TrimPrefix(parentCategory.ImagePath, "/")
+				}
+
+				parentCategory.ImagePath = modified_category_path
 
 				if parentCategory.Id != 0 {
 
@@ -2048,7 +2074,7 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(channelId, categoryid *int, li
 
 		entry.Fields = final_fieldsList
 
-		var memberProfiles []TblMemberProfiles
+		var memberProfiles []member.TblMemberProfile
 
 		MemIds := strings.Split(memberids, ",")
 
@@ -2057,6 +2083,15 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(channelId, categoryid *int, li
 			conv_memid, _ := strconv.Atoi(memberid)
 
 			memberProfile, _ := CH.GetMemberProfile(ch.Authority.DB, conv_memid)
+
+			var modified_profile_path string
+
+			if memberProfile.CompanyLogo != "" {
+
+				modified_profile_path = pathUrl + strings.TrimPrefix(memberProfile.CompanyLogo, "/")
+			}
+
+			memberProfile.CompanyLogo = modified_profile_path
 
 			if memberProfile.Id != 0 {
 
@@ -2081,6 +2116,15 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(channelId, categoryid *int, li
 
 			category, _ := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, conv_id)
 
+			var modified_category_path string
+
+			if category.ImagePath != "" {
+
+				modified_category_path = pathUrl + strings.TrimPrefix(category.ImagePath, "/")
+			}
+
+			category.ImagePath = modified_category_path
+
 			if category.Id != 0 {
 
 				indivCategory = append(indivCategory, category)
@@ -2099,6 +2143,15 @@ func (ch Channel) GetGraphqlAllChannelEntriesList(channelId, categoryid *int, li
 					count = count + 1 //count increment used to check how many times the loop gets executed
 
 					parentCategory, _ := CH.GetGraphqlEntriesCategoryByParentId(ch.Authority.DB, parentCatId)
+
+					var modified_category_path string
+
+					if parentCategory.ImagePath != "" {
+
+						modified_category_path = pathUrl + strings.TrimPrefix(parentCategory.ImagePath, "/")
+					}
+
+					parentCategory.ImagePath = modified_category_path
 
 					if parentCategory.Id != 0 {
 
@@ -2254,247 +2307,4 @@ func (ch Channel) MakeFeature(channelid, entryid, status int) (flag bool, err er
 
 	return true, nil
 
-}
-
-func GetEntryCategoriessync(db *gorm.DB, entry TblChannelEntries, channel chan [][]categories.TblCategory, wg sync.WaitGroup) {
-
-	defer wg.Done()
-
-	splittedArr := strings.Split(entry.CategoriesId, ",")
-
-	var parentCatId int
-
-	var indivCategories [][]categories.TblCategory
-
-	for _, catId := range splittedArr {
-
-		conv_id, _ := strconv.Atoi(catId)
-
-		var indivCategory []categories.TblCategory
-
-		category, _ := CH.GetGraphqlEntriesCategoryByParentId(db, conv_id)
-
-		if category.Id != 0 {
-
-			indivCategory = append(indivCategory, category)
-		}
-
-		parentCatId = category.ParentId
-
-		if parentCatId != 0 {
-
-			var count int
-
-		LOOP:
-
-			for {
-
-				count = count + 1 //count increment used to check how many times the loop gets executed
-
-				parentCategory, _ := CH.GetGraphqlEntriesCategoryByParentId(db, parentCatId)
-
-				if parentCategory.Id != 0 {
-
-					indivCategory = append(indivCategory, parentCategory)
-				}
-
-				parentCatId = parentCategory.ParentId
-
-				if parentCatId != 0 { //mannuall condition to break the loop in overlooping situations
-
-					goto LOOP
-
-				} else if count > 49 {
-
-					break //use to break the loop if infinite loop doesn't break ,So forcing the loop to break at overlooping conditions
-
-				} else {
-
-					break
-				}
-
-			}
-
-		}
-
-		if len(indivCategory) > 0 {
-
-			sort.SliceStable(indivCategory, func(i, j int) bool {
-
-				return indivCategory[i].Id < indivCategory[j].Id
-
-			})
-
-			indivCategories = append(indivCategories, indivCategory)
-		}
-
-	}
-
-	channel <- indivCategories
-}
-
-func GetEntryAdditionalFieldssync(db *gorm.DB, entry TblChannelEntries, sectionChannel, fieldsChannel chan []TblField, memidchannel chan string, pathUrl string, sectionTypeId, MemberFieldTypeId int, wg *sync.WaitGroup) {
-
-	defer wg.Done()
-
-	sections, _ := CH.GetSectionsUnderEntries(db, entry.ChannelId, sectionTypeId)
-
-	sectionChannel <- sections
-
-	var memberids string
-
-	var final_fieldsList []TblField
-
-	fields, _ := CH.GetFieldsInEntries(db, entry.ChannelId, sectionTypeId)
-
-	for _, field := range fields {
-
-		var modified_field_path string
-
-		if field.ImagePath != "" {
-
-			modified_field_path = pathUrl + strings.TrimPrefix(field.ImagePath, "/")
-		}
-
-		field.ImagePath = modified_field_path
-
-		fieldValue, _ := CH.GetFieldValue(db, field.Id, entry.Id)
-
-		if fieldValue.Id != 0 {
-
-			field.FieldValue = fieldValue
-
-			if field.FieldTypeId == MemberFieldTypeId {
-
-				memberids = fieldValue.FieldValue
-			}
-		}
-
-		fieldOptions, _ := CH.GetFieldOptions(db, field.Id)
-
-		if len(fieldOptions) > 0 {
-
-			field.FieldOptions = fieldOptions
-
-		}
-
-		final_fieldsList = append(final_fieldsList, field)
-	}
-
-	memidchannel <- memberids
-
-	fieldsChannel <- final_fieldsList
-}
-
-// function give all channel entries list
-func (ch Channel) GetGraphqlAllChannelEntriesListsync(channelId, categoryid *int, limit, offset, sectionTypeId, MemberFieldTypeId int, pathUrl string, entryKeyword *string) (channelEntries []TblChannelEntries, count int64, err error) {
-
-	var memberid int
-
-	if ch.Authority.Token == SpecialToken {
-
-		memberid = 0
-
-	} else {
-
-		memberid, _, err = member.VerifyToken(ch.Authority.Token, ch.Authority.Secret)
-
-		if err != nil {
-
-			return []TblChannelEntries{}, 0, err
-
-		}
-
-	}
-
-	channelEntries, count, err = CH.GetGraphqlChannelEntriesData(ch.Authority.DB, memberid, channelId, categoryid, limit, offset, entryKeyword)
-
-	if err != nil {
-
-		return []TblChannelEntries{}, 0, err
-	}
-
-	var final_entries_list []TblChannelEntries
-
-	var wg sync.WaitGroup
-
-	for _, entry := range channelEntries {
-
-		var modified_path string
-
-		if entry.CoverImage != "" {
-
-			modified_path = pathUrl + strings.TrimPrefix(entry.CoverImage, "/")
-		}
-
-		entry.CoverImage = modified_path
-
-		authorDetails, _ := CH.GetAuthorDetails(ch.Authority.DB, entry.CreatedBy)
-
-		if authorDetails.AuthorID != 0 {
-
-			var modified_profileImage string
-
-			if authorDetails.ProfileImagePath != nil {
-
-				modified_profileImage = pathUrl + *authorDetails.ProfileImagePath
-			}
-
-			authorDetails.ProfileImagePath = &modified_profileImage
-
-			entry.AuthorDetail = authorDetails
-		}
-
-		sectionChannel := make(chan []TblField)
-
-		fieldsChannel := make(chan []TblField)
-
-		memidchan := make(chan string)
-
-		wg.Add(1)
-
-		go GetEntryAdditionalFieldssync(ch.Authority.DB, entry, sectionChannel, fieldsChannel, memidchan, pathUrl, sectionTypeId, MemberFieldTypeId, &wg)
-
-		entry.Fields = <-fieldsChannel
-
-		var memberProfiles []TblMemberProfiles
-
-		MemIds := strings.Split(<-memidchan, ",")
-
-		for _, memberid := range MemIds {
-
-			conv_memid, _ := strconv.Atoi(memberid)
-
-			memberProfile, _ := CH.GetMemberProfile(ch.Authority.DB, conv_memid)
-
-			var modified_profile_path string
-
-			if memberProfile.CompanyLogo != "" {
-
-				modified_profile_path = pathUrl + strings.TrimPrefix(memberProfile.CompanyLogo, "/")
-			}
-
-			memberProfile.CompanyLogo = modified_profile_path
-
-			if memberProfile.Id != 0 {
-
-				memberProfiles = append(memberProfiles, memberProfile)
-
-			}
-		}
-
-		entry.MemberProfiles = memberProfiles
-
-		catchannel := make(chan [][]categories.TblCategory)
-
-		go GetEntryCategoriessync(ch.Authority.DB, entry, catchannel, wg)
-
-		entry.Categories = <-catchannel
-
-		final_entries_list = append(final_entries_list, entry)
-	}
-
-	wg.Wait()
-
-	return final_entries_list, count, nil
 }
