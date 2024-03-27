@@ -40,16 +40,12 @@ func MigrateTable(db *gorm.DB) {
 		&TblSpacesAliases{},
 		&TblPagesCategories{},
 		&TblPagesCategoriesAliases{},
-		&TblLanguage{},
 		&TblPage{},
 		&TblPageAliases{},
 		&TblPagesGroup{},
 		&TblPagesGroupAliases{},
 		&TblPageAliasesLog{},
-		&TblMemberNotesHighlight{},
 	)
-
-	db.Exec(`INSERT INTO PUBLIC.TBL_LANGUAGE(ID,LANGUAGE_NAME,LANGUAGE_CODE,JSON_PATH,IS_STATUS,IS_DEFAULT,	CREATED_BY,CREATED_ON,IS_DELETED) VALUES (1,'English', 'en', 'locales/en.json', 1, 1,1, '2023-09-11 11:27:44',0)`)
 }
 
 /*SpaceDetail*/

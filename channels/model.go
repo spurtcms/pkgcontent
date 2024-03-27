@@ -104,7 +104,7 @@ type TblField struct {
 	Values           string         `gorm:"-"`
 	CheckBoxValue    []FieldValueId `gorm:"-"`
 	SectionParentId  int
-	FieldTypeName    string `gorm:"column:type_name"`
+	FieldTypeName    string `gorm:"-;column:type_name"`
 	CharacterAllowed int
 	FieldOptions     []TblFieldOption     `gorm:"-"`
 	FieldValue       TblChannelEntryField `gorm:"-"`
