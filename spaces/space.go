@@ -33,9 +33,9 @@ type MemberSpace struct {
 	MemAuth *authcore.Authorization
 }
 
-func MigrateTable(db *gorm.DB) {
+func MigrateTable(db *gorm.DB) error {
 
-	db.AutoMigrate(
+	err := db.AutoMigrate(
 		&TblSpaces{},
 		&TblSpacesAliases{},
 		&TblPagesCategories{},
@@ -46,6 +46,8 @@ func MigrateTable(db *gorm.DB) {
 		&TblPagesGroupAliases{},
 		&TblPageAliasesLog{},
 	)
+
+	return err
 }
 
 /*SpaceDetail*/
